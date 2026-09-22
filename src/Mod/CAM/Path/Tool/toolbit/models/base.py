@@ -686,7 +686,7 @@ class ToolBit(Asset, ABC):
         if self.obj.BitBody:
             owner = (
                 getattr(self, "_timeline_owner_during_attach", None)
-                or getattr(self.obj, "VibeCADTimelineOwner", None)
+                or getattr(self.obj, "SteveCADTimelineOwner", None)
             )
             release = getattr(
                 getattr(owner, "Proxy", None),
@@ -1024,7 +1024,7 @@ class ToolBit(Asset, ABC):
 
             owner = (
                 getattr(self, "_timeline_owner_during_attach", None)
-                or getattr(self.obj, "VibeCADTimelineOwner", None)
+                or getattr(self.obj, "SteveCADTimelineOwner", None)
             )
             if owner is not None:
                 PathUtil.markTimelineResourceTree(self.obj, owner)

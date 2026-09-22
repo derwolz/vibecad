@@ -35,7 +35,7 @@ from PySide.QtCore import QT_TRANSLATE_NOOP
 import FreeCAD as App
 import FreeCADGui as Gui
 
-from VibeCADNativeTransaction import _OwnedDocumentTransaction
+from SteveCADNativeTransaction import _OwnedDocumentTransaction
 from SectionViewPosition import (
     SectionViewPositionError,
     alignment_base,

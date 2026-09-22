@@ -1,6 +1,6 @@
 # SPDX-License-Identifier: LGPL-2.1-or-later
 
-"""VibeCAD document-timeline contracts for accepted Draft GUI operations."""
+"""SteveCAD document-timeline contracts for accepted Draft GUI operations."""
 
 from pathlib import Path
 from tempfile import TemporaryDirectory
@@ -177,7 +177,7 @@ def _timeline_object_names():
     _update_gui()
     widget = Gui.getMainWindow().findChild(
         QtGui.QListWidget,
-        "VibeCADFeatureTimelineItems",
+        "SteveCADFeatureTimelineItems",
     )
     if widget is None:
         raise AssertionError("Timeline item list is unavailable")
@@ -266,9 +266,9 @@ class DraftTimelineGui(unittest.TestCase):
 
         self.assertEqual(len(outputs), 1)
         operation = outputs[0]
-        self.assertEqual(operation.VibeCADTimelineRole, "operation")
+        self.assertEqual(operation.SteveCADTimelineRole, "operation")
         self.assertEqual(
-            list(operation.VibeCADTimelineReplacedInputs),
+            list(operation.SteveCADTimelineReplacedInputs),
             [first, second],
         )
         self.assertFalse(first.Visibility)
@@ -291,12 +291,12 @@ class DraftTimelineGui(unittest.TestCase):
         operation = self.document.getObject(operation_name)
         self.assertIsNotNone(operation)
 
-        _timeline_button("VibeCADFeatureTimelinePrevious").click()
+        _timeline_button("SteveCADFeatureTimelinePrevious").click()
         _update_gui()
         self.assertFalse(operation.Visibility)
         self.assertTrue(first.Visibility)
         self.assertTrue(second.Visibility)
-        _timeline_button("VibeCADFeatureTimelineEnd").click()
+        _timeline_button("SteveCADFeatureTimelineEnd").click()
         _update_gui()
         self.assertTrue(operation.Visibility)
         self.assertFalse(first.Visibility)
@@ -316,9 +316,9 @@ class DraftTimelineGui(unittest.TestCase):
 
         self.assertEqual(len(outputs), 2)
         resource, operation = outputs
-        self.assertEqual(operation.VibeCADTimelineRole, "operation")
-        self.assertEqual(resource.VibeCADTimelineRole, "resource")
-        self.assertIs(resource.VibeCADTimelineOwner, operation)
+        self.assertEqual(operation.SteveCADTimelineRole, "operation")
+        self.assertEqual(resource.SteveCADTimelineRole, "resource")
+        self.assertIs(resource.SteveCADTimelineOwner, operation)
         controller = _timeline(self.document)
         self.assertIn(operation, controller.Operations)
         self.assertIn(resource, controller.Operations)
@@ -333,14 +333,14 @@ class DraftTimelineGui(unittest.TestCase):
         self.assertTrue(first.Visibility)
         self.assertTrue(second.Visibility)
 
-        _timeline_button("VibeCADFeatureTimelinePrevious").click()
+        _timeline_button("SteveCADFeatureTimelinePrevious").click()
         _update_gui()
         self.assertEqual(int(controller.Position), resource_index)
         self.assertFalse(operation.Visibility)
         self.assertFalse(resource.Visibility)
         self.assertTrue(first.Visibility)
         self.assertTrue(second.Visibility)
-        _timeline_button("VibeCADFeatureTimelineEnd").click()
+        _timeline_button("SteveCADFeatureTimelineEnd").click()
         _update_gui()
         self.assertTrue(operation.Visibility)
         self.assertTrue(resource.Visibility)
@@ -372,9 +372,9 @@ class DraftTimelineGui(unittest.TestCase):
         _update_gui()
 
         self.assertIs(array.Base, source)
-        self.assertEqual(array.VibeCADTimelineRole, "operation")
+        self.assertEqual(array.SteveCADTimelineRole, "operation")
         self.assertNotIn(
-            "VibeCADTimelineReplacedInputs",
+            "SteveCADTimelineReplacedInputs",
             array.PropertiesList,
         )
         self.assertTrue(source.Visibility)
@@ -385,11 +385,11 @@ class DraftTimelineGui(unittest.TestCase):
         self.document.recompute()
         self.assertGreater(array.Shape.BoundBox.XLength, 10)
 
-        _timeline_button("VibeCADFeatureTimelinePrevious").click()
+        _timeline_button("SteveCADFeatureTimelinePrevious").click()
         _update_gui()
         self.assertTrue(source.Visibility)
         self.assertFalse(array.Visibility)
-        _timeline_button("VibeCADFeatureTimelineEnd").click()
+        _timeline_button("SteveCADFeatureTimelineEnd").click()
         _update_gui()
         self.assertTrue(source.Visibility)
         self.assertTrue(array.Visibility)
@@ -436,7 +436,7 @@ class DraftTimelineGui(unittest.TestCase):
             timeline.accept_outputs([first, None])
 
         self.assertNotIn(
-            "VibeCADTimelineRole",
+            "SteveCADTimelineRole",
             first.PropertiesList,
         )
         self.assertEqual(tuple(controller.Operations), operations_before)
@@ -466,29 +466,29 @@ class DraftTimelineGui(unittest.TestCase):
             reopened_second = reopened.getObject(second_name)
             reopened_operation = reopened.getObject(operation_name)
             self.assertEqual(
-                reopened_operation.VibeCADTimelineRole,
+                reopened_operation.SteveCADTimelineRole,
                 "operation",
             )
             self.assertEqual(
-                list(reopened_operation.VibeCADTimelineReplacedInputs),
+                list(reopened_operation.SteveCADTimelineReplacedInputs),
                 [reopened_first, reopened_second],
             )
             self.assertIn(
                 "Hidden",
-                reopened_operation.getEditorMode("VibeCADTimelineRole"),
+                reopened_operation.getEditorMode("SteveCADTimelineRole"),
             )
             self.assertIn(
                 "Hidden",
                 reopened_operation.getEditorMode(
-                    "VibeCADTimelineReplacedInputs"
+                    "SteveCADTimelineReplacedInputs"
                 ),
             )
             self.assertFalse(
-                reopened_operation.removeProperty("VibeCADTimelineRole")
+                reopened_operation.removeProperty("SteveCADTimelineRole")
             )
             self.assertFalse(
                 reopened_operation.removeProperty(
-                    "VibeCADTimelineReplacedInputs"
+                    "SteveCADTimelineReplacedInputs"
                 )
             )
             self.assertFalse(reopened_first.Visibility)
@@ -514,10 +514,10 @@ class DraftTimelineGui(unittest.TestCase):
 
         self.assertFalse(source.Visibility)
         self.assertTrue(derived.Visibility)
-        self.assertEqual(derived.VibeCADTimelineRole, "operation")
+        self.assertEqual(derived.SteveCADTimelineRole, "operation")
         self.assertIn(
             "Hidden",
-            derived.getEditorMode("VibeCADTimelineRole"),
+            derived.getEditorMode("SteveCADTimelineRole"),
         )
 
         source_name = source.Name
@@ -538,12 +538,12 @@ class DraftTimelineGui(unittest.TestCase):
             self.assertFalse(reopened_source.Visibility)
             self.assertTrue(reopened_derived.Visibility)
             self.assertEqual(
-                reopened_derived.VibeCADTimelineRole,
+                reopened_derived.SteveCADTimelineRole,
                 "operation",
             )
             self.assertIn(
                 "Hidden",
-                reopened_derived.getEditorMode("VibeCADTimelineRole"),
+                reopened_derived.getEditorMode("SteveCADTimelineRole"),
             )
 
     def test_retained_transaction_refuses_to_change_its_close_outcome(self):
@@ -590,9 +590,9 @@ class DraftTimelineGui(unittest.TestCase):
         _update_gui()
 
         self.assertIsNot(result, source)
-        self.assertEqual(result.VibeCADTimelineRole, "operation")
+        self.assertEqual(result.SteveCADTimelineRole, "operation")
         self.assertEqual(
-            list(result.VibeCADTimelineReplacedInputs),
+            list(result.SteveCADTimelineReplacedInputs),
             [source],
         )
         self.assertFalse(source.Visibility)
@@ -613,7 +613,7 @@ class DraftTimelineGui(unittest.TestCase):
         reference = ObjectReference.capture(second)
         self.assertIs(reference.resolve(), second)
 
-        _timeline_button("VibeCADFeatureTimelinePrevious").click()
+        _timeline_button("SteveCADFeatureTimelinePrevious").click()
         _update_gui()
         self.assertTrue(
             self.document.isObjectUsableAtCurrentTimelinePosition(first)
@@ -632,7 +632,7 @@ class DraftTimelineGui(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "current History position"):
             ObjectReference.capture(second)
 
-        _timeline_button("VibeCADFeatureTimelineEnd").click()
+        _timeline_button("SteveCADFeatureTimelineEnd").click()
         _update_gui()
         self.assertIs(reference.resolve(), second)
 

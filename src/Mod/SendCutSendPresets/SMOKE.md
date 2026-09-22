@@ -13,7 +13,7 @@ cleanup, one recompute per action, and pending Unfold lifecycle callbacks.
 
 ## Isolated GUI regression tests
 
-Use a separate VibeCAD process with a private profile and temporary directory.
+Use a separate SteveCAD process with a private profile and temporary directory.
 Install SheetMetal and its `networkx` dependency in that test environment. Add
 `Mod/SendCutSendPresets` and its `tests` directory to the test process's
 `sys.path`, then run:
@@ -41,7 +41,7 @@ Configure with `CMAKE_BUILD_TYPE=Release`, `FREECAD_WARN_ERROR=ON`, and all
 
 ## Manual GUI (SheetMetal required)
 
-1. Restart FreeCAD/VibeCAD with SheetMetal + SendCutSendPresets installed.
+1. Restart FreeCAD/SteveCAD with SheetMetal + SendCutSendPresets installed.
 2. SheetMetal toolbar: open **Bend Presets (SCS + Custom)**.
 3. Source **SendCutSend library** → 5052 Aluminum / 0.063" → **Apply all**.
 4. Confirm bends get radius/K; material sheet `material_SCS_5052_063` appears.

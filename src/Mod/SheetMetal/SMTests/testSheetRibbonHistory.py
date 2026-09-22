@@ -63,8 +63,8 @@ class TestSheetRibbonHistory(unittest.TestCase):
         previous = Gui.activeWorkbench().name()
         self.addCleanup(lambda: Gui.activateWorkbench(previous))
         Gui.activateWorkbench("SMWorkbench")
-        controller = Gui.getMainWindow().findChild(QtCore.QObject, "VibeCADRibbonController")
-        self.fixture.wait_for(lambda: controller.property("VibeCADActiveSurfaceId") == "sheet_metal")
+        controller = Gui.getMainWindow().findChild(QtCore.QObject, "SteveCADRibbonController")
+        self.fixture.wait_for(lambda: controller.property("SteveCADActiveSurfaceId") == "sheet_metal")
         SheetMetalGui.ensure_commands_registered()
         Gui.Selection.clearSelection()
         Gui.Selection.addSelection(self.base)
@@ -88,7 +88,7 @@ class TestSheetRibbonHistory(unittest.TestCase):
         self.assertEqual(step.ViewObject.Proxy.mode, "flat")
         self.assertEqual(self.model.doc.UndoCount, before+1)
         self.assertEqual(self.base.Definition, '{"operations":[],"version":1}')
-        self.assertEqual(step.VibeCADTimelineRole, "operation")
+        self.assertEqual(step.SteveCADTimelineRole, "operation")
         self.assertFalse(self.base.Visibility)
         from SMTests.testSheetTree import TestSheetTree
         tree = TestSheetTree()
@@ -100,12 +100,12 @@ class TestSheetRibbonHistory(unittest.TestCase):
         QtWidgets.QApplication.sync()
         window = Gui.getMainWindow()
         self.assertTrue(window.windowHandle().screen().grabWindow(window.winId()).save(
-            str(Path(os.environ["VIBECAD_TEST_OUTPUT"])/"sheet-native-cuts-panel.png")))
+            str(Path(os.environ["STEVECAD_TEST_OUTPUT"])/"sheet-native-cuts-panel.png")))
 
     def test_deferred_native_runner_creates_the_same_tree_and_history_state(self):
         import SheetMetalHistoryOperations as Operations
-        from VibeCADCore import get_service
-        from VibeCADNativeMutation import NativeMutationRunner
+        from SteveCADCore import get_service
+        from SteveCADNativeMutation import NativeMutationRunner
         doc = self.model.doc
         prepared = Operations.prepare(self.base,
             {"operation": "add_circle", "center": list(self.model.bend_pick()[2]), "radius": 4},
@@ -139,8 +139,8 @@ class TestSheetRibbonHistory(unittest.TestCase):
         self.assertIsInstance(step.Proxy, History.CircleCutFeature)
         self.assertIs(step.BaseSheet, self.base)
         self.assertLess(step.Shape.Volume, volume)
-        self.assertEqual(step.VibeCADTimelineRole, "operation")
-        self.assertEqual(step.VibeCADTimelineEditCommand, "SheetMetal_EditHistoryCut")
+        self.assertEqual(step.SteveCADTimelineRole, "operation")
+        self.assertEqual(step.SteveCADTimelineEditCommand, "SheetMetal_EditHistoryCut")
         self.assertIn(step, doc.findObjects("App::DocumentTimeline")[0].Operations)
         self.assertEqual(executions[0].prepared.created[0].object_name, step.Name)
         self.fixture.wait_for(lambda: step.ViewObject.Proxy.ready)
@@ -165,7 +165,7 @@ class TestSheetRibbonHistory(unittest.TestCase):
         self.assertEqual(self.model.doc.UndoCount, undo+1)
         step = self.model.doc.getObject(run.status()["object_name"])
         self.assertIsInstance(step.Proxy, History.CircleCutFeature)
-        self.assertEqual(step.VibeCADTimelineEditCommand, "SheetMetal_EditHistoryCut")
+        self.assertEqual(step.SteveCADTimelineEditCommand, "SheetMetal_EditHistoryCut")
         self.model.recompute()
         self.assertTrue(History.get_prepared(step).folded.isValid())
 

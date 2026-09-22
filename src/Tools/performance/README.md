@@ -4,7 +4,7 @@
 
 Run `memory_lifecycle_probe.py` only in a separate packaged GUI with isolated
 preferences and a disposable `probe-document.FCStd`. Set
-`VIBECAD_ROUNDTRIP_COPY` to that copy and `VIBECAD_TRACE_PROBE_RESULT` to a JSON
+`STEVECAD_ROUNDTRIP_COPY` to that copy and `STEVECAD_TRACE_PROBE_RESULT` to a JSON
 path in the same directory. It measures process-private commit and resident
 working set before opening and through two open/close cycles; it never saves
 the document. It closes only its own diagnostic process when finished.
@@ -86,7 +86,7 @@ geometry, Tree, History, and display correctness.
 attribution. Profiling adds overhead: use a separate unprofiled run for timing
 acceptance. The input sender, heartbeat, and observer diagnostics also add some
 overhead; compare runs with the same instrumentation. The opt-in production
-trace switch `VIBECAD_RESTORE_DETAIL_TRACE` is enabled by this launcher.
+trace switch `STEVECAD_RESTORE_DETAIL_TRACE` is enabled by this launcher.
 
 `-ProfileCommandChecks` measures each instantiated command's `isActive()` check
 after the first open and records `command_checks` in the report. It does not
@@ -100,7 +100,7 @@ python -c "import pstats; pstats.Stats('<roundtrip.pstats>').strip_dirs().sort_s
 Keep original logs and failed reports. A successful build, runtime smoke test,
 or matching inventory alone does not establish responsiveness.
 
-For original FreeCAD corpus files that predate VibeCAD History, pass
+For original FreeCAD corpus files that predate SteveCAD History, pass
 `-AllowTimelineMigration` explicitly. The probe then accepts exactly one new
 `App::DocumentTimeline` on first open and records its name as
 `timeline_migration`. Every original object must remain; any other addition or
@@ -109,7 +109,7 @@ option does not relax invalid-state, link round-trip, or responsiveness checks.
 
 `-TraceNativeEvents` adds C++/Qt event attribution to `roundtrip.json`: event
 type, receiver class/name, nesting depth, start time, and elapsed time. Native
-records are collected only with `VIBECAD_RESTORE_DETAIL_TRACE`; collection
+records are collected only with `STEVECAD_RESTORE_DETAIL_TRACE`; collection
 does no file I/O on the GUI thread. A 4,096-record diagnostic buffer reports
 overflow explicitly, and the probe drains it each tick. This is a trace-memory
 bound, not an operation limit. Use an untraced run for final timing acceptance.
@@ -118,7 +118,7 @@ a `phase` label. Close scopes distinguish delete notifications, view-provider
 destruction, and viewer/provider-graph release; these scopes can overlap and
 their durations must not be added together as independent costs.
 `gui_event_trace_probe.py` checks recording and draining with one deliberately
-slow diagnostic event; set `VIBECAD_TRACE_PROBE_RESULT` to its ignored JSON path
+slow diagnostic event; set `STEVECAD_TRACE_PROBE_RESULT` to its ignored JSON path
 and run it in a fresh packaged GUI with tracing enabled.
 
 ## Generated dependency workload
@@ -132,7 +132,7 @@ evidence. Run it through the complete portable **root** command launcher, or a
 native build's matching Python/DLL environment:
 
 ```powershell
-$env:VIBECAD_GENERATED_DOCUMENT = '<ignored-output-directory>/parallel-600.FCStd'
+$env:STEVECAD_GENERATED_DOCUMENT = '<ignored-output-directory>/parallel-600.FCStd'
 & '<portable-directory>/FreeCADCmd.exe' ./src/Tools/performance/generate_boolean_document.py
 ```
 
@@ -149,8 +149,8 @@ After the GUI run, check the saved copy's geometry through the same portable
 root command launcher without loading geometry synchronously into the GUI:
 
 ```powershell
-$env:VIBECAD_VALIDATE_DOCUMENT = '<run-directory>/probe-document.FCStd'
-$env:VIBECAD_EXPECTED_GEOMETRY = '<generated-document-directory>/parallel-600.json'
+$env:STEVECAD_VALIDATE_DOCUMENT = '<run-directory>/probe-document.FCStd'
+$env:STEVECAD_EXPECTED_GEOMETRY = '<generated-document-directory>/parallel-600.json'
 & '<portable-directory>/FreeCADCmd.exe' ./src/Tools/performance/validate_boolean_document.py
 ```
 
@@ -160,7 +160,7 @@ volume, and face count with the generator's original measurements.
 ## VibeScript edit and cancellation lifecycle
 
 Run `vibescript_edit_probe.py` through the complete portable GUI launcher with
-an isolated user profile. Set `VIBECAD_TRACE_PROBE_RESULT` to a new, ignored JSON
+an isolated user profile. Set `STEVECAD_TRACE_PROBE_RESULT` to a new, ignored JSON
 report path. The probe creates its own 50-output document and project, exercises
 the real create, source-patch, and input-edit adapters, then cancels a patch
 during publication. It checks geometry, retained object identities, and rollback.
@@ -182,12 +182,12 @@ DLLs and modules (not the system Python):
 ```powershell
 $bundle = '<extracted-portable-directory>'
 $env:PYTHONHOME = "$bundle/bin"
-$env:PYTHONPATH = "$bundle/bin;$bundle/Mod/VibeCAD"
+$env:PYTHONPATH = "$bundle/bin;$bundle/Mod/SteveCAD"
 $env:PATH = "$bundle/bin;$env:PATH"
-& "$bundle/bin/python.exe" src/Tools/performance/model_capacity_probe.py --module-dir src/Mod/VibeCAD
-& "$bundle/bin/python.exe" src/Tools/performance/large_definition_probe.py --module-dir src/Mod/VibeCAD
-& "$bundle/bin/python.exe" src/Tools/performance/collision_scale_probe.py --module-dir src/Mod/VibeCAD
-& "$bundle/bin/python.exe" src/Tools/performance/assembly_retained_validation_probe.py --module-dir src/Mod/VibeCAD --attempt '<retained-attempt-directory>'
+& "$bundle/bin/python.exe" src/Tools/performance/model_capacity_probe.py --module-dir src/Mod/SteveCAD
+& "$bundle/bin/python.exe" src/Tools/performance/large_definition_probe.py --module-dir src/Mod/SteveCAD
+& "$bundle/bin/python.exe" src/Tools/performance/collision_scale_probe.py --module-dir src/Mod/SteveCAD
+& "$bundle/bin/python.exe" src/Tools/performance/assembly_retained_validation_probe.py --module-dir src/Mod/SteveCAD --attempt '<retained-attempt-directory>'
 ```
 
 The capacity probe captures and reloads 337 native leaf shapes and 2,437
@@ -212,7 +212,7 @@ responsiveness for every model.
 Run the focused regression batch from the repository environment:
 
 ```powershell
-.pixi/envs/default/python.exe -m pytest src/Mod/VibeCAD/vibecad_tests/test_model_size_limits.py src/Mod/VibeCAD/vibecad_tests/test_mechanism_engine.py src/Mod/VibeCAD/vibecad_tests/test_native_assembly_bom.py src/Mod/VibeCAD/vibecad_tests/test_vibescript_definition_size.py src/Mod/VibeCAD/vibecad_tests/test_mechanism_geometry_scale.py src/Mod/VibeCAD/vibecad_tests/test_modeling_surface_architecture.py src/Mod/VibeCAD/vibecad_tests/test_domain_artifact_batch.py src/Mod/VibeCAD/vibecad_tests/test_native_model_fastener.py -q --tb=short
+.pixi/envs/default/python.exe -m pytest src/Mod/SteveCAD/stevecad_tests/test_model_size_limits.py src/Mod/SteveCAD/stevecad_tests/test_mechanism_engine.py src/Mod/SteveCAD/stevecad_tests/test_native_assembly_bom.py src/Mod/SteveCAD/stevecad_tests/test_vibescript_definition_size.py src/Mod/SteveCAD/stevecad_tests/test_mechanism_geometry_scale.py src/Mod/SteveCAD/stevecad_tests/test_modeling_surface_architecture.py src/Mod/SteveCAD/stevecad_tests/test_domain_artifact_batch.py src/Mod/SteveCAD/stevecad_tests/test_native_model_fastener.py -q --tb=short
 ```
 
 Removing fixed model-count and definition-size ceilings does not remove finite

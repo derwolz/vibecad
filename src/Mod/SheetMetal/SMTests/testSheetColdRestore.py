@@ -21,7 +21,7 @@ class CreateFixture(unittest.TestCase):
         fixture = LiveSheetFlangePrompt()
         self.addCleanup(fixture.doCleanups)
         document = fixture.create_input()
-        document.saveAs(str(Path(os.environ["VIBECAD_TEST_OUTPUT"]) / "cold-sheet.FCStd"))
+        document.saveAs(str(Path(os.environ["STEVECAD_TEST_OUTPUT"]) / "cold-sheet.FCStd"))
 
 
 class TestColdRestore(unittest.TestCase):
@@ -65,7 +65,7 @@ class TestColdRestore(unittest.TestCase):
         application.installEventFilter(dialog_observer)
         self.addCleanup(lambda: application.removeEventFilter(dialog_observer))
         recent = App.ParamGet("User parameter:BaseApp/Preferences/RecentFiles")
-        recent.SetString("MRU0", os.environ["VIBECAD_COLD_RESTORE_FIXTURE"])
+        recent.SetString("MRU0", os.environ["STEVECAD_COLD_RESTORE_FIXTURE"])
         recent.SetInt("RecentFiles", 4)
         Gui.Command.get("Std_RecentFiles").ensureAction()
         Gui.runCommand("Std_RecentFiles", 0)
@@ -86,7 +86,7 @@ class TestColdRestore(unittest.TestCase):
 
         self.addCleanup(close)
         settle()
-        output = Path(os.environ["VIBECAD_TEST_OUTPUT"])
+        output = Path(os.environ["STEVECAD_TEST_OUTPUT"])
         (output / "imports.json").write_text(json.dumps({
             "main_thread": threading.get_ident(), "imports": imports}, indent=2))
         self.assertTrue(imports)
@@ -122,7 +122,7 @@ class TestColdRestore(unittest.TestCase):
             geometry = Editable.get_state_geometry(obj)
             self.assertTrue(geometry.folded.isValid())
             self.assertTrue(geometry.flat.isValid())
-            self.assertIsNotNone(Gui.Command.get(obj.VibeCADTimelineEditCommand))
+            self.assertIsNotNone(Gui.Command.get(obj.SteveCADTimelineEditCommand))
         Gui.activateWorkbench("SMWorkbench")
         for name in ("SheetMetal_BaseShape", "SheetMetal_AddBase", "SheetMetal_FromSolid",
                      "SheetMetal_AddWall", "SheetMetal_CreateFlange"):
@@ -150,7 +150,7 @@ class TestFoldColdRestore(TestColdRestore):
         self.assertEqual(float(fold.kfactor), .3)
         self.assertEqual(dict(sheet.ExpressionEngine)["KFactor"], f"{fold.Name}.kfactor")
         for obj in (fold, sheet):
-            self.assertIsNotNone(Gui.Command.get(obj.VibeCADTimelineEditCommand))
+            self.assertIsNotNone(Gui.Command.get(obj.SteveCADTimelineEditCommand))
         run = Preparation.start_preparation(sheet, expected_revision=Shared.capture_revision(sheet))
         while not run.future.done():
             QtCore.QCoreApplication.processEvents()

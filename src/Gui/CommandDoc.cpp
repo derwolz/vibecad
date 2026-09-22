@@ -1638,7 +1638,7 @@ void StdCmdDelete::activated(int iMsg)
                 Gui::approvedDocumentTimelineCommand(
                     object,
                     App::DocumentTimeline::DeleteCommandPropertyName,
-                    "VibeCADTimelineOperationDeleter",
+                    "SteveCADTimelineOperationDeleter",
                     true
                 );
             if (!approved) {

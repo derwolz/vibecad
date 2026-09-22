@@ -21,7 +21,7 @@ This PR does **not** include a full Aero user manual.
 This PR does **not** include the full updated ribbon-use explanations or
 tool-use explanations. Those docs are a later PR.
 
-`docs/vibecad-aero.md` only has a small delta (Analyze default, tail gating).
+`docs/stevecad-aero.md` only has a small delta (Analyze default, tail gating).
 Treat that as incomplete on purpose. Do not ask this PR to grow into the
 manual.
 
@@ -52,7 +52,7 @@ This PR does **not** touch TextPCB.
   `AGENTS.md` brief, and launches
   `C:\Program Files\Grok Bot\Grok Bot.exe` (not Grok Build `grok.exe`).
   Copy connection includes `brief_path`. Apply persists `GrokBotCommand`.
-- If `VibeCADGeometryWorker.exe` is missing, `read_geometry` can fall back
+- If `SteveCADGeometryWorker.exe` is missing, `read_geometry` can fall back
   in-process.
 - Compact reference images still downscale when the long edge exceeds
   `max_edge`.
@@ -89,7 +89,7 @@ treat `/v1/aero` as optional or tell Grok Bot to `exec` Analyze.
 - HTTP MCP / `:8765/mcp` stays stdio-only by design
   (`MCP_TRANSPORT = "stdio"`).
 - The legacy Workbenches preferences page stays unregistered
-  (`test_vibecad_does_not_expose_the_legacy_workbench_preferences_page`).
+  (`test_stevecad_does_not_expose_the_legacy_workbench_preferences_page`).
 
 ## Codex comment map (already addressed on the fork)
 
@@ -114,22 +114,22 @@ treat `/v1/aero` as optional or tell Grok Bot to `exec` Analyze.
 
 ```
 python3 -m pytest -q \
-  src/Mod/VibeCADAero/tests \
-  src/Mod/VibeCADAero/tests/test_honesty.py \
-  src/Mod/VibeCAD/vibecad_tests/test_aero_ribbon_and_context.py \
-  src/Mod/VibeCAD/vibecad_tests/test_aero_ribbon_install.py \
-  src/Mod/VibeCAD/vibecad_tests/test_agent_control.py \
-  src/Mod/VibeCAD/vibecad_tests/test_agent_control_grok_bot.py \
-  src/Mod/VibeCAD/vibecad_tests/test_geometry_worker_fallback.py \
-  src/Mod/VibeCAD/vibecad_tests/test_prompt_starters.py \
-  src/Mod/VibeCAD/vibecad_tests/test_ollama_inspect.py \
-  src/Mod/VibeCAD/vibecad_tests/test_reference_image_downscale.py \
-  src/Mod/VibeCAD/vibecad_tests/test_branding_contract.py::test_setup_agent_control_invokes_local_vibecadgui_import \
-  src/Mod/VibeCAD/vibecad_tests/test_branding_contract.py::test_vibecad_does_not_expose_the_legacy_workbench_preferences_page \
-  src/Mod/VibeCAD/vibecad_tests/test_mcp_control_mode.py::test_connection_configuration_is_a_clean_stdio_launch_specification
+  src/Mod/SteveCADAero/tests \
+  src/Mod/SteveCADAero/tests/test_honesty.py \
+  src/Mod/SteveCAD/stevecad_tests/test_aero_ribbon_and_context.py \
+  src/Mod/SteveCAD/stevecad_tests/test_aero_ribbon_install.py \
+  src/Mod/SteveCAD/stevecad_tests/test_agent_control.py \
+  src/Mod/SteveCAD/stevecad_tests/test_agent_control_grok_bot.py \
+  src/Mod/SteveCAD/stevecad_tests/test_geometry_worker_fallback.py \
+  src/Mod/SteveCAD/stevecad_tests/test_prompt_starters.py \
+  src/Mod/SteveCAD/stevecad_tests/test_ollama_inspect.py \
+  src/Mod/SteveCAD/stevecad_tests/test_reference_image_downscale.py \
+  src/Mod/SteveCAD/stevecad_tests/test_branding_contract.py::test_setup_agent_control_invokes_local_stevecadgui_import \
+  src/Mod/SteveCAD/stevecad_tests/test_branding_contract.py::test_stevecad_does_not_expose_the_legacy_workbench_preferences_page \
+  src/Mod/SteveCAD/stevecad_tests/test_mcp_control_mode.py::test_connection_configuration_is_a_clean_stdio_launch_specification
 ```
 
-`src/Mod/VibeCADAero/tests` already collects `test_honesty.py`. It is listed
+`src/Mod/SteveCADAero/tests` already collects `test_honesty.py`. It is listed
 again so reviewers do not skip the honesty payload.
 
 ## Additive / compatibility

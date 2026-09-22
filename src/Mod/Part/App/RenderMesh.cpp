@@ -107,7 +107,7 @@ Part::RenderMesh Part::prepareRenderMesh(
     meshParameters.Deflection = deflection;
     meshParameters.Relative = Standard_False;
     meshParameters.Angle = Base::toRadians(angularDeflection);
-    // VibeCAD fans independent shapes across its bounded persistent pool. An
+    // SteveCAD fans independent shapes across its bounded persistent pool. An
     // inner OCCT pool here would oversubscribe that application-wide budget.
     meshParameters.InParallel = Standard_False;
     meshParameters.AllowQualityDecrease = Standard_True;

@@ -315,18 +315,18 @@ class ObjectJob:
     def setupTreePresentation(self, obj):
         """Publish the Job as the authoritative Manufacture tree root."""
 
-        if not hasattr(obj, "VibeCADTreeRole"):
+        if not hasattr(obj, "SteveCADTreeRole"):
             obj.addProperty(
                 "App::PropertyString",
-                "VibeCADTreeRole",
+                "SteveCADTreeRole",
                 "Tree",
                 QT_TRANSLATE_NOOP(
                     "App::Property",
                     "Application tree presentation role",
                 ),
             )
-        obj.VibeCADTreeRole = self.TREE_ROLE
-        obj.setEditorMode("VibeCADTreeRole", 2)
+        obj.SteveCADTreeRole = self.TREE_ROLE
+        obj.setEditorMode("SteveCADTreeRole", 2)
 
     def _captureInitialTimelineOperation(self, operation):
         """Defer initial Job role mutation to the atomic core publisher."""

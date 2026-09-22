@@ -525,7 +525,7 @@ bool Tessellation::processAndCommit(
             throw Base::ValueError("Unknown shape tessellation method");
         }
 
-        PyObject* imported = PyImport_ImportModule("VibeCADMeshTessellationGui");
+        PyObject* imported = PyImport_ImportModule("SteveCADMeshTessellationGui");
         if (!imported) {
             throw Py::Exception();
         }

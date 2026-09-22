@@ -6,9 +6,9 @@ import FreeCADGui
 import Mesh
 from pivy import coin
 
-from MeshTests.TestVibeCADRibbonTools import (
-    TestVibeCADMeshSourceContracts,
-    TestVibeCADRibbonTools,
+from MeshTests.TestSteveCADRibbonTools import (
+    TestSteveCADMeshSourceContracts,
+    TestSteveCADRibbonTools,
 )
 
 

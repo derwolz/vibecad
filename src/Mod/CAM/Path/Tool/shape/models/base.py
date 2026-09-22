@@ -413,7 +413,7 @@ class ToolBitShape(Asset):
             # must not be copied onto a ToolBit.
             loaded_raw_params = get_object_properties(
                 props_obj,
-                exclude_groups=["", "Base", "Timeline", "VibeCAD"],
+                exclude_groups=["", "Base", "Timeline", "SteveCAD"],
             )
 
             # Separate values and types, and populate _param_types

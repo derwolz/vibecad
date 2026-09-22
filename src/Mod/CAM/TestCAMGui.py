@@ -33,7 +33,7 @@ from CAMTests.TestPathToolDocumentObjectEditorWidget import TestDocumentObjectEd
 from CAMTests.TestPathToolBitBrowserWidget import TestToolBitBrowserWidget
 from CAMTests.TestPathToolBitEditorWidget import TestToolBitPropertiesWidget
 from CAMTests.TestPathToolBitListWidget import TestToolBitListWidget
-from CAMTests.TestVibeCADRibbonTools import (
-    TestVibeCADCAMRibbonTools,
-    TestVibeCADCAMSourceContracts,
+from CAMTests.TestSteveCADRibbonTools import (
+    TestSteveCADCAMRibbonTools,
+    TestSteveCADCAMSourceContracts,
 )

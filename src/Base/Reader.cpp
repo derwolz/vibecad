@@ -451,7 +451,7 @@ void Base::XMLReader::readBinFile(const char* filename)
 void Base::XMLReader::readFiles(zipios::ZipInputStream& zipstream) const
 {
     CancellationScope::check();
-    const bool traceRestore = std::getenv("VIBECAD_RESTORE_DETAIL_TRACE") != nullptr;
+    const bool traceRestore = std::getenv("STEVECAD_RESTORE_DETAIL_TRACE") != nullptr;
     const auto filesStarted = std::chrono::steady_clock::now();
     std::size_t restoredFileCount = 0;
     // It's possible that not all objects inside the document could be created, e.g. if a module
@@ -519,7 +519,7 @@ void Base::XMLReader::readFiles(zipios::ZipInputStream& zipstream) const
                 ).count();
                 if (elapsed >= 20) {
                     Base::Console().message(
-                        "VIBECAD_RESTORE_DETAIL embedded_file name=%s size=%lld elapsed_ms=%lld\n",
+                        "STEVECAD_RESTORE_DETAIL embedded_file name=%s size=%lld elapsed_ms=%lld\n",
                         jt->FileName.c_str(),
                         static_cast<long long>(entry->getSize()),
                         static_cast<long long>(elapsed)
@@ -546,7 +546,7 @@ void Base::XMLReader::readFiles(zipios::ZipInputStream& zipstream) const
             std::chrono::steady_clock::now() - filesStarted
         ).count();
         Base::Console().message(
-            "VIBECAD_RESTORE_DETAIL embedded_files count=%llu elapsed_ms=%lld\n",
+            "STEVECAD_RESTORE_DETAIL embedded_files count=%llu elapsed_ms=%lld\n",
             static_cast<unsigned long long>(restoredFileCount),
             static_cast<long long>(elapsed)
         );

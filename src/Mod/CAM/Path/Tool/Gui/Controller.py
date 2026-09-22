@@ -33,7 +33,7 @@ import Path.Base.Util as PathUtil
 import Path.Tool.Controller as PathToolController
 from Path.CommandBoundary import TaskDocumentTransaction
 from Path.Tool.toolbit.ui.selector import ToolBitSelector
-from VibeCADNativeTransaction import _OwnedDocumentTransaction
+from SteveCADNativeTransaction import _OwnedDocumentTransaction
 
 Part = LazyLoader("Part", globals(), "Part")
 

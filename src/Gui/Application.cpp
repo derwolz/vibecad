@@ -324,7 +324,7 @@ struct ApplicationP
 
         // Retained for public API compatibility with preference-pack add-ons.
         prefPackManager = new PreferencePackManager();
-        // VibeCAD themes are constrained appearance profiles, not preference packs.
+        // SteveCAD themes are constrained appearance profiles, not preference packs.
         themeMngr = new ThemeManager();
         // Create the Style Parameter Manager
         styleParameterManager = new StyleParameters::ParameterManager();

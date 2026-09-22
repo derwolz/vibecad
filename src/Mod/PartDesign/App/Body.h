@@ -45,7 +45,7 @@ class PartDesignExport Body: public Part::BodyBase
 
 public:
     App::PropertyBool AllowCompound;
-    App::PropertyUUID VibeCADBodyId;
+    App::PropertyUUID SteveCADBodyId;
     App::PropertyUUID DesignId;
     App::PropertyString ComponentId;
 

@@ -125,12 +125,12 @@ def _result_solver_matches(root, solver):
         return (
             root is not solver
             and root.Document is solver.Document
-            and root.getTypeIdOfProperty("VibeCADTimelineRole")
+            and root.getTypeIdOfProperty("SteveCADTimelineRole")
             == "App::PropertyString"
-            and root.VibeCADTimelineRole == "resource"
-            and root.getTypeIdOfProperty("VibeCADTimelineOwner")
+            and root.SteveCADTimelineRole == "resource"
+            and root.getTypeIdOfProperty("SteveCADTimelineOwner")
             == "App::PropertyLinkHidden"
-            and root.VibeCADTimelineOwner is solver
+            and root.SteveCADTimelineOwner is solver
             and _timeline_root(root, solver.Document) is solver
         )
     except (AttributeError, RuntimeError, TypeError, ValueError):
@@ -164,7 +164,7 @@ def _mark_timeline_operation(operation):
             "A FEM timeline operation must be live in its document"
         )
 
-    property_name = "VibeCADTimelineRole"
+    property_name = "SteveCADTimelineRole"
     type_id = "App::PropertyString"
     if property_name in operation.PropertiesList:
         actual = operation.getTypeIdOfProperty(property_name)
@@ -185,26 +185,26 @@ def _mark_timeline_operation(operation):
         )
     _canonicalize_timeline_property(operation, property_name)
 
-    if "VibeCADTimelineOwner" in operation.PropertiesList:
+    if "SteveCADTimelineOwner" in operation.PropertiesList:
         if (
-            operation.getTypeIdOfProperty("VibeCADTimelineOwner")
+            operation.getTypeIdOfProperty("SteveCADTimelineOwner")
             != "App::PropertyLinkHidden"
         ):
             raise TypeError(
-                f"{operation.Name}.VibeCADTimelineOwner must be "
+                f"{operation.Name}.SteveCADTimelineOwner must be "
                 "App::PropertyLinkHidden"
             )
         _canonicalize_timeline_property(
             operation,
-            "VibeCADTimelineOwner",
+            "SteveCADTimelineOwner",
         )
-        operation.VibeCADTimelineOwner = None
+        operation.SteveCADTimelineOwner = None
 
     for optional_name, optional_type in (
-        ("VibeCADTimelineEditor", "App::PropertyLinkHidden"),
-        ("VibeCADTimelineEditCommand", "App::PropertyString"),
+        ("SteveCADTimelineEditor", "App::PropertyLinkHidden"),
+        ("SteveCADTimelineEditCommand", "App::PropertyString"),
         (
-            "VibeCADTimelineReplacedInputs",
+            "SteveCADTimelineReplacedInputs",
             "App::PropertyLinkListHidden",
         ),
     ):
@@ -214,7 +214,7 @@ def _mark_timeline_operation(operation):
             optional_type,
         )
 
-    operation.VibeCADTimelineRole = "operation"
+    operation.SteveCADTimelineRole = "operation"
     return operation
 
 
@@ -234,8 +234,8 @@ def _mark_timeline_resource(resource, owner):
         )
 
     expected = {
-        "VibeCADTimelineRole": "App::PropertyString",
-        "VibeCADTimelineOwner": "App::PropertyLinkHidden",
+        "SteveCADTimelineRole": "App::PropertyString",
+        "SteveCADTimelineOwner": "App::PropertyLinkHidden",
     }
     for property_name, type_id in expected.items():
         if property_name in resource.PropertiesList:
@@ -257,8 +257,8 @@ def _mark_timeline_resource(resource, owner):
             )
         _canonicalize_timeline_property(resource, property_name)
 
-    resource.VibeCADTimelineOwner = owner
-    resource.VibeCADTimelineRole = "resource"
+    resource.SteveCADTimelineOwner = owner
+    resource.SteveCADTimelineRole = "resource"
     return resource
 
 
@@ -326,10 +326,10 @@ def _timeline_root(obj, document):
     visited = set()
     while (
         _is_live_in_document(current, document)
-        and "VibeCADTimelineRole" in current.PropertiesList
-        and current.getTypeIdOfProperty("VibeCADTimelineRole")
+        and "SteveCADTimelineRole" in current.PropertiesList
+        and current.getTypeIdOfProperty("SteveCADTimelineRole")
         == "App::PropertyString"
-        and current.VibeCADTimelineRole == "resource"
+        and current.SteveCADTimelineRole == "resource"
     ):
         identity = (str(current.Name), int(current.ID))
         if identity in visited:
@@ -338,16 +338,16 @@ def _timeline_root(obj, document):
             )
         visited.add(identity)
         if (
-            "VibeCADTimelineOwner" not in current.PropertiesList
+            "SteveCADTimelineOwner" not in current.PropertiesList
             or current.getTypeIdOfProperty(
-                "VibeCADTimelineOwner"
+                "SteveCADTimelineOwner"
             )
             != "App::PropertyLinkHidden"
         ):
             raise RuntimeError(
                 "A FEM result resource has invalid owner metadata"
             )
-        current = current.VibeCADTimelineOwner
+        current = current.SteveCADTimelineOwner
     return (
         current
         if _is_live_in_document(current, document)
@@ -370,16 +370,16 @@ def _timeline_owner_chain_contains(obj, ancestor, document):
             )
         visited.add(identity)
         if (
-            "VibeCADTimelineRole" not in current.PropertiesList
-            or current.getTypeIdOfProperty("VibeCADTimelineRole")
+            "SteveCADTimelineRole" not in current.PropertiesList
+            or current.getTypeIdOfProperty("SteveCADTimelineRole")
             != "App::PropertyString"
-            or current.VibeCADTimelineRole != "resource"
-            or "VibeCADTimelineOwner" not in current.PropertiesList
-            or current.getTypeIdOfProperty("VibeCADTimelineOwner")
+            or current.SteveCADTimelineRole != "resource"
+            or "SteveCADTimelineOwner" not in current.PropertiesList
+            or current.getTypeIdOfProperty("SteveCADTimelineOwner")
             != "App::PropertyLinkHidden"
         ):
             return False
-        current = current.VibeCADTimelineOwner
+        current = current.SteveCADTimelineOwner
     return False
 
 
@@ -389,16 +389,16 @@ def _timeline_owned_resource_graph(owner):
     document = getattr(owner, "Document", None)
     if (
         not _is_live_in_document(owner, document)
-        or "VibeCADTimelineRole" not in owner.PropertiesList
-        or owner.getTypeIdOfProperty("VibeCADTimelineRole")
+        or "SteveCADTimelineRole" not in owner.PropertiesList
+        or owner.getTypeIdOfProperty("SteveCADTimelineRole")
         != "App::PropertyString"
-        or owner.VibeCADTimelineRole != "operation"
+        or owner.SteveCADTimelineRole != "operation"
         or _timeline_root(owner, document) is not owner
     ):
         raise ValueError(
             "A FEM result producer must be one live tracked solver operation"
         )
-    timeline = document.getObject("VibeCADTimeline")
+    timeline = document.getObject("SteveCADTimeline")
     if (
         timeline is None
         or timeline.TypeId != "App::DocumentTimeline"
@@ -422,7 +422,7 @@ def _timeline_owned_resource_graph(owner):
         for resource in resources
         if getattr(
             resource,
-            "VibeCADTimelineOwner",
+            "SteveCADTimelineOwner",
             None,
         )
         is owner
@@ -454,7 +454,7 @@ def _canonical_timeline_resource_order(owner, resources):
     for resource in exact_resources:
         direct_owner = getattr(
             resource,
-            "VibeCADTimelineOwner",
+            "SteveCADTimelineOwner",
             None,
         )
         if direct_owner not in children:
@@ -518,7 +518,7 @@ def _stage_timeline_result_graph(
         if (
             root not in exact_results
             or root not in resources
-            or getattr(root, "VibeCADTimelineOwner", None) is not solver
+            or getattr(root, "SteveCADTimelineOwner", None) is not solver
         ):
             raise ValueError(
                 "A retained FEM result root must be one direct resource "
@@ -544,7 +544,7 @@ def _stage_timeline_result_graph(
             or replacement_root not in resources
             or getattr(
                 replacement_root,
-                "VibeCADTimelineOwner",
+                "SteveCADTimelineOwner",
                 None,
             )
             is not solver
@@ -694,7 +694,7 @@ def _finalize_timeline_result_graph(
         if (
             reconciliation.root_identity != root_identity
             or root not in retained_resources
-            or getattr(root, "VibeCADTimelineOwner", None) is not solver
+            or getattr(root, "SteveCADTimelineOwner", None) is not solver
         ):
             raise RuntimeError(
                 "The retained FEM result root changed identity or ownership"
@@ -727,7 +727,7 @@ def _finalize_timeline_result_graph(
             or replacement_root not in replaced_resources
             or getattr(
                 replacement_root,
-                "VibeCADTimelineOwner",
+                "SteveCADTimelineOwner",
                 None,
             )
             is not solver
@@ -742,7 +742,7 @@ def _finalize_timeline_result_graph(
         for replacement_root in replacement_roots
     }
     replaced_set = set(replaced_resources)
-    timeline = document.getObject("VibeCADTimeline")
+    timeline = document.getObject("SteveCADTimeline")
     analysis = solver.getParentGroup()
     for old_resource in replaced_resources:
         consumers = [
@@ -915,7 +915,7 @@ def _purge_timeline_result_roots(solver, roots):
         for resource in old_resources
         if resource not in purged_set
     ]
-    timeline = document.getObject("VibeCADTimeline")
+    timeline = document.getObject("SteveCADTimeline")
     analysis = solver.getParentGroup()
     allowed_consumers = {solver, timeline, analysis, *purged_set}
     for resource in purged_resources:
@@ -1007,8 +1007,8 @@ def _mark_timeline_replaced_inputs(operation, inputs):
         )
 
     expected = {
-        "VibeCADTimelineRole": "App::PropertyString",
-        "VibeCADTimelineReplacedInputs": "App::PropertyLinkListHidden",
+        "SteveCADTimelineRole": "App::PropertyString",
+        "SteveCADTimelineReplacedInputs": "App::PropertyLinkListHidden",
     }
     for property_name, type_id in expected.items():
         if property_name in operation.PropertiesList:
@@ -1036,23 +1036,23 @@ def _mark_timeline_replaced_inputs(operation, inputs):
         )
         _canonicalize_timeline_property(operation, property_name)
 
-    if "VibeCADTimelineOwner" in operation.PropertiesList:
+    if "SteveCADTimelineOwner" in operation.PropertiesList:
         if (
-            operation.getTypeIdOfProperty("VibeCADTimelineOwner")
+            operation.getTypeIdOfProperty("SteveCADTimelineOwner")
             != "App::PropertyLinkHidden"
-            or operation.VibeCADTimelineOwner is not None
+            or operation.SteveCADTimelineOwner is not None
         ):
             raise TypeError(
                 "A FEM replacement operation cannot retain resource-owner metadata"
             )
         _canonicalize_timeline_property(
             operation,
-            "VibeCADTimelineOwner",
+            "SteveCADTimelineOwner",
         )
 
     for optional_name, optional_type in (
-        ("VibeCADTimelineEditor", "App::PropertyLinkHidden"),
-        ("VibeCADTimelineEditCommand", "App::PropertyString"),
+        ("SteveCADTimelineEditor", "App::PropertyLinkHidden"),
+        ("SteveCADTimelineEditCommand", "App::PropertyString"),
     ):
         _canonicalize_existing_timeline_property(
             operation,
@@ -1060,8 +1060,8 @@ def _mark_timeline_replaced_inputs(operation, inputs):
             optional_type,
         )
 
-    operation.VibeCADTimelineReplacedInputs = exact_inputs
-    operation.VibeCADTimelineRole = "operation"
+    operation.SteveCADTimelineReplacedInputs = exact_inputs
+    operation.SteveCADTimelineRole = "operation"
 
 
 def _selected_in_active_document():

@@ -15,7 +15,7 @@ with patch.object(sys, 'path', [str(SCRIPTS), *sys.path]):
 
 class TestMacOSBundleAudit(unittest.TestCase):
     def validate(self, binary, dependency, command='LC_LOAD_WEAK_DYLIB'):
-        bundle = Path('/test/VibeCAD.app')
+        bundle = Path('/test/SteveCAD.app')
         audit._validate_path(
             dependency, command=command, file_path=bundle / binary,
             bundle=bundle, forbidden_prefixes=(),

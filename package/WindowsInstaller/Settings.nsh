@@ -34,10 +34,10 @@ These typically need to be modified for each FreeCAD release
 
 #--------------------------------
 # get version info from freecadcmd
-!ifdef VIBECAD_VERSION_NSH
+!ifdef STEVECAD_VERSION_NSH
     # Release validation can inject a generated, disposable version file so the
     # NSIS script can be preprocessed without executing the packaged runtime.
-    !include "${VIBECAD_VERSION_NSH}"
+    !include "${STEVECAD_VERSION_NSH}"
 !else
     # Use the bundled interpreter directly. freecadcmd accepts a Python file as
     # an open-document argument and exits successfully without executing it.

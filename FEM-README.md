@@ -1,26 +1,26 @@
-# Analysis in VibeCAD
+# Analysis in SteveCAD
 
 The Analyze ribbon is where a model becomes an engineering study. The intended
 workflow starts with the result the user needs, not with knowledge of solver
-objects or command order. A user should be able to ask VibeCAD to analyze a
-part, assembly, thermal problem, or flow problem; VibeCAD should inspect the
+objects or command order. A user should be able to ask SteveCAD to analyze a
+part, assembly, thermal problem, or flow problem; SteveCAD should inspect the
 document, prepare the study, and ask only for engineering inputs that cannot be
 determined from the model.
 
-The ribbon and VibeCAD assistant use the same document operations. Switching to
+The ribbon and SteveCAD assistant use the same document operations. Switching to
 the **Analyze** ribbon changes the assistant's tools on the next message without
 changing conversations or modifying the source CAD geometry.
 
 ## Current solver support
 
-| Solver | VibeCAD integration | Runtime availability |
+| Solver | SteveCAD integration | Runtime availability |
 | --- | --- | --- |
 | CalculiX | Structural writer, runner, and result import | Included in packaged builds |
 | Elmer | Multiphysics writer, background runner, and result import | Install `ElmerSolver` and `ElmerGrid` separately |
 | OpenFOAM | Steady incompressible laminar and k-omega SST case writer, background runner, and VTK result import | Install OpenFOAM Foundation 14 on Linux |
 
 Elmer support in the document model does not mean the Elmer applications are
-installed. VibeCAD must be able to resolve both `ElmerSolver` and `ElmerGrid`.
+installed. SteveCAD must be able to resolve both `ElmerSolver` and `ElmerGrid`.
 Put them on the operating-system executable path or set their exact locations in
 **Preferences > FEM > Elmer**. MPI is optional; parallel Elmer runs also require
 the configured MPI launcher.
@@ -30,7 +30,7 @@ The current OpenFOAM integration is native Linux only. It resolves and runs
 from the installed OpenFOAM environment. On Ubuntu 24.04, follow the
 [OpenFOAM Foundation package instructions](https://openfoam.org/download/ubuntu/)
 and install `openfoam14`. The Foundation's supported Windows route uses WSL and
-its macOS route uses Multipass; VibeCAD does not yet bridge those environments.
+its macOS route uses Multipass; SteveCAD does not yet bridge those environments.
 See the [official Elmer project](https://github.com/ElmerCSC/elmerfem) for Elmer
 packages and source builds.
 
@@ -85,12 +85,12 @@ explicit inlet turbulence intensity and length scale and writes the required
 `k`, `omega`, and turbulent-viscosity fields. Other turbulence models, heat
 transfer, compressible flow, transient flow, moving/rotating regions,
 multiphase flow, multiple fluid regions, automatic exterior-fluid construction,
-and Windows or macOS runtime bridges are not implemented yet. VibeCAD rejects
+and Windows or macOS runtime bridges are not implemented yet. SteveCAD rejects
 those study definitions instead of silently changing their physics.
 
-## What VibeCAD assistance must provide
+## What SteveCAD assistance must provide
 
-VibeCAD assistance should turn a request such as “check this bracket for the
+SteveCAD assistance should turn a request such as “check this bracket for the
 expected load” or “analyze airflow through this duct” into a complete proposed
 study. It should:
 
@@ -114,7 +114,7 @@ indices or an unstructured object dump are not an acceptable interface.
 Solid CAD normally describes the hardware, while CFD solves the fluid around or
 inside it. A CFD study therefore needs a valid fluid domain plus named inlet,
 outlet or far-field boundaries, walls, and any rotating or moving regions.
-VibeCAD must make those regions visible and preserve their identities when the
+SteveCAD must make those regions visible and preserve their identities when the
 CAD model changes.
 
 ## Next coverage

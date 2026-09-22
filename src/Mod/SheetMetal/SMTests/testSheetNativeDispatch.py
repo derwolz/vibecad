@@ -14,12 +14,12 @@ from SMTests import testSheetNativeEdit
 
 class TestSheetNativeDispatch(unittest.TestCase):
     def setUp(self):
-        from VibeCADNativeCapabilityRegistry import NativeProviderSurface
-        from VibeCADNativeDispatch import NativeTurnDispatcher
-        from VibeCADNativeRegistry import build_native_capability_registry
-        from VibeCADNativeRuntimeRegistry import build_native_runtime_bindings
-        from VibeCADNativeSurface import NativeSurfaceSnapshot
-        from VibeCADNativeTurn import NativeTurnSnapshot
+        from SteveCADNativeCapabilityRegistry import NativeProviderSurface
+        from SteveCADNativeDispatch import NativeTurnDispatcher
+        from SteveCADNativeRegistry import build_native_capability_registry
+        from SteveCADNativeRuntimeRegistry import build_native_runtime_bindings
+        from SteveCADNativeSurface import NativeSurfaceSnapshot
+        from SteveCADNativeTurn import NativeTurnSnapshot
         self.fixture = testSheetNativeEdit.TestSheetNativeEdit()
         self.addCleanup(self.fixture.doCleanups)
         self.fixture.setUp()
@@ -106,9 +106,9 @@ class TestSheetNativeDispatch(unittest.TestCase):
 
     def test_live_sheet_surface_resolves_all_registered_operations(self):
         import FreeCADGui as Gui
-        from VibeCADNativeCapabilityRegistry import resolve_native_provider_surface
-        from VibeCADNativeRegistry import build_native_capability_registry
-        from VibeCADRibbonSurface import read_active_ribbon_surface
+        from SteveCADNativeCapabilityRegistry import resolve_native_provider_surface
+        from SteveCADNativeRegistry import build_native_capability_registry
+        from SteveCADRibbonSurface import read_active_ribbon_surface
         previous = Gui.activeWorkbench().name()
         self.addCleanup(lambda: Gui.activateWorkbench(previous))
         Gui.activateWorkbench("SMWorkbench")

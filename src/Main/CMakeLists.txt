@@ -2,20 +2,20 @@
 
 configure_file(freecad.rc.cmake ${CMAKE_CURRENT_BINARY_DIR}/freecad.rc)
 configure_file(freecadCmd.rc.cmake ${CMAKE_CURRENT_BINARY_DIR}/freecadCmd.rc)
-file(COPY vibecad.ico DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
+file(COPY stevecad.ico DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
 
 if(WIN32)
-    set(VIBECAD_LAUNCHER_DESCRIPTION "VibeCAD portable launcher")
-    set(VIBECAD_LAUNCHER_FILENAME "VibeCAD.exe")
+    set(STEVECAD_LAUNCHER_DESCRIPTION "SteveCAD portable launcher")
+    set(STEVECAD_LAUNCHER_FILENAME "SteveCAD.exe")
     configure_file(
-        vibecadPortableLauncher.rc.cmake
-        ${CMAKE_CURRENT_BINARY_DIR}/vibecadPortableLauncher.rc
+        stevecadPortableLauncher.rc.cmake
+        ${CMAKE_CURRENT_BINARY_DIR}/stevecadPortableLauncher.rc
     )
-    set(VIBECAD_LAUNCHER_DESCRIPTION "VibeCAD command-line portable launcher")
-    set(VIBECAD_LAUNCHER_FILENAME "FreeCADCmd.exe")
+    set(STEVECAD_LAUNCHER_DESCRIPTION "SteveCAD command-line portable launcher")
+    set(STEVECAD_LAUNCHER_FILENAME "FreeCADCmd.exe")
     configure_file(
-        vibecadPortableLauncher.rc.cmake
-        ${CMAKE_CURRENT_BINARY_DIR}/vibecadCmdPortableLauncher.rc
+        stevecadPortableLauncher.rc.cmake
+        ${CMAKE_CURRENT_BINARY_DIR}/stevecadCmdPortableLauncher.rc
     )
 endif()
 
@@ -24,7 +24,7 @@ if(BUILD_GUI)
 
     SET(FreeCAD_SRCS
         ${CMAKE_CURRENT_BINARY_DIR}/freecad.rc
-        vibecad.ico
+        stevecad.ico
         MainGui.cpp
     )
 
@@ -72,7 +72,7 @@ endif(BUILD_GUI)
 
 SET(FreeCADMainCmd_SRCS
     ${CMAKE_CURRENT_BINARY_DIR}/freecadCmd.rc
-    vibecad.ico
+    stevecad.ico
     MainCmd.cpp
 )
 
@@ -120,33 +120,33 @@ else()
     )
 endif()
 
-######################## VibeCAD portable launchers ########################
+######################## SteveCAD portable launchers ########################
 if(WIN32)
     if(BUILD_GUI)
-        add_executable(VibeCADPortableLauncher WIN32
-            VibeCADPortableLauncher.cpp
-            ${CMAKE_CURRENT_BINARY_DIR}/vibecadPortableLauncher.rc
-            vibecad.ico
+        add_executable(SteveCADPortableLauncher WIN32
+            SteveCADPortableLauncher.cpp
+            ${CMAKE_CURRENT_BINARY_DIR}/stevecadPortableLauncher.rc
+            stevecad.ico
         )
-        target_compile_definitions(VibeCADPortableLauncher PRIVATE VIBECAD_GUI_LAUNCHER)
-        target_link_libraries(VibeCADPortableLauncher PRIVATE user32)
+        target_compile_definitions(SteveCADPortableLauncher PRIVATE STEVECAD_GUI_LAUNCHER)
+        target_link_libraries(SteveCADPortableLauncher PRIVATE user32)
         if(FREECAD_WARN_ERROR)
-            target_compile_warn_error(VibeCADPortableLauncher)
+            target_compile_warn_error(SteveCADPortableLauncher)
         endif()
-        SET_BIN_DIR(VibeCADPortableLauncher VibeCADPortableLauncher)
-        INSTALL(TARGETS VibeCADPortableLauncher RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
+        SET_BIN_DIR(SteveCADPortableLauncher SteveCADPortableLauncher)
+        INSTALL(TARGETS SteveCADPortableLauncher RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
     endif()
 
-    add_executable(VibeCADCmdPortableLauncher
-        VibeCADPortableLauncher.cpp
-        ${CMAKE_CURRENT_BINARY_DIR}/vibecadCmdPortableLauncher.rc
-        vibecad.ico
+    add_executable(SteveCADCmdPortableLauncher
+        SteveCADPortableLauncher.cpp
+        ${CMAKE_CURRENT_BINARY_DIR}/stevecadCmdPortableLauncher.rc
+        stevecad.ico
     )
     if(FREECAD_WARN_ERROR)
-        target_compile_warn_error(VibeCADCmdPortableLauncher)
+        target_compile_warn_error(SteveCADCmdPortableLauncher)
     endif()
-    SET_BIN_DIR(VibeCADCmdPortableLauncher VibeCADCmdPortableLauncher)
-    INSTALL(TARGETS VibeCADCmdPortableLauncher RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
+    SET_BIN_DIR(SteveCADCmdPortableLauncher SteveCADCmdPortableLauncher)
+    INSTALL(TARGETS SteveCADCmdPortableLauncher RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
 endif()
 
 ######################## FreeCADMainPy ########################

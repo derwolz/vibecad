@@ -15,7 +15,7 @@ import FreeCAD as App
 import FreeCADGui as Gui
 from PySide6 import QtCore
 
-output = Path(os.environ['VIBECAD_TRACE_PROBE_RESULT'])
+output = Path(os.environ['STEVECAD_TRACE_PROBE_RESULT'])
 report = {'ok': False, 'events': []}
 document = None
 assembly = None

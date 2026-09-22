@@ -79,7 +79,7 @@ class TestRMFGExportChild(unittest.TestCase):
             workspace = Path(directory)
             Part.makeBox(1, 2, 3).exportBrep(str(workspace/"folded.brep"))
             (workspace/"request.json").write_text(json.dumps({
-                "schema": "vibecad-rmfg-step-v1", "brep_sha256": "0"*64}))
+                "schema": "stevecad-rmfg-step-v1", "brep_sha256": "0"*64}))
             self.assertEqual(Child.run(workspace), 1)
             self.assertFalse((workspace/"folded.step").exists())
             result = json.loads((workspace/"result.json").read_text())
@@ -93,7 +93,7 @@ class TestRMFGExportChild(unittest.TestCase):
             shape = Part.makeCompound([Part.makeBox(1, 2, 3), Part.makeBox(4, 5, 6)])
             shape.exportBrep(str(source))
             (workspace/"request.json").write_text(json.dumps({
-                "schema": "vibecad-rmfg-step-v1", "brep_sha256": hashlib.sha256(source.read_bytes()).hexdigest()}))
+                "schema": "stevecad-rmfg-step-v1", "brep_sha256": hashlib.sha256(source.read_bytes()).hexdigest()}))
             self.assertEqual(Child.run(workspace), 1)
             self.assertFalse((workspace/"folded.step").exists())
             self.assertIn("one valid solid", json.loads((workspace/"result.json").read_text())["message"])
@@ -138,7 +138,7 @@ class TestRMFGExport(unittest.TestCase):
         folded, flat = self.sheet.Shape, self.sheet.FlatShape
         result = self.wait(Export.start_prepared_export(self.sheet, expected_revision=revision))
         self.assertTrue(result.matches_revision(revision))
-        path = Path(os.environ["VIBECAD_TEST_OUTPUT"])/"reopened-folded.step"
+        path = Path(os.environ["STEVECAD_TEST_OUTPUT"])/"reopened-folded.step"
         path.write_bytes(result.step_bytes)
         restored = Part.Shape()
         restored.read(str(path))
@@ -193,7 +193,7 @@ class TestRMFGExport(unittest.TestCase):
         self.fixture.view.switch("flat")
         revision, undo = self.revision(), self.doc.UndoCount
         folded = self.sheet.Shape.copy()
-        output = Path(os.environ["VIBECAD_TEST_OUTPUT"])
+        output = Path(os.environ["STEVECAD_TEST_OUTPUT"])
         @contextmanager
         def retained_workspace(**options):
             # Preserve the child log and neutral files even if the export fails.
@@ -204,7 +204,7 @@ class TestRMFGExport(unittest.TestCase):
         result = self.wait(Export.start_export(self.sheet, expected_revision=revision, exporter=exporter))
         self.assertTrue(result.matches_revision(revision))
         self.assertTrue(result.step_bytes.startswith(b"ISO-10303-21;"))
-        path = Path(os.environ["VIBECAD_TEST_OUTPUT"])/"folded-export.step"
+        path = Path(os.environ["STEVECAD_TEST_OUTPUT"])/"folded-export.step"
         path.write_bytes(result.step_bytes)
         restored = Part.Shape()
         restored.read(str(path))

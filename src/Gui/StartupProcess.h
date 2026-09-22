@@ -74,7 +74,7 @@ private:
     void loadOpenInventor();
     void setBranding();
     void setStyleSheet();
-    void migrateVibeCADBackgroundAutoload(const QStringList& workbenches);
+    void migrateSteveCADBackgroundAutoload(const QStringList& workbenches);
     void autoloadModules(const QStringList& wb);
     void setImportImageFormats();
     void showMainWindow();

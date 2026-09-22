@@ -35,7 +35,7 @@ from Path.Base.Util import activeForOp
 from Path.Base.Util import coolantModeForOp
 from Path.Base.Util import toolControllerForOp
 import Path.Dressup.Utils as PathDressup
-from VibeCADNativeTransaction import _OwnedDocumentTransaction
+from SteveCADNativeTransaction import _OwnedDocumentTransaction
 from PySide.QtCore import QT_TRANSLATE_NOOP
 
 __doc__ = """CAM SimpleCopy command"""

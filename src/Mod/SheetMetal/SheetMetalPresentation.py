@@ -449,7 +449,7 @@ class SheetViewProvider:
         # attach/updateData can run while restored dependencies are still
         # incomplete. Request saved meshes after the native restore boundary.
         self._queue_refresh()
-        if getattr(self._object, "VibeCADTimelineEditCommand", None) == "SheetMetal_EditParameters":
+        if getattr(self._object, "SteveCADTimelineEditCommand", None) == "SheetMetal_EditParameters":
             # History must work when the file opens in another workbench.
             # Register the stored editor without activating a workbench or
             # changing the document, selection, or ribbon surface.

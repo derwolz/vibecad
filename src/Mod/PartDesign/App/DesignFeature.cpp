@@ -188,7 +188,7 @@ Body* bodyWithIdentity(const App::Document& document, const std::string& identit
 {
     Body* result = nullptr;
     for (auto* body : document.getObjectsOfType<Body>()) {
-        if (!body || body->VibeCADBodyId.getValueStr() != identity) {
+        if (!body || body->SteveCADBodyId.getValueStr() != identity) {
             continue;
         }
         if (result) {
@@ -2403,7 +2403,7 @@ bool DesignOperationProperties::supportsDesignResultOperation(std::string_view r
         ADD_PROPERTY_TYPE( \
             OperationId, \
             (operationId), \
-            "VibeCAD Design", \
+            "SteveCAD Design", \
             static_cast<App::PropertyType>(App::Prop_ReadOnly), \
             "Persistent identity of this Design History operation" \
         ); \
@@ -2411,14 +2411,14 @@ bool DesignOperationProperties::supportsDesignResultOperation(std::string_view r
         ADD_PROPERTY_TYPE( \
             DesignId, \
             (designId), \
-            "VibeCAD Design", \
+            "SteveCAD Design", \
             static_cast<App::PropertyType>(App::Prop_ReadOnly | App::Prop_Hidden), \
             "Persistent identity of the Design which owns this operation" \
         ); \
         ADD_PROPERTY_TYPE( \
             DesignSchemaVersion, \
             (currentDesignSchemaVersion), \
-            "VibeCAD Design", \
+            "SteveCAD Design", \
             static_cast<App::PropertyType>(App::Prop_Output | App::Prop_ReadOnly | App::Prop_Hidden), \
             "Saved Design operation schema" \
         ); \
@@ -2434,7 +2434,7 @@ bool DesignOperationProperties::supportsDesignResultOperation(std::string_view r
         ADD_PROPERTY_TYPE( \
             InputStates, \
             (), \
-            "VibeCAD Design", \
+            "SteveCAD Design", \
             static_cast<App::PropertyType>(App::Prop_ReadOnly | App::Prop_Hidden), \
             "Exact prior Body states, parallel to InputBodyIds" \
         ); \
@@ -2442,49 +2442,49 @@ bool DesignOperationProperties::supportsDesignResultOperation(std::string_view r
         ADD_PROPERTY_TYPE( \
             InputBodyIds, \
             (), \
-            "VibeCAD Design", \
+            "SteveCAD Design", \
             static_cast<App::PropertyType>(App::Prop_ReadOnly | App::Prop_Hidden), \
             "Persistent Body identity for each exact input state" \
         ); \
         ADD_PROPERTY_TYPE( \
             InputFrames, \
             (), \
-            "VibeCAD Design", \
+            "SteveCAD Design", \
             static_cast<App::PropertyType>(App::Prop_ReadOnly | App::Prop_Hidden), \
             "Exact Design-to-Body frame for each input state" \
         ); \
         ADD_PROPERTY_TYPE( \
             OutputBodyIds, \
             (), \
-            "VibeCAD Design", \
+            "SteveCAD Design", \
             static_cast<App::PropertyType>(App::Prop_ReadOnly | App::Prop_Hidden), \
             "Persistent Body identity for each output state" \
         ); \
         ADD_PROPERTY_TYPE( \
             OutputFrames, \
             (), \
-            "VibeCAD Design", \
+            "SteveCAD Design", \
             static_cast<App::PropertyType>(App::Prop_ReadOnly | App::Prop_Hidden), \
             "Exact Design-to-Body frame for each output state" \
         ); \
         ADD_PROPERTY_TYPE( \
             OutputPreviousInputIndices, \
             (), \
-            "VibeCAD Design", \
+            "SteveCAD Design", \
             static_cast<App::PropertyType>(App::Prop_ReadOnly | App::Prop_Hidden), \
             "Input port advanced by each output; -1 creates a Body" \
         ); \
         ADD_PROPERTY_TYPE( \
             OutputPresence, \
             (), \
-            "VibeCAD Design", \
+            "SteveCAD Design", \
             static_cast<App::PropertyType>(App::Prop_Output | App::Prop_ReadOnly | App::Prop_Hidden), \
             "Whether each output Body exists at this History state" \
         ); \
         ADD_PROPERTY_TYPE( \
             OutputComponentIds, \
             (), \
-            "VibeCAD Design", \
+            "SteveCAD Design", \
             static_cast<App::PropertyType>(App::Prop_ReadOnly | App::Prop_Hidden), \
             "Destination Component for each operation-created output Body" \
         ); \
@@ -2498,7 +2498,7 @@ bool DesignOperationProperties::supportsDesignResultOperation(std::string_view r
         ADD_PROPERTY_TYPE( \
             TargetFrames, \
             (), \
-            "VibeCAD Design", \
+            "SteveCAD Design", \
             static_cast<App::PropertyType>(App::Prop_ReadOnly | App::Prop_Hidden), \
             "Compatibility mirror of OutputFrames" \
         ); \
@@ -2512,7 +2512,7 @@ bool DesignOperationProperties::supportsDesignResultOperation(std::string_view r
         ADD_PROPERTY_TYPE( \
             OutputShapes, \
             (), \
-            "VibeCAD Design", \
+            "SteveCAD Design", \
             static_cast<App::PropertyType>(App::Prop_Output | App::Prop_ReadOnly | App::Prop_Hidden), \
             "Atomic output Body-state geometry, parallel to OutputBodyIds" \
         ); \
@@ -2523,7 +2523,7 @@ bool DesignOperationProperties::supportsDesignResultOperation(std::string_view r
         ADD_PROPERTY_TYPE( \
             TargetElementOffsets, \
             (), \
-            "VibeCAD Design", \
+            "SteveCAD Design", \
             static_cast<App::PropertyType>(App::Prop_ReadOnly | App::Prop_Hidden), \
             "Offsets partitioning TargetElements by target Body" \
         ); \
@@ -3233,7 +3233,7 @@ DesignMirror::DesignMirror()
     ADD_PROPERTY_TYPE(
         PlaneReferenceFrame,
         (Base::Placement()),
-        "VibeCAD Design",
+        "SteveCAD Design",
         static_cast<App::PropertyType>(App::Prop_ReadOnly | App::Prop_Hidden),
         "Containing coordinate frame captured with the mirror plane"
     );
@@ -3369,7 +3369,7 @@ DesignLinearPattern::DesignLinearPattern()
     ADD_PROPERTY_TYPE(
         DirectionReferenceFrame,
         (Base::Placement()),
-        "VibeCAD Design",
+        "SteveCAD Design",
         static_cast<App::PropertyType>(App::Prop_ReadOnly | App::Prop_Hidden),
         "Containing coordinate frame captured with the pattern direction"
     );
@@ -3537,7 +3537,7 @@ DesignCircularPattern::DesignCircularPattern()
     ADD_PROPERTY_TYPE(
         AxisReferenceFrame,
         (Base::Placement()),
-        "VibeCAD Design",
+        "SteveCAD Design",
         static_cast<App::PropertyType>(App::Prop_ReadOnly | App::Prop_Hidden),
         "Containing coordinate frame captured with the rotation axis"
     );
@@ -4153,14 +4153,14 @@ DesignDraft::DesignDraft()
     ADD_PROPERTY_TYPE(
         NeutralPlaneFrame,
         (Base::Placement()),
-        "VibeCAD Design",
+        "SteveCAD Design",
         static_cast<App::PropertyType>(App::Prop_ReadOnly | App::Prop_Hidden),
         "Containing coordinate frame captured with the neutral-plane reference"
     );
     ADD_PROPERTY_TYPE(
         PullDirectionFrame,
         (Base::Placement()),
-        "VibeCAD Design",
+        "SteveCAD Design",
         static_cast<App::PropertyType>(App::Prop_ReadOnly | App::Prop_Hidden),
         "Containing coordinate frame captured with the pull-direction reference"
     );
@@ -4371,21 +4371,21 @@ DesignSplit::DesignSplit()
     ADD_PROPERTY_TYPE(
         SplitterFrames,
         (),
-        "VibeCAD Design",
+        "SteveCAD Design",
         static_cast<App::PropertyType>(App::Prop_ReadOnly | App::Prop_Hidden),
         "Saved containing coordinate frame for every Split definition"
     );
     ADD_PROPERTY_TYPE(
         RegionWitnesses,
         (),
-        "VibeCAD Design",
+        "SteveCAD Design",
         static_cast<App::PropertyType>(App::Prop_ReadOnly | App::Prop_Hidden),
         "Strict interior identity point for every Split output Body"
     );
     ADD_PROPERTY_TYPE(
         RetainedRegionChosen,
         (false),
-        "VibeCAD Design",
+        "SteveCAD Design",
         static_cast<App::PropertyType>(App::Prop_ReadOnly | App::Prop_Hidden),
         "Whether the user explicitly chose which region retains the source Body identity"
     );
@@ -4459,7 +4459,7 @@ DesignSeparate::DesignSeparate()
     ADD_PROPERTY_TYPE(
         RegionWitnesses,
         (),
-        "VibeCAD Design",
+        "SteveCAD Design",
         static_cast<App::PropertyType>(App::Prop_ReadOnly | App::Prop_Hidden),
         "Strict interior Design-space identity point for every output Body"
     );
@@ -4904,7 +4904,7 @@ DesignBodyState::DesignBodyState()
     ADD_PROPERTY_TYPE(
         Operation,
         (nullptr),
-        "VibeCAD Design",
+        "SteveCAD Design",
         App::Prop_None,
         "Design-global History operation which produces this Body state"
     );
@@ -4912,7 +4912,7 @@ DesignBodyState::DesignBodyState()
     ADD_PROPERTY_TYPE(
         OutputIndex,
         (0),
-        "VibeCAD Design",
+        "SteveCAD Design",
         static_cast<App::PropertyType>(App::Prop_ReadOnly | App::Prop_Hidden),
         "Index of this Body state in the operation output set"
     );
@@ -4921,7 +4921,7 @@ DesignBodyState::DesignBodyState()
     ADD_PROPERTY_TYPE(
         DesignId,
         (designId),
-        "VibeCAD Design",
+        "SteveCAD Design",
         static_cast<App::PropertyType>(App::Prop_ReadOnly | App::Prop_Hidden),
         "Persistent identity of the Design which owns this Body state"
     );
@@ -4929,7 +4929,7 @@ DesignBodyState::DesignBodyState()
     ADD_PROPERTY_TYPE(
         OperationId,
         (operationId),
-        "VibeCAD Design",
+        "SteveCAD Design",
         static_cast<App::PropertyType>(App::Prop_ReadOnly | App::Prop_Hidden),
         "Persistent identity of the operation producing this Body state"
     );
@@ -4937,7 +4937,7 @@ DesignBodyState::DesignBodyState()
     ADD_PROPERTY_TYPE(
         BodyId,
         (bodyId),
-        "VibeCAD Design",
+        "SteveCAD Design",
         static_cast<App::PropertyType>(App::Prop_ReadOnly),
         "Persistent identity of the Body advanced by this state"
     );
@@ -4945,14 +4945,14 @@ DesignBodyState::DesignBodyState()
     ADD_PROPERTY_TYPE(
         BodyStateId,
         (stateId),
-        "VibeCAD Design",
+        "SteveCAD Design",
         static_cast<App::PropertyType>(App::Prop_ReadOnly),
         "Persistent identity of this exact Body state"
     );
     ADD_PROPERTY_TYPE(
         PreviousState,
         (nullptr),
-        "VibeCAD Design",
+        "SteveCAD Design",
         static_cast<App::PropertyType>(App::Prop_ReadOnly | App::Prop_Hidden),
         "Exact preceding Design-owned state of the same Body"
     );
@@ -4960,7 +4960,7 @@ DesignBodyState::DesignBodyState()
     ADD_PROPERTY_TYPE(
         Present,
         (true),
-        "VibeCAD Design",
+        "SteveCAD Design",
         static_cast<App::PropertyType>(App::Prop_Output | App::Prop_ReadOnly | App::Prop_Hidden),
         "Whether this Body exists at this exact History state"
     );
@@ -5131,7 +5131,7 @@ DesignBodyPublication::DesignBodyPublication()
     ADD_PROPERTY_TYPE(
         CurrentState,
         (nullptr),
-        "VibeCAD Design",
+        "SteveCAD Design",
         App::Prop_None,
         "Newest Design-owned state published by this Body"
     );
@@ -5141,7 +5141,7 @@ DesignBodyPublication::DesignBodyPublication()
     ADD_PROPERTY_TYPE(
         DesignId,
         (designId),
-        "VibeCAD Design",
+        "SteveCAD Design",
         static_cast<App::PropertyType>(App::Prop_ReadOnly | App::Prop_Hidden),
         "Persistent identity of the Design which owns this Body publication"
     );
@@ -5149,7 +5149,7 @@ DesignBodyPublication::DesignBodyPublication()
     ADD_PROPERTY_TYPE(
         BodyId,
         (bodyId),
-        "VibeCAD Design",
+        "SteveCAD Design",
         static_cast<App::PropertyType>(App::Prop_ReadOnly),
         "Persistent identity of the Body rendered by this publication"
     );
@@ -5158,7 +5158,7 @@ DesignBodyPublication::DesignBodyPublication()
     ADD_PROPERTY_TYPE(
         BodyStateId,
         (bodyStateId),
-        "VibeCAD Design",
+        "SteveCAD Design",
         static_cast<App::PropertyType>(App::Prop_Output | App::Prop_ReadOnly | App::Prop_Hidden),
         "Persistent identity of the newest Body state published here"
     );
@@ -5190,7 +5190,7 @@ short DesignBodyPublication::mustExecute() const
 App::DocumentObjectExecReturn* DesignBodyPublication::execute()
 {
     auto* body = getFeatureBody();
-    if (!body || body->VibeCADBodyId.getValueStr() != BodyId.getValueStr()) {
+    if (!body || body->SteveCADBodyId.getValueStr() != BodyId.getValueStr()) {
         return outputError("This publication is not contained by its persistent target Body");
     }
 

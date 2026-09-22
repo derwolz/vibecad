@@ -4,7 +4,7 @@
 Run from the Mod directory:
   python -m unittest tests.test_smoke -v
 
-AI/TDD note (vibecad CONTRIBUTING): these unit tests cover pure data/helpers.
+AI/TDD note (stevecad CONTRIBUTING): these unit tests cover pure data/helpers.
 GUI Apply/Unfold flows are listed in SMOKE.md (FreeCADCmd + manual GUI).
 """
 

@@ -2897,7 +2897,7 @@ Gui::Action* CmdPartSectionCut::createAction()
 {
     Gui::Action* pcAction = Gui::Command::createAction();
     if (pcAction && pcAction->action()) {
-        pcAction->action()->setProperty("VibeCADTimelineOperationEditor", true);
+        pcAction->action()->setProperty("SteveCADTimelineOperationEditor", true);
     }
     return pcAction;
 }

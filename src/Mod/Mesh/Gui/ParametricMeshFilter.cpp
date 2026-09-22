@@ -37,7 +37,7 @@ enum class OutputInputMode
 };
 
 constexpr auto MeshesGroupName = "Meshes";
-constexpr auto MeshesGroupRoleProperty = "VibeCADTreeRole";
+constexpr auto MeshesGroupRoleProperty = "SteveCADTreeRole";
 constexpr auto MeshesGroupRole = "meshes";
 
 bool isMeshesGroup(const App::DocumentObjectGroup* group)
@@ -192,7 +192,7 @@ void storeExternalInputIdentities(
     const std::vector<std::string>& externalInputs
 )
 {
-    constexpr auto propertyName = "VibeCADExternalInputs";
+    constexpr auto propertyName = "SteveCADExternalInputs";
     auto* property = operation.getPropertyByName(propertyName);
     if (!property) {
         property = operation.addDynamicProperty(

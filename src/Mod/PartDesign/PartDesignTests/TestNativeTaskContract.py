@@ -1,6 +1,6 @@
 # SPDX-License-Identifier: LGPL-2.1-or-later
 
-"""VibeCAD contracts for native modal-task ownership and rollback.
+"""SteveCAD contracts for native modal-task ownership and rollback.
 
 These are deliberately user-facing contracts rather than inherited FreeCAD
 implementation tests.  A native task may borrow document and GUI state while
@@ -444,7 +444,7 @@ class TestNativeTaskContract(unittest.TestCase):
             "OrganizeModelByType",
             True,
         )
-        # The typed VibeCAD browser intentionally presents Bodies and Sketches,
+        # The typed SteveCAD browser intentionally presents Bodies and Sketches,
         # while edit history lives in the timeline.  Disable that presentation
         # only for the test that must drive the legacy native TreeWidget's
         # double-click entry point.
@@ -772,7 +772,7 @@ class TestNativeTaskContract(unittest.TestCase):
                 return True
 
         command_name = (
-            f"VibeCAD_TestStandaloneTask_{id(self):x}"
+            f"SteveCAD_TestStandaloneTask_{id(self):x}"
         )
         Gui.addCommand(command_name, StandaloneCommand())
 
@@ -1025,7 +1025,7 @@ class TestNativeTaskContract(unittest.TestCase):
             def IsActive(self):
                 return True
 
-        command_name = "VibeCAD_TestDirectAppExactClose"
+        command_name = "SteveCAD_TestDirectAppExactClose"
         Gui.addCommand(command_name, DirectCloseCommand())
         App.addDocumentObserver(observer)
         try:
@@ -1528,7 +1528,7 @@ class TestNativeTaskContract(unittest.TestCase):
 
         try:
             with tempfile.TemporaryDirectory(
-                prefix="vibecad-task-document-delete-"
+                prefix="stevecad-task-document-delete-"
             ) as directory:
                 directory = Path(directory)
                 macro_path = directory / "DeletedTaskDocument.FCMacro"
@@ -1585,7 +1585,7 @@ class TestNativeTaskContract(unittest.TestCase):
         """Closing A removes B's resolved A refs without clearing local B."""
 
         temporary_directory = tempfile.TemporaryDirectory(
-            prefix="vibecad-cross-document-selection-"
+            prefix="stevecad-cross-document-selection-"
         )
         source = self.document.addObject(
             "Part::Feature",
@@ -1650,7 +1650,7 @@ class TestNativeTaskContract(unittest.TestCase):
         self._process_events()
 
         with tempfile.TemporaryDirectory(
-            prefix="vibecad-native-task-macro-"
+            prefix="stevecad-native-task-macro-"
         ) as directory:
             directory = Path(directory)
 
@@ -1713,7 +1713,7 @@ class TestNativeTaskContract(unittest.TestCase):
         self._process_events()
 
         with tempfile.TemporaryDirectory(
-            prefix="vibecad-command-state-purity-"
+            prefix="stevecad-command-state-purity-"
         ) as directory:
             directory = Path(directory)
             path = directory / "CommandStatePurity.FCMacro"
@@ -1784,7 +1784,7 @@ class TestNativeTaskContract(unittest.TestCase):
 
         try:
             with tempfile.TemporaryDirectory(
-                prefix="vibecad-task-document-switch-"
+                prefix="stevecad-task-document-switch-"
             ) as directory:
                 directory = Path(directory)
 
@@ -1800,7 +1800,7 @@ class TestNativeTaskContract(unittest.TestCase):
                 self.assertTrue(Gui.Control.activeDialog())
                 canceled_name = self.document.ActiveObject.Name
                 cancel_probe = (
-                    "vibecad_other_document_cancel_trace_probe = True"
+                    "stevecad_other_document_cancel_trace_probe = True"
                 )
                 switch_and_emit(cancel_probe)
                 self._cancel_task()
@@ -1823,7 +1823,7 @@ class TestNativeTaskContract(unittest.TestCase):
                 self.assertTrue(Gui.Control.activeDialog())
                 accepted = self.document.ActiveObject
                 accept_probe = (
-                    "vibecad_other_document_accept_trace_probe = True"
+                    "stevecad_other_document_accept_trace_probe = True"
                 )
                 switch_and_emit(accept_probe)
                 self._accept_task()
@@ -1869,7 +1869,7 @@ class TestNativeTaskContract(unittest.TestCase):
         self.document.UndoMode = False
 
         with tempfile.TemporaryDirectory(
-            prefix="vibecad-sync-command-macro-"
+            prefix="stevecad-sync-command-macro-"
         ) as directory:
             directory = Path(directory)
             path = directory / "SynchronousExplicitTrace.FCMacro"
@@ -1909,7 +1909,7 @@ class TestNativeTaskContract(unittest.TestCase):
         self.assertTrue(Gui.isCommandActive("PartDesign_CompDatums"))
 
         with tempfile.TemporaryDirectory(
-            prefix="vibecad-group-command-macro-"
+            prefix="stevecad-group-command-macro-"
         ) as directory:
             directory = Path(directory)
             path = directory / "NestedGroupTrace.FCMacro"

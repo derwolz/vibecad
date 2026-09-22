@@ -92,7 +92,7 @@ NotValidBaseTypeIds = []
 
 def isValidBaseObject(obj):
     """isValidBaseObject(obj) ... returns true if the object can be used as a base for a job."""
-    timeline_role = str(getattr(obj, "VibeCADTimelineRole", "") or "")
+    timeline_role = str(getattr(obj, "SteveCADTimelineRole", "") or "")
     if timeline_role in {"internal", "resource"} and obj.TypeId != "PartDesign::Body":
         return False
     if hasattr(obj, "getParentGeoFeatureGroup") and obj.getParentGeoFeatureGroup():
@@ -170,11 +170,11 @@ def activeForOp(op):
     return opProperty(op, "Active", True)
 
 
-_TIMELINE_ROLE_PROPERTY = "VibeCADTimelineRole"
-_TIMELINE_OWNER_PROPERTY = "VibeCADTimelineOwner"
-_TIMELINE_REPLACED_INPUTS_PROPERTY = "VibeCADTimelineReplacedInputs"
-_TIMELINE_PARENT_JOB_PROPERTY = "VibeCADCAMParentJob"
-_TIMELINE_PROPERTY_GROUP = "VibeCAD"
+_TIMELINE_ROLE_PROPERTY = "SteveCADTimelineRole"
+_TIMELINE_OWNER_PROPERTY = "SteveCADTimelineOwner"
+_TIMELINE_REPLACED_INPUTS_PROPERTY = "SteveCADTimelineReplacedInputs"
+_TIMELINE_PARENT_JOB_PROPERTY = "SteveCADCAMParentJob"
+_TIMELINE_PROPERTY_GROUP = "SteveCAD"
 
 
 def _ensureTimelineProperty(obj, type_id, name, description):
@@ -684,7 +684,7 @@ def _timelineOwnedResourceGraph(owner):
         raise ValueError(
             "A retained CAM resource owner must be one live tracked operation"
         )
-    timeline = document.getObject("VibeCADTimeline")
+    timeline = document.getObject("SteveCADTimeline")
     if (
         timeline is None
         or timeline.TypeId != "App::DocumentTimeline"

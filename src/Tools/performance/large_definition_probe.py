@@ -19,9 +19,9 @@ def main():
     args = parser.parse_args()
     if args.module_dir:
         sys.path.insert(0, str(args.module_dir.resolve()))
-    import VibeCADVibeScriptDomains as domains
+    import SteveCADVibeScriptDomains as domains
     import vibescript_domain_worker as worker
-    import VibeCADVibeScriptDomainRuntime as runtime
+    import SteveCADVibeScriptDomainRuntime as runtime
     if args.module_dir:
         assert Path(runtime.__file__).parent == args.module_dir.resolve()
 
@@ -40,7 +40,7 @@ def main():
         "api_exports": list(pack.api_exports), "output_types": list(pack.output_types),
         "max_operations": 0, "max_seconds": 30.0,
     }
-    with tempfile.TemporaryDirectory(prefix="vibecad-large-definition-") as directory:
+    with tempfile.TemporaryDirectory(prefix="stevecad-large-definition-") as directory:
         response = worker._run(request, Path(directory))
         assert response["ok"], response
         output = response["outputs"][0]

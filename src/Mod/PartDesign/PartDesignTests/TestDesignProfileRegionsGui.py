@@ -130,7 +130,7 @@ class TestDesignProfileRegionsGui(unittest.TestCase):
     def _begin_edit(self, operation):
         timeline = Gui.getMainWindow().findChild(
             QtGui.QListWidget,
-            "VibeCADFeatureTimelineItems",
+            "SteveCADFeatureTimelineItems",
         )
         self.assertIsNotNone(timeline)
 
@@ -211,11 +211,11 @@ class TestDesignProfileRegionsGui(unittest.TestCase):
     def test_command_repairs_incomplete_persisted_sketch_identity(self):
         sketch = self._master_sketch()
         sketch.setPropertyStatus(
-            "VibeCADTimelineRole",
+            "SteveCADTimelineRole",
             "-LockDynamic",
         )
-        sketch.removeProperty("VibeCADTimelineRole")
-        self.assertNotIn("VibeCADTimelineRole", sketch.PropertiesList)
+        sketch.removeProperty("SteveCADTimelineRole")
+        self.assertNotIn("SteveCADTimelineRole", sketch.PropertiesList)
 
         Gui.Selection.clearSelection()
         Gui.Selection.addSelection(sketch, "InternalFace1")
@@ -225,15 +225,15 @@ class TestDesignProfileRegionsGui(unittest.TestCase):
 
         self.assertTrue(Gui.Control.activeDialog())
         operation = self.document.ActiveObject
-        self.assertEqual(sketch.VibeCADTimelineRole, "operation")
+        self.assertEqual(sketch.SteveCADTimelineRole, "operation")
         self.assertEqual(
-            self.document.VibeCADTimeline.Operations.count(sketch),
+            self.document.SteveCADTimeline.Operations.count(sketch),
             1,
         )
         self._close_task(QtGui.QDialogButtonBox.Ok)
-        self.assertEqual(sketch.VibeCADTimelineRole, "operation")
+        self.assertEqual(sketch.SteveCADTimelineRole, "operation")
         self.assertEqual(
-            self.document.VibeCADTimeline.Operations.count(sketch),
+            self.document.SteveCADTimeline.Operations.count(sketch),
             1,
         )
         PartDesign.validateDesign(operation)
@@ -355,7 +355,7 @@ class TestDesignProfileRegionsGui(unittest.TestCase):
         self.assertEqual(operation.Length.Value, 5.0)
         mode.setCurrentIndex(mode.findData("Cut"))
         self.assertTrue(
-            self._wait_until(lambda: operation.TargetBodyIds == [body.VibeCADBodyId]),
+            self._wait_until(lambda: operation.TargetBodyIds == [body.SteveCADBodyId]),
             "The single intersecting Body was not suggested for Cut",
         )
         self.assertTrue(operation.isValid(), operation.getStatusString())

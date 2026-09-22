@@ -5,7 +5,7 @@ set -x
 
 conda_env="$(pwd)/../.pixi/envs/default/"
 
-copy_dir="VibeCAD_Windows"
+copy_dir="SteveCAD_Windows"
 if [[ -z "${BUILD_TAG:-}" || ! "${BUILD_TAG}" =~ ^[A-Za-z0-9][A-Za-z0-9._+-]*$ ]]; then
   echo "BUILD_TAG must contain only letters, numbers, '.', '_', '+', and '-'." >&2
   exit 1
@@ -122,13 +122,13 @@ PY
   fi
 }
 
-../scripts/install_vibecad_provider_deps.sh "${conda_env}"
-../scripts/install_vibecad_codex_runtime.sh \
+../scripts/install_stevecad_provider_deps.sh "${conda_env}"
+../scripts/install_stevecad_codex_runtime.sh \
   "${conda_env}/python.exe" \
-  "${conda_env}/Library/Mod/VibeCAD"
-../scripts/purge_vibecad_retired_authoring_artifacts.sh \
+  "${conda_env}/Library/Mod/SteveCAD"
+../scripts/purge_stevecad_retired_authoring_artifacts.sh \
   "${conda_env}" \
-  "${conda_env}/Library/Mod/VibeCAD"
+  "${conda_env}/Library/Mod/SteveCAD"
 
 # Copy Conda's Python and (U)CRT to FreeCAD/bin
 copy_tree "${conda_env}/DLLs" "${copy_dir}/bin/DLLs"
@@ -142,7 +142,7 @@ cp -a "${conda_env}/Library/bin/ccx.exe" "${copy_dir}/bin"
 cp -a "${conda_env}/Library/bin/gmsh.exe" "${copy_dir}/bin"
 cp -a "${conda_env}/Library/bin/dot.exe" "${copy_dir}/bin"
 cp -a "${conda_env}/Library/bin/unflatten.exe" "${copy_dir}/bin"
-copy_matching_files "${conda_env}/Library/bin" "VibeCADGeometryWorker.exe" "${copy_dir}/bin"
+copy_matching_files "${conda_env}/Library/bin" "SteveCADGeometryWorker.exe" "${copy_dir}/bin"
 copy_tree "${conda_env}/Library/mingw-w64/bin" "${copy_dir}/bin"
 # Copy resources with Python instead of Git Bash cp; this avoids silent
 # failures on Windows symlink/path metadata in deep share trees.
@@ -153,19 +153,19 @@ copy_matching_files "${conda_env}/Library/bin" "*.dll" "${copy_dir}/bin"
 copy_matching_files "${conda_env}/Library/bin" "freecad*" "${copy_dir}/bin"
 copy_matching_files "${conda_env}/Library/bin" "FreeCAD*" "${copy_dir}/bin"
 # Keep upstream compatibility executables while providing a first-class
-# VibeCAD process name for shortcuts, file associations, and Task Manager.
-cp -a "${copy_dir}/bin/freecad.exe" "${copy_dir}/bin/VibeCAD.exe"
-if [[ ! -x "${copy_dir}/bin/VibeCAD.exe" ]]; then
-    echo "Branded VibeCAD executable was not created." >&2
+# SteveCAD process name for shortcuts, file associations, and Task Manager.
+cp -a "${copy_dir}/bin/freecad.exe" "${copy_dir}/bin/SteveCAD.exe"
+if [[ ! -x "${copy_dir}/bin/SteveCAD.exe" ]]; then
+    echo "Branded SteveCAD executable was not created." >&2
     exit 1
 fi
 copy_tree "${conda_env}/Library/data" "${copy_dir}/data"
 copy_tree "${conda_env}/Library/Ext" "${copy_dir}/Ext"
 copy_tree "${conda_env}/Library/lib" "${copy_dir}/lib"
 copy_tree "${conda_env}/Library/Mod" "${copy_dir}/Mod"
-../scripts/purge_vibecad_retired_authoring_artifacts.sh \
+../scripts/purge_stevecad_retired_authoring_artifacts.sh \
   "${copy_dir}" \
-  "${copy_dir}/Mod/VibeCAD"
+  "${copy_dir}/Mod/SteveCAD"
 if [[ ! -x "${copy_dir}/bin/pythonw.exe" ]]; then
   echo "Windowless Python executable is missing: ${copy_dir}/bin/pythonw.exe" >&2
   exit 1
@@ -188,12 +188,12 @@ set +x
 echo '[Paths]' >> ${copy_dir}/bin/qt6.conf
 echo 'Prefix = ../lib/qt6' >> ${copy_dir}/bin/qt6.conf
 
-# Deterministic root launchers built by the same CMake/MSVC recipe as VibeCAD.
+# Deterministic root launchers built by the same CMake/MSVC recipe as SteveCAD.
 # Do not depend on Chocolatey's runner-global, proprietary shim generator.
-cp -a "${conda_env}/Library/bin/VibeCADPortableLauncher.exe" "${copy_dir}/VibeCAD.exe"
-cp -a "${conda_env}/Library/bin/VibeCADCmdPortableLauncher.exe" "${copy_dir}/FreeCADCmd.exe"
-if [[ ! -x "${copy_dir}/VibeCAD.exe" || ! -x "${copy_dir}/FreeCADCmd.exe" ]]; then
-    echo "Portable VibeCAD launchers were not created." >&2
+cp -a "${conda_env}/Library/bin/SteveCADPortableLauncher.exe" "${copy_dir}/SteveCAD.exe"
+cp -a "${conda_env}/Library/bin/SteveCADCmdPortableLauncher.exe" "${copy_dir}/FreeCADCmd.exe"
+if [[ ! -x "${copy_dir}/SteveCAD.exe" || ! -x "${copy_dir}/FreeCADCmd.exe" ]]; then
+    echo "Portable SteveCAD launchers were not created." >&2
     exit 1
 fi
 
@@ -219,45 +219,45 @@ done
 set -euo pipefail
 SIGN_DIR="${version_name}"
 
-echo "Running VibeCAD command-line smoke test..."
+echo "Running SteveCAD command-line smoke test..."
 if ! "$SIGN_DIR/bin/freecadcmd.exe" --safe-mode --version; then
-  echo "VibeCAD command-line smoke test failed; the Windows bundle cannot start."
+  echo "SteveCAD command-line smoke test failed; the Windows bundle cannot start."
   exit 1
 fi
 if ! "$SIGN_DIR/FreeCADCmd.exe" --safe-mode --version; then
-  echo "VibeCAD portable command-line launcher smoke test failed."
+  echo "SteveCAD portable command-line launcher smoke test failed."
   exit 1
 fi
 if [[ ! -x "$SIGN_DIR/Mod/McMasterInsert/McMasterCatalogWebView2.exe" ]]; then
-  echo "VibeCAD McMaster WebView2 helper is missing from the Windows bundle."
+  echo "SteveCAD McMaster WebView2 helper is missing from the Windows bundle."
   exit 1
 fi
 if ! "$SIGN_DIR/Mod/McMasterInsert/McMasterCatalogWebView2.exe" --smoke-test; then
-  echo "VibeCAD McMaster WebView2 helper could not find the Edge WebView2 Runtime."
+  echo "SteveCAD McMaster WebView2 helper could not find the Edge WebView2 Runtime."
   exit 1
 fi
 if ! "$SIGN_DIR/Mod/McMasterInsert/McMasterCatalogWebView2.exe" --argument-parser-smoke-test --inbox=parser-smoke-inbox --profile parser-smoke-profile; then
-  echo "VibeCAD McMaster WebView2 helper could not parse its launch paths."
+  echo "SteveCAD McMaster WebView2 helper could not parse its launch paths."
   exit 1
 fi
-if ! "$SIGN_DIR/bin/freecadcmd.exe" --safe-mode -c "import importlib.util, anthropic, keyring, jsonschema, mcp, mcp_types, openai, tuf; import keyring.backends.Windows; assert importlib.util.find_spec('agents') is None; print('VibeCAD Python dependencies and OS keyring backend import ok')"; then
-  echo "VibeCAD Python dependency/keyring smoke test failed; the Windows bundle is incomplete."
+if ! "$SIGN_DIR/bin/freecadcmd.exe" --safe-mode -c "import importlib.util, anthropic, keyring, jsonschema, mcp, mcp_types, openai, tuf; import keyring.backends.Windows; assert importlib.util.find_spec('agents') is None; print('SteveCAD Python dependencies and OS keyring backend import ok')"; then
+  echo "SteveCAD Python dependency/keyring smoke test failed; the Windows bundle is incomplete."
   exit 1
 fi
-if ! "$SIGN_DIR/bin/freecadcmd.exe" --safe-mode -c "from VibeCADProvider import _provider_subprocess_smoke; _provider_subprocess_smoke(); print('VibeCAD provider subprocess smoke ok')"; then
-  echo "VibeCAD provider subprocess smoke test failed; the Windows bundle cannot run AI providers."
+if ! "$SIGN_DIR/bin/freecadcmd.exe" --safe-mode -c "from SteveCADProvider import _provider_subprocess_smoke; _provider_subprocess_smoke(); print('SteveCAD provider subprocess smoke ok')"; then
+  echo "SteveCAD provider subprocess smoke test failed; the Windows bundle cannot run AI providers."
   exit 1
 fi
-if ! "$SIGN_DIR/bin/freecadcmd.exe" --safe-mode -c "from VibeCADCodex import runtime_execution_smoke; result = runtime_execution_smoke(); print('VibeCAD Codex app-server smoke ok', result['version'])"; then
-  echo "VibeCAD Codex app-server smoke test failed; the Windows bundle cannot use ChatGPT subscriptions."
+if ! "$SIGN_DIR/bin/freecadcmd.exe" --safe-mode -c "from SteveCADCodex import runtime_execution_smoke; result = runtime_execution_smoke(); print('SteveCAD Codex app-server smoke ok', result['version'])"; then
+  echo "SteveCAD Codex app-server smoke test failed; the Windows bundle cannot use ChatGPT subscriptions."
   exit 1
 fi
-if ! "$SIGN_DIR/bin/freecadcmd.exe" --safe-mode -c "from VibeCADGeometry import runtime_execution_smoke; result = runtime_execution_smoke(); print('VibeCAD geometry worker smoke ok', result['worker'])"; then
-  echo "VibeCAD geometry worker smoke test failed; the Windows bundle cannot inspect geometry."
+if ! "$SIGN_DIR/bin/freecadcmd.exe" --safe-mode -c "from SteveCADGeometry import runtime_execution_smoke; result = runtime_execution_smoke(); print('SteveCAD geometry worker smoke ok', result['worker'])"; then
+  echo "SteveCAD geometry worker smoke test failed; the Windows bundle cannot inspect geometry."
   exit 1
 fi
-if ! "$SIGN_DIR/bin/freecadcmd.exe" --safe-mode -c "from VibeCADProvider import _provider_subprocess_smoke; _provider_subprocess_smoke(prefer_windowless_python=True, require_windowless_python=True); print('VibeCAD windowless provider subprocess smoke ok')"; then
-  echo "VibeCAD windowless provider subprocess smoke test failed; the Windows GUI bundle would show a Python console."
+if ! "$SIGN_DIR/bin/freecadcmd.exe" --safe-mode -c "from SteveCADProvider import _provider_subprocess_smoke; _provider_subprocess_smoke(prefer_windowless_python=True, require_windowless_python=True); print('SteveCAD windowless provider subprocess smoke ok')"; then
+  echo "SteveCAD windowless provider subprocess smoke test failed; the Windows GUI bundle would show a Python console."
   exit 1
 fi
 

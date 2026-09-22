@@ -1,5 +1,5 @@
 {
-  "name": "VibeCAD",
+  "name": "SteveCAD",
   "version_major": 26,
   "version_minor": 3,
   "version_patch": 1,
@@ -7,5 +7,5 @@
   "version_suffix": "RC6",
   "version_suffix_note": "either 'dev' for development snapshot, 'RC1' etc. for release candidate, or empty string for release",
   "build_version": 6,
-  "build_version_note": "used when the same VibeCAD version is re-released (for example using an updated LibPack)"
+  "build_version_note": "used when the same SteveCAD version is re-released (for example using an updated LibPack)"
 }

@@ -11,7 +11,7 @@ import FreeCAD as App
 import FreeCADGui as Gui
 from PySide6 import QtCore, QtWidgets
 
-output = Path(os.environ["VIBECAD_TRACE_PROBE_RESULT"])
+output = Path(os.environ["STEVECAD_TRACE_PROBE_RESULT"])
 main = Gui.getMainWindow()
 status_label = main.statusBar().findChild(QtWidgets.QLabel, "actionLabel")
 assert status_label is not None, "Native status-bar activity label is missing"

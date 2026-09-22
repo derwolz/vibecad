@@ -83,7 +83,7 @@ StartView::StartView(QWidget* parent)
     // Start is a full-width document surface. The permanent model browser is
     // useful for CAD views, but would otherwise sit invisibly above the left
     // side of this page and intercept its first card in every section.
-    setProperty("vibecadUsesModelBrowser", false);
+    setProperty("stevecadUsesModelBrowser", false);
     auto hGrp = App::GetApplication().GetParameterGroupByPath(
         "User parameter:BaseApp/Preferences/Mod/Start"
     );
@@ -111,20 +111,20 @@ StartView::StartView(QWidget* parent)
         firstStartWidget,
         &FirstStartWidget::configureAIRequested,
         this,
-        &StartView::openVibeCADPreferences
+        &StartView::openSteveCADPreferences
     );
     connect(
         firstStartWidget,
         &FirstStartWidget::openAssistantRequested,
         this,
-        &StartView::openVibeCADAssistant
+        &StartView::openSteveCADAssistant
     );
     firstStartRegion->addWidget(firstStartWidget);
     _contents->addWidget(firstStartScrollArea);
 
     // Documents page
     auto documentsWidget = gsl::owner<QWidget*>(new QWidget());
-    documentsWidget->setObjectName(QLatin1String("VibeCADStartDocuments"));
+    documentsWidget->setObjectName(QLatin1String("SteveCADStartDocuments"));
     _contents->addWidget(documentsWidget);
     auto documentsMainLayout = gsl::owner<QVBoxLayout*>(new QVBoxLayout());
     documentsMainLayout->setContentsMargins(0, 0, 0, 0);
@@ -139,7 +139,7 @@ StartView::StartView(QWidget* parent)
     auto documentsViewportLayout = gsl::owner<QHBoxLayout*>(new QHBoxLayout(documentsScrollWidget));
     documentsViewportLayout->setContentsMargins(28, 24, 28, 24);
     auto documentsContentWidget = gsl::owner<QWidget*>(new QWidget(documentsScrollWidget));
-    documentsContentWidget->setObjectName(QLatin1String("VibeCADStartContent"));
+    documentsContentWidget->setObjectName(QLatin1String("SteveCADStartContent"));
     documentsContentWidget->setMaximumWidth(1440);
     documentsContentWidget->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
     documentsViewportLayout->addStretch();
@@ -151,7 +151,7 @@ StartView::StartView(QWidget* parent)
     documentsContentLayout->setSizeConstraint(QLayout::SizeConstraint::SetMinAndMaxSize);
 
     auto hero = gsl::owner<QFrame*>(new QFrame(documentsContentWidget));
-    hero->setObjectName(QLatin1String("VibeCADStartHero"));
+    hero->setObjectName(QLatin1String("SteveCADStartHero"));
     auto heroLayout = gsl::owner<QVBoxLayout*>(new QVBoxLayout(hero));
     heroLayout->setContentsMargins(24, 22, 24, 22);
     heroLayout->setSpacing(18);
@@ -160,18 +160,18 @@ StartView::StartView(QWidget* parent)
     heroTopLayout->setSpacing(18);
 
     auto heroMark = gsl::owner<QLabel*>(new QLabel(hero));
-    heroMark->setObjectName(QLatin1String("VibeCADStartHeroMark"));
-    heroMark->setPixmap(QIcon(QLatin1String(":/icons/vibecad.svg")).pixmap(68, 68));
+    heroMark->setObjectName(QLatin1String("SteveCADStartHeroMark"));
+    heroMark->setPixmap(QIcon(QLatin1String(":/icons/stevecad.svg")).pixmap(68, 68));
     heroMark->setFixedSize(68, 68);
     heroTopLayout->addWidget(heroMark, 0, Qt::AlignTop);
 
     auto heroTextLayout = gsl::owner<QVBoxLayout*>(new QVBoxLayout);
     heroTextLayout->setSpacing(4);
     _heroTitleLabel = gsl::owner<QLabel*>(new QLabel(hero));
-    _heroTitleLabel->setObjectName(QLatin1String("VibeCADStartBrandTitle"));
+    _heroTitleLabel->setObjectName(QLatin1String("SteveCADStartBrandTitle"));
     heroTextLayout->addWidget(_heroTitleLabel);
     _heroDescriptionLabel = gsl::owner<QLabel*>(new QLabel(hero));
-    _heroDescriptionLabel->setObjectName(QLatin1String("VibeCADStartBrandDescription"));
+    _heroDescriptionLabel->setObjectName(QLatin1String("SteveCADStartBrandDescription"));
     _heroDescriptionLabel->setWordWrap(true);
     heroTextLayout->addWidget(_heroDescriptionLabel);
     heroTopLayout->addLayout(heroTextLayout, 1);
@@ -180,22 +180,22 @@ StartView::StartView(QWidget* parent)
     auto heroActions = gsl::owner<QHBoxLayout*>(new QHBoxLayout);
     heroActions->addStretch();
     _configureAI = gsl::owner<QPushButton*>(new QPushButton(hero));
-    _configureAI->setObjectName(QLatin1String("VibeCADStartConfigureAI"));
+    _configureAI->setObjectName(QLatin1String("SteveCADStartConfigureAI"));
     _configureAI->setIcon(QIcon(QLatin1String(":/icons/preferences-general.svg")));
-    connect(_configureAI, &QPushButton::clicked, this, &StartView::openVibeCADPreferences);
+    connect(_configureAI, &QPushButton::clicked, this, &StartView::openSteveCADPreferences);
     heroActions->addWidget(_configureAI);
 
     _openAssistant = gsl::owner<QPushButton*>(new QPushButton(hero));
-    _openAssistant->setObjectName(QLatin1String("VibeCADStartOpenAssistant"));
+    _openAssistant->setObjectName(QLatin1String("SteveCADStartOpenAssistant"));
     _openAssistant->setProperty("vibeStartPrimary", true);
-    _openAssistant->setIcon(QIcon(QLatin1String(":/icons/vibecad.svg")));
-    connect(_openAssistant, &QPushButton::clicked, this, &StartView::openVibeCADAssistant);
+    _openAssistant->setIcon(QIcon(QLatin1String(":/icons/stevecad.svg")));
+    connect(_openAssistant, &QPushButton::clicked, this, &StartView::openSteveCADAssistant);
     heroActions->addWidget(_openAssistant);
     heroLayout->addLayout(heroActions);
     documentsContentLayout->addWidget(hero);
 
     _newFileLabel = gsl::owner<QLabel*>(new QLabel());
-    _newFileLabel->setObjectName(QLatin1String("VibeCADStartSectionTitle"));
+    _newFileLabel->setObjectName(QLatin1String("SteveCADStartSectionTitle"));
     documentsContentLayout->addWidget(_newFileLabel);
 
     auto createNewRow = gsl::owner<QWidget*>(new QWidget(documentsContentWidget));
@@ -212,7 +212,7 @@ StartView::StartView(QWidget* parent)
     configureNewFileButtons(flowLayout);
 
     _recentFilesLabel = gsl::owner<QLabel*>(new QLabel());
-    _recentFilesLabel->setObjectName(QLatin1String("VibeCADStartSectionTitle"));
+    _recentFilesLabel->setObjectName(QLatin1String("SteveCADStartSectionTitle"));
     documentsContentLayout->addWidget(_recentFilesLabel);
     auto recentFilesListWidget = gsl::owner<FileCardView*>(new FileCardView(documentsContentWidget));
     recentFilesListWidget->setObjectName(QLatin1String("RecentFilesList"));
@@ -224,7 +224,7 @@ StartView::StartView(QWidget* parent)
         customFolderListWidget = gsl::owner<FileCardView*>(new FileCardView(documentsContentWidget));
         customFolderListWidget->setObjectName(QLatin1String("CustomFolderList"));
         _customFolderLabel = gsl::owner<QLabel*>(new QLabel());
-        _customFolderLabel->setObjectName(QLatin1String("VibeCADStartSectionTitle"));
+        _customFolderLabel->setObjectName(QLatin1String("SteveCADStartSectionTitle"));
         documentsContentLayout->addWidget(_customFolderLabel);
 
         connect(customFolderListWidget, &QListView::clicked, this, &StartView::fileCardSelected);
@@ -236,7 +236,7 @@ StartView::StartView(QWidget* parent)
         examplesListWidget = gsl::owner<FileCardView*>(new FileCardView(documentsContentWidget));
         examplesListWidget->setObjectName(QLatin1String("ExamplesList"));
         _examplesLabel = gsl::owner<QLabel*>(new QLabel());
-        _examplesLabel->setObjectName(QLatin1String("VibeCADStartSectionTitle"));
+        _examplesLabel->setObjectName(QLatin1String("SteveCADStartSectionTitle"));
         documentsContentLayout->addWidget(_examplesLabel);
 
         connect(examplesListWidget, &QListView::clicked, this, &StartView::fileCardSelected);
@@ -299,32 +299,32 @@ void StartView::configureNewFileButtons(QLayout* layout) const
 {
     auto newEmptyFile = gsl::owner<NewFileButton*>(new NewFileButton(
         {tr("Empty File"),
-         tr("Creates a new empty VibeCAD document"),
+         tr("Creates a new empty SteveCAD document"),
          QLatin1String(":/icons/document-new.svg")}
     ));
-    newEmptyFile->setObjectName(QLatin1String("VibeCADNewFile"));
+    newEmptyFile->setObjectName(QLatin1String("SteveCADNewFile"));
     auto openFile = gsl::owner<NewFileButton*>(new NewFileButton(
         {tr("Open File"),
          tr("Opens an existing CAD file or 3D model"),
          QLatin1String(":/icons/document-open.svg")}
     ));
-    openFile->setObjectName(QLatin1String("VibeCADOpenFile"));
+    openFile->setObjectName(QLatin1String("SteveCADOpenFile"));
     auto partDesign = gsl::owner<NewFileButton*>(new NewFileButton(
         {tr("Parametric Body"),
          tr("Creates a body with the Part Design workbench"),
          QLatin1String(":/icons/PartDesignWorkbench.svg")}
     ));
-    partDesign->setObjectName(QLatin1String("VibeCADParametricBody"));
+    partDesign->setObjectName(QLatin1String("SteveCADParametricBody"));
     auto assembly = gsl::owner<NewFileButton*>(new NewFileButton(
         {tr("Assembly"),
          tr("Creates an assembly project"),
          QLatin1String(":/icons/AssemblyWorkbench.svg")}
     ));
-    assembly->setObjectName(QLatin1String("VibeCADAssembly"));
+    assembly->setObjectName(QLatin1String("SteveCADAssembly"));
     auto draft = gsl::owner<NewFileButton*>(new NewFileButton(
         {tr("2D Draft"), tr("Creates a 2D Draft document"), QLatin1String(":/icons/DraftWorkbench.svg")}
     ));
-    draft->setObjectName(QLatin1String("VibeCADDraft"));
+    draft->setObjectName(QLatin1String("SteveCADDraft"));
     // TODO: Ensure all of the required WBs are actually available
     layout->addWidget(partDesign);
     layout->addWidget(assembly);
@@ -517,49 +517,49 @@ void StartView::firstStartWidgetDismissed()
     _contents->setCurrentIndex(1);
 }
 
-void StartView::openVibeCADPreferences()
+void StartView::openSteveCADPreferences()
 {
     try {
         // Preferences are an onboarding action, not a document command. Invoke the
         // dedicated entry point directly so global command-busy state cannot silently
         // discard the click.
         Base::Interpreter().runString(
-            "import VibeCADGui; VibeCADGui.open_preferences(\"VibeCAD\")"
+            "import SteveCADGui; SteveCADGui.open_preferences(\"SteveCAD\")"
         );
         return;
     }
     catch (Base::PyException& error) {
         Base::Console().warning(
-            "Could not open VibeCAD Preferences from the Start page: %s\n",
+            "Could not open SteveCAD Preferences from the Start page: %s\n",
             error.getMessage().c_str()
         );
     }
 
     QMessageBox::warning(
         this,
-        tr("VibeCAD setup unavailable"),
-        tr("VibeCAD Preferences could not be opened. The VibeCAD module may not be available in "
+        tr("SteveCAD setup unavailable"),
+        tr("SteveCAD Preferences could not be opened. The SteveCAD module may not be available in "
            "this installation.")
     );
 }
 
-void StartView::openVibeCADAssistant()
+void StartView::openSteveCADAssistant()
 {
     try {
-        Base::Interpreter().runString("import VibeCADGui; VibeCADGui.open_assistant()");
+        Base::Interpreter().runString("import SteveCADGui; SteveCADGui.open_assistant()");
         return;
     }
     catch (Base::PyException& error) {
         Base::Console().warning(
-            "Could not open the VibeCAD Assistant from the Start page: %s\n",
+            "Could not open the SteveCAD Assistant from the Start page: %s\n",
             error.getMessage().c_str()
         );
     }
 
     QMessageBox::warning(
         this,
-        tr("VibeCAD Assistant unavailable"),
-        tr("The VibeCAD Assistant could not be opened. The VibeCAD module may not be available "
+        tr("SteveCAD Assistant unavailable"),
+        tr("The SteveCAD Assistant could not be opened. The SteveCAD module may not be available "
            "in this installation.")
     );
 }
@@ -637,7 +637,7 @@ void StartView::retranslateUi()
     const QLatin1String h1Start("<h1>");
     const QLatin1String h1End("</h1>");
 
-    _heroTitleLabel->setText(tr("Welcome to VibeCAD"));
+    _heroTitleLabel->setText(tr("Welcome to SteveCAD"));
     _heroDescriptionLabel->setText(
         tr("Create, inspect, analyze, manufacture, and document real CAD with an AI collaborator "
            "at your side.")

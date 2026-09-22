@@ -1427,14 +1427,14 @@ PyObject* ApplicationPy::sConfigureHostIsolationRuntime(
             "--safe-mode",
             "-c",
             "import os,sys;"
-            "sys.path.insert(0,os.environ['VIBECAD_ISOLATION_MODULE_ROOT']);"
-            "import VibeCADIsolationWorker as _worker;"
+            "sys.path.insert(0,os.environ['STEVECAD_ISOLATION_MODULE_ROOT']);"
+            "import SteveCADIsolationWorker as _worker;"
             "raise SystemExit(_worker.main())",
         };
         configuration.workingDirectory = moduleRoot;
         configuration.environment = {
-            {"VIBECAD_ISOLATION_CHILD", "1"},
-            {"VIBECAD_ISOLATION_MODULE_ROOT", moduleRoot},
+            {"STEVECAD_ISOLATION_CHILD", "1"},
+            {"STEVECAD_ISOLATION_MODULE_ROOT", moduleRoot},
             {"PYTHONHASHSEED", "0"},
             {"PYTHONNOUSERSITE", "1"},
             {"PYTHONUNBUFFERED", "1"},

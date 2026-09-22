@@ -8,8 +8,8 @@ import FreeCAD as App
 import Part
 
 
-source = Path(os.environ['VIBECAD_VALIDATE_DOCUMENT']).resolve()
-expected = json.loads(Path(os.environ['VIBECAD_EXPECTED_GEOMETRY']).read_text(encoding='utf-8'))
+source = Path(os.environ['STEVECAD_VALIDATE_DOCUMENT']).resolve()
+expected = json.loads(Path(os.environ['STEVECAD_EXPECTED_GEOMETRY']).read_text(encoding='utf-8'))
 document = App.openDocument(str(source))
 try:
     if len(document.Objects) != expected['objects']:
@@ -22,7 +22,7 @@ try:
             raise RuntimeError(f'{name} volume changed during round-trip')
         if len(obj.Shape.Faces) != shape['faces']:
             raise RuntimeError(f'{name} face count changed during round-trip')
-    print('VIBECAD_GEOMETRY_ROUNDTRIP ' + json.dumps({
+    print('STEVECAD_GEOMETRY_ROUNDTRIP ' + json.dumps({
         'ok': True, 'objects': len(document.Objects),
         'validated_solids': len(expected['expected_results']),
     }), flush=True)

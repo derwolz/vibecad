@@ -134,10 +134,10 @@ MODEL_TOOLBARS = {
         "Part_Defeaturing",
     ],
     "Standard Components": [
-        "VibeCAD_InsertStandardFastener",
-        "VibeCAD_EditStandardFastener",
-        "VibeCAD_CreateMatchingFastenerHole",
-        "VibeCAD_AttachStandardFastener",
+        "SteveCAD_InsertStandardFastener",
+        "SteveCAD_EditStandardFastener",
+        "SteveCAD_CreateMatchingFastenerHole",
+        "SteveCAD_AttachStandardFastener",
     ],
 }
 
@@ -296,12 +296,12 @@ MODEL_COMMAND_TIMELINE_BEHAVIOR = {
     "Part_JoinEmbed": frozenset({"operation", "replacement"}),
     "Part_JoinCutout": frozenset({"operation", "replacement"}),
     "Part_Defeaturing": frozenset({"operation", "replacement"}),
-    "VibeCAD_InsertStandardFastener": frozenset({"operation", "standalone"}),
-    "VibeCAD_EditStandardFastener": frozenset({"in-place"}),
-    "VibeCAD_CreateMatchingFastenerHole": frozenset(
+    "SteveCAD_InsertStandardFastener": frozenset({"operation", "standalone"}),
+    "SteveCAD_EditStandardFastener": frozenset({"in-place"}),
+    "SteveCAD_CreateMatchingFastenerHole": frozenset(
         {"operation", "body-history-step"}
     ),
-    "VibeCAD_AttachStandardFastener": frozenset({"in-place"}),
+    "SteveCAD_AttachStandardFastener": frozenset({"in-place"}),
     "Sketcher_ReorientSketch": frozenset({"in-place"}),
     "Sketcher_MergeSketches": frozenset({"operation", "source-preserving"}),
     "Sketcher_MirrorSketch": frozenset({"operation", "source-preserving"}),
@@ -330,14 +330,14 @@ MODEL_COMMAND_TIMELINE_BEHAVIOR = {
     "PartDesign_WizardShaft": frozenset({"operation", "standalone"}),
 }
 
-# These controls are injected by VibeCADRibbon into every CAD domain.  They
+# These controls are injected by SteveCADRibbon into every CAD domain.  They
 # are intentionally audited separately from the Model workbench's own action
 # graph, so the workbench matrix neither omits nor claims ownership of them.
 SHARED_RIBBON_TIMELINE_BEHAVIOR = {
     "Std_ViewFitAll": frozenset({"read-only"}),
     "Std_ViewIsometric": frozenset({"read-only"}),
-    "VibeCAD_ToggleGrid": frozenset({"read-only"}),
-    "VibeCAD_SectionView": frozenset({"read-only"}),
+    "SteveCAD_ToggleGrid": frozenset({"read-only"}),
+    "SteveCAD_SectionView": frozenset({"read-only"}),
     # TestRibbonInspectView exercises each task's Save Result action and the
     # resulting durable, source-linked Measure::Result history operation.
     "Std_Measure": frozenset({"operation", "source-preserving"}),
@@ -430,7 +430,7 @@ def _timeline_object_names():
     if main_window is None:
         return set()
     timeline = main_window.findChild(
-        QtGui.QListWidget, "VibeCADFeatureTimelineItems"
+        QtGui.QListWidget, "SteveCADFeatureTimelineItems"
     )
     if timeline is None:
         return set()
@@ -445,7 +445,7 @@ def _timeline_object_names():
 
 def _action_command_id(action):
     for property_name in (
-        "VibeCADCommandId",
+        "SteveCADCommandId",
         "CommandName",
         "FreeCADCommandGroupChildId",
     ):
@@ -639,8 +639,8 @@ class TestConsolidatedPartWorkbench(unittest.TestCase):
             {
                 "Std_ViewFitAll",
                 "Std_ViewIsometric",
-                "VibeCAD_ToggleGrid",
-                "VibeCAD_SectionView",
+                "SteveCAD_ToggleGrid",
+                "SteveCAD_SectionView",
                 "Std_Measure",
                 "Std_MassProperties",
                 "Inspection_VisualInspection",

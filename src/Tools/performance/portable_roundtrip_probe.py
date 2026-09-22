@@ -18,8 +18,8 @@ import FreeCADGui as Gui
 from PySide6 import QtCore, QtGui, QtWidgets
 
 
-source = Path(os.environ['VIBECAD_ROUNDTRIP_COPY']).resolve()
-output = Path(os.environ['VIBECAD_ROUNDTRIP_REPORT']).resolve()
+source = Path(os.environ['STEVECAD_ROUNDTRIP_COPY']).resolve()
+output = Path(os.environ['STEVECAD_ROUNDTRIP_REPORT']).resolve()
 if source.parent != output.parent or not source.name.startswith('probe-'):
     raise RuntimeError('Use a probe-* document copy beside its diagnostic report')
 if App.listDocuments():
@@ -31,11 +31,11 @@ expected_invalid = sorted(item.attrib['name'] for item in root.findall('./Object
                           if item.attrib.get('Invalid') == '1')
 if not expected_names:
     raise RuntimeError('Source has no native object inventory')
-baseline_path = os.environ.get('VIBECAD_ROUNDTRIP_BASELINE')
+baseline_path = os.environ.get('STEVECAD_ROUNDTRIP_BASELINE')
 baseline = json.loads(Path(baseline_path).read_text(encoding='utf-8')) if baseline_path else None
 
 main = Gui.getMainWindow()
-profiler = cProfile.Profile() if os.environ.get('VIBECAD_PROFILE_CALLBACKS') else None
+profiler = cProfile.Profile() if os.environ.get('STEVECAD_PROFILE_CALLBACKS') else None
 if profiler:
     profiler.enable()
 user32 = ctypes.WinDLL('user32', use_last_error=True)
@@ -47,7 +47,7 @@ kernel32.CreateEventW.argtypes = (ctypes.c_void_p, wintypes.BOOL, wintypes.BOOL,
 kernel32.CreateEventW.restype = wintypes.HANDLE
 kernel32.SetEvent.argtypes = (wintypes.HANDLE,)
 kernel32.CloseHandle.argtypes = (wintypes.HANDLE,)
-stop_name = 'Local\\VibeCADInputProbe-' + uuid.uuid4().hex
+stop_name = 'Local\\SteveCADInputProbe-' + uuid.uuid4().hex
 input_stop = kernel32.CreateEventW(None, True, False, stop_name)
 if not input_stop:
     raise ctypes.WinError(ctypes.get_last_error())
@@ -83,13 +83,13 @@ def check_invalid_flags(expected, actual, allowed_cleared=()):
 
 def event(name, **values):
     report['events'].append({'event': name, 'seconds': time.perf_counter() - started, **values})
-    print('VIBECAD_ROUNDTRIP ' + json.dumps(report['events'][-1]), flush=True)
+    print('STEVECAD_ROUNDTRIP ' + json.dumps(report['events'][-1]), flush=True)
 
 
 if profiler:
     # Correlate high-level Python callbacks with native event spans. cProfile's
     # cumulative totals alone cannot identify which queued invocation stalled.
-    import VibeCADGui as gui_runtime
+    import SteveCADGui as gui_runtime
 
     report['python_callbacks'] = []
 
@@ -157,7 +157,7 @@ native_input_probe = NativeInputProbe()
 QtWidgets.QApplication.instance().installNativeEventFilter(native_input_probe)
 input_sender = subprocess.Popen([
     str(Path(App.getHomePath()) / 'bin' / 'pythonw.exe'),
-    os.environ['VIBECAD_INPUT_SENDER'],
+    os.environ['STEVECAD_INPUT_SENDER'],
     str(int(main.winId())), str(os.getpid()), stop_name,
 ], creationflags=subprocess.CREATE_NO_WINDOW)
 
@@ -209,7 +209,7 @@ def finish(error=None):
     report['integrity_ok'] = error is None
     report['ok'] = report['integrity_ok'] and report['responsiveness_ok']
     report['validation_scope'] = ('packaged GUI open/history-recompute/save/reopen/close'
-                                  if os.environ.get('VIBECAD_EXERCISE_GENERATED_RECOMPUTE')
+                                  if os.environ.get('STEVECAD_EXERCISE_GENERATED_RECOMPUTE')
                                   else 'packaged GUI open/save/reopen/close')
     if error is None and not report['responsiveness_ok']:
         report['error'] = 'Input delivery or the 100 ms responsiveness gate failed; inspect timing records'
@@ -291,7 +291,7 @@ def snapshot_step():
         inventory_index += 1
         if time.perf_counter() >= deadline:
             return False
-    if phase == 'inventory_open' and os.environ.get('VIBECAD_PROFILE_COMMANDS'):
+    if phase == 'inventory_open' and os.environ.get('STEVECAD_PROFILE_COMMANDS'):
         if command_profile_names is None:
             command_profile_names = list(Gui.Command.listAll())
             report['command_checks'] = []
@@ -323,7 +323,7 @@ def tick():
         report['gaps'].append({'phase': phase, 'milliseconds': gap, 'seconds': now - started,
                                'status': main.statusBar().currentMessage()})
     try:
-        if os.environ.get('VIBECAD_TRACE_NATIVE_EVENTS'):
+        if os.environ.get('STEVECAD_TRACE_NATIVE_EVENTS'):
             timings = QtCore.QMetaObject.invokeMethod(
                 QtWidgets.QApplication.instance(), 'takePerformanceEvents',
                 QtCore.Qt.ConnectionType.DirectConnection, QtCore.Q_RETURN_ARG('QVariantMap'))
@@ -362,10 +362,10 @@ def tick():
             if not snapshot_step():
                 return
             report[phase] = inventory
-            if phase == 'inventory_open' and os.environ.get('VIBECAD_ALLOW_TIMELINE_MIGRATION'):
+            if phase == 'inventory_open' and os.environ.get('STEVECAD_ALLOW_TIMELINE_MIGRATION'):
                 missing = set(expected_names) - set(inventory)
                 added = set(inventory) - set(expected_names)
-                # Ordinary FreeCAD documents acquire VibeCAD's native History
+                # Ordinary FreeCAD documents acquire SteveCAD's native History
                 # controller on first open. Admit only that exact migration;
                 # never forgive a missing model object or unrelated addition.
                 if (not missing and len(added) == 1
@@ -382,7 +382,7 @@ def tick():
             invalid = sorted(name for name, item in inventory.items() if 'Invalid' in item['state'])
             cleared = check_invalid_flags(
                 expected_invalid, invalid,
-                json.loads(os.environ.get('VIBECAD_ALLOW_CLEARED_INVALID_OBJECTS', '[]')))
+                json.loads(os.environ.get('STEVECAD_ALLOW_CLEARED_INVALID_OBJECTS', '[]')))
             report.setdefault('cleared_saved_invalid_flags', {})[phase] = cleared
             if phase in ('inventory_open', 'inventory_after_recompute'):
                 if phase == 'inventory_after_recompute' and any(
@@ -396,7 +396,7 @@ def tick():
                     report['baseline_match'] = inventory == baseline['opened_inventory']
                     if not report['baseline_match']:
                         raise RuntimeError('Object types, links, or states differ from the known-good baseline')
-                if phase == 'inventory_open' and os.environ.get('VIBECAD_EXERCISE_GENERATED_RECOMPUTE'):
+                if phase == 'inventory_open' and os.environ.get('STEVECAD_EXERCISE_GENERATED_RECOMPUTE'):
                     blank = document.getObject('Blank000')
                     if blank is None or blank.TypeId != 'Part::Box' or document.getObject('Result199') is None:
                         raise RuntimeError('Recompute exercise requires the generated boolean workload')
@@ -433,7 +433,7 @@ def tick():
                 Gui.runCommand('Std_CloseAllWindows')
                 event('final_close_returned', milliseconds=1000 * (time.perf_counter() - before))
         elif phase == 'recompute_ready':
-            button = main.findChild(QtWidgets.QToolButton, 'VibeCADFeatureTimelineRecompute')
+            button = main.findChild(QtWidgets.QToolButton, 'SteveCADFeatureTimelineRecompute')
             if button is None:
                 raise RuntimeError('History recompute button is missing')
             if button.isEnabled() and quiet():

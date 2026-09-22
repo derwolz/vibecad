@@ -33,7 +33,7 @@ from Path.CommandBoundary import (
     is_timeline_input_usable,
 )
 from Path.Dressup.Utils import toolController
-from VibeCADNativeTransaction import _OwnedDocumentTransaction
+from SteveCADNativeTransaction import _OwnedDocumentTransaction
 import tsp_solver
 
 import random

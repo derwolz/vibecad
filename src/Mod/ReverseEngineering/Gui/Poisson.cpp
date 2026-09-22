@@ -101,7 +101,7 @@ bool PoissonWidget::accept()
         }
         if (!poissonSupportAvailable()) {
             throw Base::RuntimeError(
-                "Poisson reconstruction requires a VibeCAD build with PCL Surface support"
+                "Poisson reconstruction requires a SteveCAD build with PCL Surface support"
             );
         }
 

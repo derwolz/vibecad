@@ -256,7 +256,7 @@ class InspectionTimelineTest(unittest.TestCase):
         inspection.Nominals = [nominal]
         self.document.recompute()
 
-        timeline = self.document.getObject("VibeCADTimeline")
+        timeline = self.document.getObject("SteveCADTimeline")
         self.assertIsNotNone(timeline)
         self.assertIn(inspection, timeline.Operations)
         self.assertTrue(
@@ -274,7 +274,7 @@ class InspectionTimelineTest(unittest.TestCase):
         self.assertEqual(list(inspection.Distances), [])
 
         handle, self.saved_file = tempfile.mkstemp(
-            prefix="vibecad_inspection_timeline_",
+            prefix="stevecad_inspection_timeline_",
             suffix=".FCStd",
         )
         os.close(handle)
@@ -283,7 +283,7 @@ class InspectionTimelineTest(unittest.TestCase):
         self.document = App.openDocument(self.saved_file)
 
         inspection = self.document.getObject("DimensionalInspection")
-        timeline = self.document.getObject("VibeCADTimeline")
+        timeline = self.document.getObject("SteveCADTimeline")
         self.assertIsNotNone(inspection)
         self.assertIsNotNone(timeline)
         self.assertIn(inspection, timeline.Operations)
@@ -355,7 +355,7 @@ class InspectionTimelineTest(unittest.TestCase):
 
         group = self.document.getObject("Inspection")
         self.assertIsNotNone(group)
-        self.assertEqual(group.VibeCADTimelineRole, "operation")
+        self.assertEqual(group.SteveCADTimelineRole, "operation")
         self.assertTrue(
             group.hasExtension("App::SuppressibleExtension")
         )
@@ -365,16 +365,16 @@ class InspectionTimelineTest(unittest.TestCase):
             )
         )
         self.assertCountEqual(
-            list(group.VibeCADTimelineReplacedInputs),
+            list(group.SteveCADTimelineReplacedInputs),
             [actual, nominal],
         )
         results = list(group.Group)
         self.assertEqual(len(results), 1)
         result = results[0]
-        self.assertEqual(result.VibeCADTimelineRole, "resource")
-        self.assertIs(result.VibeCADTimelineOwner, group)
+        self.assertEqual(result.SteveCADTimelineRole, "resource")
+        self.assertIs(result.SteveCADTimelineOwner, group)
         self.assertEqual(
-            result.getTypeIdOfProperty("VibeCADTimelineOwner"),
+            result.getTypeIdOfProperty("SteveCADTimelineOwner"),
             "App::PropertyLinkHidden",
         )
         self.assertFalse(actual.Visibility)
@@ -384,7 +384,7 @@ class InspectionTimelineTest(unittest.TestCase):
         result_name = result.Name
         timeline_widget = Gui.getMainWindow().findChild(
             QtGui.QListWidget,
-            "VibeCADFeatureTimelineItems",
+            "SteveCADFeatureTimelineItems",
         )
         self.assertIsNotNone(timeline_widget)
         group_item = self._wait_for(
@@ -392,7 +392,7 @@ class InspectionTimelineTest(unittest.TestCase):
         )
         self.assertIsNotNone(group_item)
         self.assertNotIn(
-            "VibeCADTimelineEdit",
+            "SteveCADTimelineEdit",
             _timeline_context_action_names(
                 timeline_widget,
                 group_item,
@@ -417,12 +417,12 @@ class InspectionTimelineTest(unittest.TestCase):
         actual = self.document.getObject("Actual")
         nominal = self.document.getObject("Nominal")
         result = list(group.Group)[0]
-        self.assertEqual(group.VibeCADTimelineRole, "operation")
-        self.assertIs(result.VibeCADTimelineOwner, group)
+        self.assertEqual(group.SteveCADTimelineRole, "operation")
+        self.assertIs(result.SteveCADTimelineOwner, group)
         self.assertFalse(actual.Visibility)
         self.assertFalse(nominal.Visibility)
 
-        timeline = self.document.getObject("VibeCADTimeline")
+        timeline = self.document.getObject("SteveCADTimeline")
         operations = list(timeline.Operations)
         result_index = operations.index(result)
         group_index = operations.index(group)
@@ -430,11 +430,11 @@ class InspectionTimelineTest(unittest.TestCase):
         self.assertEqual(int(timeline.Position), len(operations))
         previous = Gui.getMainWindow().findChild(
             QtGui.QToolButton,
-            "VibeCADFeatureTimelinePrevious",
+            "SteveCADFeatureTimelinePrevious",
         )
         end = Gui.getMainWindow().findChild(
             QtGui.QToolButton,
-            "VibeCADFeatureTimelineEnd",
+            "SteveCADFeatureTimelineEnd",
         )
         self.assertIsNotNone(previous)
         self.assertIsNotNone(end)
@@ -449,7 +449,7 @@ class InspectionTimelineTest(unittest.TestCase):
         self.assertFalse(result.Visibility)
 
         handle, self.saved_file = tempfile.mkstemp(
-            prefix="vibecad_visual_inspection_timeline_",
+            prefix="stevecad_visual_inspection_timeline_",
             suffix=".FCStd",
         )
         os.close(handle)
@@ -462,16 +462,16 @@ class InspectionTimelineTest(unittest.TestCase):
         App.setActiveDocument(self.document.Name)
         self._process_events(150)
 
-        timeline = self.document.getObject("VibeCADTimeline")
+        timeline = self.document.getObject("SteveCADTimeline")
         group = self.document.getObject(group_name)
         actual = self.document.getObject("Actual")
         nominal = self.document.getObject("Nominal")
         result = list(group.Group)[0]
         self.assertEqual(int(timeline.Position), expected_position)
         self.assertTrue(group.Suppressed)
-        self.assertIs(result.VibeCADTimelineOwner, group)
+        self.assertIs(result.SteveCADTimelineOwner, group)
         self.assertCountEqual(
-            list(group.VibeCADTimelineReplacedInputs),
+            list(group.SteveCADTimelineReplacedInputs),
             [actual, nominal],
         )
         self.assertTrue(actual.Visibility)
@@ -480,7 +480,7 @@ class InspectionTimelineTest(unittest.TestCase):
 
         end = Gui.getMainWindow().findChild(
             QtGui.QToolButton,
-            "VibeCADFeatureTimelineEnd",
+            "SteveCADFeatureTimelineEnd",
         )
         self.assertIsNotNone(end)
         end.click()
@@ -509,7 +509,7 @@ class InspectionTimelineTest(unittest.TestCase):
         nominal = self.document.getObject("Nominal")
         self.assertIsNotNone(group)
         self.assertIsNotNone(result)
-        self.assertIs(result.VibeCADTimelineOwner, group)
+        self.assertIs(result.SteveCADTimelineOwner, group)
         self.assertIn(result, group.Group)
         self.assertFalse(actual.Visibility)
         self.assertFalse(nominal.Visibility)
@@ -560,7 +560,7 @@ class InspectionTimelineTest(unittest.TestCase):
             ok.click()
 
         with tempfile.TemporaryDirectory(
-            prefix="vibecad-inspection-macro-"
+            prefix="stevecad-inspection-macro-"
         ) as directory:
             macro_path = Path(directory) / "VisualInspection.FCMacro"
             self._start_macro_recording(directory, "VisualInspection")
@@ -623,14 +623,14 @@ class InspectionTimelineTest(unittest.TestCase):
         results = list(group.Group)
         self.assertEqual(len(results), 1)
         result = results[0]
-        self.assertEqual(group.VibeCADTimelineRole, "operation")
-        self.assertEqual(result.VibeCADTimelineRole, "resource")
-        self.assertIs(result.VibeCADTimelineOwner, group)
+        self.assertEqual(group.SteveCADTimelineRole, "operation")
+        self.assertEqual(result.SteveCADTimelineRole, "resource")
+        self.assertIs(result.SteveCADTimelineOwner, group)
         self.assertCountEqual(
-            list(group.VibeCADTimelineReplacedInputs),
+            list(group.SteveCADTimelineReplacedInputs),
             [replay_actual, replay_nominal],
         )
-        timeline = self.document.getObject("VibeCADTimeline")
+        timeline = self.document.getObject("SteveCADTimeline")
         self.assertIsNotNone(timeline)
         self.assertEqual(
             list(timeline.Operations)[-2:],
@@ -640,7 +640,7 @@ class InspectionTimelineTest(unittest.TestCase):
         self.assertFalse(replay_nominal.Visibility)
 
         handle, self.saved_file = tempfile.mkstemp(
-            prefix="vibecad_visual_inspection_macro_replay_",
+            prefix="stevecad_visual_inspection_macro_replay_",
             suffix=".FCStd",
         )
         os.close(handle)
@@ -655,13 +655,13 @@ class InspectionTimelineTest(unittest.TestCase):
         result = self.document.getObject(result_name)
         replay_actual = self.document.getObject("MacroActual")
         replay_nominal = self.document.getObject("MacroNominal")
-        timeline = self.document.getObject("VibeCADTimeline")
+        timeline = self.document.getObject("SteveCADTimeline")
         self.assertIsNotNone(group)
         self.assertIsNotNone(result)
-        self.assertIs(result.VibeCADTimelineOwner, group)
+        self.assertIs(result.SteveCADTimelineOwner, group)
         self.assertIn(result, group.Group)
         self.assertCountEqual(
-            list(group.VibeCADTimelineReplacedInputs),
+            list(group.SteveCADTimelineReplacedInputs),
             [replay_actual, replay_nominal],
         )
         self.assertEqual(
@@ -865,7 +865,7 @@ class InspectionTimelineTest(unittest.TestCase):
             self.assertAlmostEqual(distance, 1.0, places=5)
 
         handle, self.saved_file = tempfile.mkstemp(
-            prefix="vibecad_linked_points_inspection_",
+            prefix="stevecad_linked_points_inspection_",
             suffix=".FCStd",
         )
         os.close(handle)

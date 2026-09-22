@@ -1,7 +1,7 @@
-# Manufacturing in VibeCAD
+# Manufacturing in SteveCAD
 
 The **Manufacture** ribbon turns finished model geometry into one or more CNC
-setups. Its controls and VibeCAD assistance use the same document operations.
+setups. Its controls and SteveCAD assistance use the same document operations.
 Switching to the ribbon changes the assistant's available tools on the next
 message; it does not require a new conversation or a different authoring mode.
 
@@ -16,7 +16,7 @@ material left by an earlier one.
 
 Selecting an operation, tool controller, stock, fixture, or retained result
 identifies its owning Job. When several Jobs exist and selection does not identify
-exactly one of them, VibeCAD asks for the setup instead of guessing.
+exactly one of them, SteveCAD asks for the setup instead of guessing.
 
 ## Preparing a setup
 
@@ -26,7 +26,7 @@ exactly one of them, VibeCAD asks for the setup instead of guessing.
    CAM does not replace the design geometry.
 3. Inspect the setup's model, stock, orientation, work origin, and fixture
    assignments. Make each physical fact explicit before generating toolpaths.
-4. Choose the machine and postprocessor. VibeCAD includes generic LinuxCNC and
+4. Choose the machine and postprocessor. SteveCAD includes generic LinuxCNC and
    GRBL machine definitions; machine definitions created by the user or supplied
    by add-ons appear in the same selector.
 5. Add Tool Controllers with the actual Tool Bits, tool numbers, spindle speed,
@@ -62,7 +62,7 @@ Retained verification currently provides:
 Travel span answers whether the program can fit within an axis's available
 travel. It does not prove that the current work offset places every position
 inside the machine's absolute limits. That second check requires measured
-machine-coordinate work-offset data, so VibeCAD reports it as unavailable rather
+machine-coordinate work-offset data, so SteveCAD reports it as unavailable rather
 than treating it as passed. Holder, fixture, and current-stock rapid-clearance
 checks are likewise reported as unavailable until their exact geometry is part of
 the verification input.

@@ -222,7 +222,7 @@ App::DocumentObject* Picker::createPrimitiveAndReport(
             );
             result = TaskResultValidation::requirePythonPartResult(
                 *appDocument,
-                "__vibecad_part_result__"
+                "__stevecad_part_result__"
             );
         }
         attempt.trackCreatedObject(*result);
@@ -376,7 +376,7 @@ public:
 
         QString name = QString::fromUtf8(doc->getUniqueObjectName("Circle").c_str());
         return QStringLiteral(
-                   "__vibecad_part_result__=App.ActiveDocument.addObject(\"Part::Circle\",\"%1\")\n"
+                   "__stevecad_part_result__=App.ActiveDocument.addObject(\"Part::Circle\",\"%1\")\n"
                    "App.ActiveDocument.%1.Radius=%2\n"
                    "App.ActiveDocument.%1.Angle1=%3\n"
                    "App.ActiveDocument.%1.Angle2=%4\n"
@@ -469,7 +469,7 @@ const char* PlanePrimitive::getDefaultName() const
 QString PlanePrimitive::create(const QString& objectName, const QString& placement) const
 {
     return QStringLiteral(
-               "__vibecad_part_result__=App.ActiveDocument.addObject(\"Part::Plane\",\"%1\")\n"
+               "__stevecad_part_result__=App.ActiveDocument.addObject(\"Part::Plane\",\"%1\")\n"
                "App.ActiveDocument.%1.Length='%2'\n"
                "App.ActiveDocument.%1.Width='%3'\n"
                "App.ActiveDocument.%1.Placement=%4\n"
@@ -561,7 +561,7 @@ const char* BoxPrimitive::getDefaultName() const
 QString BoxPrimitive::create(const QString& objectName, const QString& placement) const
 {
     return QStringLiteral(
-               "__vibecad_part_result__=App.ActiveDocument.addObject(\"Part::Box\",\"%1\")\n"
+               "__stevecad_part_result__=App.ActiveDocument.addObject(\"Part::Box\",\"%1\")\n"
                "App.ActiveDocument.%1.Length='%2'\n"
                "App.ActiveDocument.%1.Width='%3'\n"
                "App.ActiveDocument.%1.Height='%4'\n"
@@ -674,7 +674,7 @@ const char* CylinderPrimitive::getDefaultName() const
 QString CylinderPrimitive::create(const QString& objectName, const QString& placement) const
 {
     return QStringLiteral(
-               "__vibecad_part_result__=App.ActiveDocument.addObject(\"Part::Cylinder\",\"%1\")\n"
+               "__stevecad_part_result__=App.ActiveDocument.addObject(\"Part::Cylinder\",\"%1\")\n"
                "App.ActiveDocument.%1.Radius='%2'\n"
                "App.ActiveDocument.%1.Height='%3'\n"
                "App.ActiveDocument.%1.Angle='%4'\n"
@@ -795,7 +795,7 @@ const char* ConePrimitive::getDefaultName() const
 QString ConePrimitive::create(const QString& objectName, const QString& placement) const
 {
     return QStringLiteral(
-               "__vibecad_part_result__=App.ActiveDocument.addObject(\"Part::Cone\",\"%1\")\n"
+               "__stevecad_part_result__=App.ActiveDocument.addObject(\"Part::Cone\",\"%1\")\n"
                "App.ActiveDocument.%1.Radius1='%2'\n"
                "App.ActiveDocument.%1.Radius2='%3'\n"
                "App.ActiveDocument.%1.Height='%4'\n"
@@ -909,7 +909,7 @@ const char* SpherePrimitive::getDefaultName() const
 QString SpherePrimitive::create(const QString& objectName, const QString& placement) const
 {
     return QStringLiteral(
-               "__vibecad_part_result__=App.ActiveDocument.addObject(\"Part::Sphere\",\"%1\")\n"
+               "__stevecad_part_result__=App.ActiveDocument.addObject(\"Part::Sphere\",\"%1\")\n"
                "App.ActiveDocument.%1.Radius='%2'\n"
                "App.ActiveDocument.%1.Angle1='%3'\n"
                "App.ActiveDocument.%1.Angle2='%4'\n"
@@ -1039,7 +1039,7 @@ const char* EllipsoidPrimitive::getDefaultName() const
 QString EllipsoidPrimitive::create(const QString& objectName, const QString& placement) const
 {
     return QStringLiteral(
-               "__vibecad_part_result__=App.ActiveDocument.addObject(\"Part::Ellipsoid\",\"%1\")\n"
+               "__stevecad_part_result__=App.ActiveDocument.addObject(\"Part::Ellipsoid\",\"%1\")\n"
                "App.ActiveDocument.%1.Radius1='%2'\n"
                "App.ActiveDocument.%1.Radius2='%3'\n"
                "App.ActiveDocument.%1.Radius3='%4'\n"
@@ -1175,7 +1175,7 @@ const char* TorusPrimitive::getDefaultName() const
 QString TorusPrimitive::create(const QString& objectName, const QString& placement) const
 {
     return QStringLiteral(
-               "__vibecad_part_result__=App.ActiveDocument.addObject(\"Part::Torus\",\"%1\")\n"
+               "__stevecad_part_result__=App.ActiveDocument.addObject(\"Part::Torus\",\"%1\")\n"
                "App.ActiveDocument.%1.Radius1='%2'\n"
                "App.ActiveDocument.%1.Radius2='%3'\n"
                "App.ActiveDocument.%1.Angle1='%4'\n"
@@ -1296,7 +1296,7 @@ const char* PrismPrimitive::getDefaultName() const
 QString PrismPrimitive::create(const QString& objectName, const QString& placement) const
 {
     return QStringLiteral(
-               "__vibecad_part_result__=App.ActiveDocument.addObject(\"Part::Prism\",\"%1\")\n"
+               "__stevecad_part_result__=App.ActiveDocument.addObject(\"Part::Prism\",\"%1\")\n"
                "App.ActiveDocument.%1.Polygon=%2\n"
                "App.ActiveDocument.%1.Circumradius='%3'\n"
                "App.ActiveDocument.%1.Height='%4'\n"
@@ -1477,7 +1477,7 @@ const char* WedgePrimitive::getDefaultName() const
 QString WedgePrimitive::create(const QString& objectName, const QString& placement) const
 {
     return QStringLiteral(
-               "__vibecad_part_result__=App.ActiveDocument.addObject(\"Part::Wedge\",\"%1\")\n"
+               "__stevecad_part_result__=App.ActiveDocument.addObject(\"Part::Wedge\",\"%1\")\n"
                "App.ActiveDocument.%1.Xmin='%2'\n"
                "App.ActiveDocument.%1.Ymin='%3'\n"
                "App.ActiveDocument.%1.Zmin='%4'\n"
@@ -1635,7 +1635,7 @@ const char* HelixPrimitive::getDefaultName() const
 QString HelixPrimitive::create(const QString& objectName, const QString& placement) const
 {
     return QStringLiteral(
-               "__vibecad_part_result__=App.ActiveDocument.addObject(\"Part::Helix\",\"%1\")\n"
+               "__stevecad_part_result__=App.ActiveDocument.addObject(\"Part::Helix\",\"%1\")\n"
                "App.ActiveDocument.%1.Pitch='%2'\n"
                "App.ActiveDocument.%1.Height='%3'\n"
                "App.ActiveDocument.%1.Radius='%4'\n"
@@ -1749,7 +1749,7 @@ const char* SpiralPrimitive::getDefaultName() const
 QString SpiralPrimitive::create(const QString& objectName, const QString& placement) const
 {
     return QStringLiteral(
-               "__vibecad_part_result__=App.ActiveDocument.addObject(\"Part::Spiral\",\"%1\")\n"
+               "__stevecad_part_result__=App.ActiveDocument.addObject(\"Part::Spiral\",\"%1\")\n"
                "App.ActiveDocument.%1.Growth='%2'\n"
                "App.ActiveDocument.%1.Rotations=%3\n"
                "App.ActiveDocument.%1.Radius='%4'\n"
@@ -1848,7 +1848,7 @@ const char* CirclePrimitive::getDefaultName() const
 QString CirclePrimitive::create(const QString& objectName, const QString& placement) const
 {
     return QStringLiteral(
-               "__vibecad_part_result__=App.ActiveDocument.addObject(\"Part::Circle\",\"%1\")\n"
+               "__stevecad_part_result__=App.ActiveDocument.addObject(\"Part::Circle\",\"%1\")\n"
                "App.ActiveDocument.%1.Radius='%2'\n"
                "App.ActiveDocument.%1.Angle1='%3'\n"
                "App.ActiveDocument.%1.Angle2='%4'\n"
@@ -1955,7 +1955,7 @@ const char* EllipsePrimitive::getDefaultName() const
 QString EllipsePrimitive::create(const QString& objectName, const QString& placement) const
 {
     return QStringLiteral(
-               "__vibecad_part_result__=App.ActiveDocument.addObject(\"Part::Ellipse\",\"%1\")\n"
+               "__stevecad_part_result__=App.ActiveDocument.addObject(\"Part::Ellipse\",\"%1\")\n"
                "App.ActiveDocument.%1.MajorRadius='%2'\n"
                "App.ActiveDocument.%1.MinorRadius='%3'\n"
                "App.ActiveDocument.%1.Angle1='%4'\n"
@@ -2047,7 +2047,7 @@ const char* PolygonPrimitive::getDefaultName() const
 QString PolygonPrimitive::create(const QString& objectName, const QString& placement) const
 {
     return QStringLiteral(
-               "__vibecad_part_result__=App.ActiveDocument.addObject(\"Part::RegularPolygon\",\"%1\")\n"
+               "__stevecad_part_result__=App.ActiveDocument.addObject(\"Part::RegularPolygon\",\"%1\")\n"
                "App.ActiveDocument.%1.Polygon=%2\n"
                "App.ActiveDocument.%1.Circumradius='%3'\n"
                "App.ActiveDocument.%1.Placement=%4\n"
@@ -2147,7 +2147,7 @@ const char* LinePrimitive::getDefaultName() const
 QString LinePrimitive::create(const QString& objectName, const QString& placement) const
 {
     return QStringLiteral(
-               "__vibecad_part_result__=App.ActiveDocument.addObject(\"Part::Line\",\"%1\")\n"
+               "__stevecad_part_result__=App.ActiveDocument.addObject(\"Part::Line\",\"%1\")\n"
                "App.ActiveDocument.%1.X1='%2'\n"
                "App.ActiveDocument.%1.Y1='%3'\n"
                "App.ActiveDocument.%1.Z1='%4'\n"
@@ -2272,7 +2272,7 @@ const char* VertexPrimitive::getDefaultName() const
 QString VertexPrimitive::create(const QString& objectName, const QString& placement) const
 {
     return QStringLiteral(
-               "__vibecad_part_result__=App.ActiveDocument.addObject(\"Part::Vertex\",\"%1\")\n"
+               "__stevecad_part_result__=App.ActiveDocument.addObject(\"Part::Vertex\",\"%1\")\n"
                "App.ActiveDocument.%1.X='%2'\n"
                "App.ActiveDocument.%1.Y='%3'\n"
                "App.ActiveDocument.%1.Z='%4'\n"

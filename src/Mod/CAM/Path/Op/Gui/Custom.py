@@ -222,7 +222,7 @@ def _validate_custom_result(
         or str(result.GcodeFile)
         or not tuple(result.Gcode)
         or not document.isProvisionallyEnrolledInTimelineByCurrentTransaction(result)
-        or tuple(getattr(result, "VibeCADTimelineReplacedInputs", ()) or ())
+        or tuple(getattr(result, "SteveCADTimelineReplacedInputs", ()) or ())
         or not result.isValid()
         or (require_path and not tuple(getattr(result.Path, "Commands", ()) or ()))
     ):

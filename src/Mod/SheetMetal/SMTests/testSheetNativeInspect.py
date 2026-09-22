@@ -16,9 +16,9 @@ from SMTests import testPresentation
 
 class TestSheetNativeInspect(unittest.TestCase):
     def setUp(self):
-        from VibeCADCore import get_service
-        from VibeCADNativeRuntimeContext import NativeRuntimeContext
-        from VibeCADNativeUndo import NativeAssistantUndoLedger
+        from SteveCADCore import get_service
+        from SteveCADNativeRuntimeContext import NativeRuntimeContext
+        from SteveCADNativeUndo import NativeAssistantUndoLedger
         self.fixture = testPresentation.TestPresentation()
         self.addCleanup(self.fixture.doCleanups)
         self.fixture.setUp()
@@ -33,8 +33,8 @@ class TestSheetNativeInspect(unittest.TestCase):
             edit_or_task_active=lambda: False)
 
     def call(self, operation, **values):
-        from VibeCADNativeRegistry import build_native_capability_registry
-        from VibeCADNativeSheetMetalInspectRuntime import NativeSheetMetalInspectRuntime
+        from SteveCADNativeRegistry import build_native_capability_registry
+        from SteveCADNativeSheetMetalInspectRuntime import NativeSheetMetalInspectRuntime
         runtime = NativeSheetMetalInspectRuntime(self.context)
         handler = build_native_capability_registry().implementation("sheet_metal.inspect").handler
         return handler(SimpleNamespace(runtime=runtime, arguments={"operation": operation, **values}))
@@ -45,11 +45,11 @@ class TestSheetNativeInspect(unittest.TestCase):
 
     def test_sheet_inspection_exposes_where_to_create_relief_and_bend_sketches(self):
         from dataclasses import replace
-        from VibeCADProvider import _provider_visible_tool_result
+        from SteveCADProvider import _provider_visible_tool_result
         before = Operations.capture_revision(self.sheet), self.model.doc.UndoCount
         self.context = replace(self.context, active_surface_id=lambda: "sheet_metal")
         result = _provider_visible_tool_result(
-            {**self.call("read_sheet", target=self.target()), "ok": True, "_vibecad_native_result": True},
+            {**self.call("read_sheet", target=self.target()), "ok": True, "_stevecad_native_result": True},
             tool_name="sheet_metal.inspect")
         guidance = result["sketch_creation"]
         self.assertEqual(guidance["tool"], "workspace.switch")
@@ -83,7 +83,7 @@ class TestSheetNativeInspect(unittest.TestCase):
         self.assertEqual((Operations.capture_revision(self.sheet), self.model.doc.UndoCount), before)
 
     def test_sheet_ribbon_prompt_context_keeps_native_tree_and_history_identity(self):
-        from VibeCADNativeSnapshot import build_active_snapshot
+        from SteveCADNativeSnapshot import build_active_snapshot
         hole = self.model.edit(lambda: History.create_circle_step(self.sheet, self.model.bend_pick()[2], 4))
         document = self.model.doc
         revision = self.context.state.current_revision(document.Uid)
@@ -142,7 +142,7 @@ class TestSheetNativeInspect(unittest.TestCase):
                          [(obj.Name, obj.Visibility) for obj in self.model.doc.Objects if hasattr(obj, "Visibility")]))
 
     def test_pages_are_bound_to_the_document_revision(self):
-        from VibeCADNativeState import NativeRevisionConflict
+        from SteveCADNativeState import NativeRevisionConflict
         first = self.call("list_regions", target=self.target(), page_size=1)
         revision = first["structural_revision"]
         second = self.call("list_regions", target=self.target(), page_size=1, offset=1,
@@ -159,18 +159,18 @@ class TestSheetNativeInspect(unittest.TestCase):
                 self.call("list_sheets", **values)
 
     def test_provider_returned_target_can_be_used_by_the_next_native_inspection(self):
-        from VibeCADProvider import _provider_visible_tool_result
+        from SteveCADProvider import _provider_visible_tool_result
         listing = self.call("list_sheets")
         visible = _provider_visible_tool_result({**listing, "ok": True,
-            "_vibecad_native_result": True}, tool_name="sheet_metal.inspect")
+            "_stevecad_native_result": True}, tool_name="sheet_metal.inspect")
         target = next(item["target"] for item in visible["items"]
                       if item["target"]["object_name"] == self.sheet.Name)
         self.assertEqual(target, self.target())
         self.assertTrue(self.call("read_sheet", target=target)["prepared"])
 
     def test_wrong_document_non_sheet_and_malformed_targets_are_rejected(self):
-        from VibeCADNativeTargets import NativeTargetError
-        from VibeCADNativeArguments import NativeArgumentError
+        from SteveCADNativeTargets import NativeTargetError
+        from SteveCADNativeArguments import NativeArgumentError
         with self.assertRaises(NativeTargetError):
             self.call("read_sheet", target={**self.target(), "document_uid": "different-document"})
         with self.assertRaises(NativeTargetError):
@@ -193,7 +193,7 @@ class TestSheetNativeInspect(unittest.TestCase):
         self.assertEqual(result["history"]["display_state"], self.target())
 
     def test_invalid_geometry_reports_repair_state_and_does_not_publish_regions(self):
-        from VibeCADNativeSheetMetalInspectRuntime import NativeSheetMetalInspectError
+        from SteveCADNativeSheetMetalInspectRuntime import NativeSheetMetalInspectError
         hole = self.model.edit(lambda: History.create_circle_step(self.sheet, self.model.bend_pick()[2], 4))
         self.model.edit(lambda: setattr(hole, "Radius", 10000))
         result = self.call("read_sheet", target=self.target(hole))
@@ -206,9 +206,9 @@ class TestSheetNativeInspect(unittest.TestCase):
         self.assertIn("read_sheet", caught.exception.failure()["repair"])
 
     def test_model_surface_discovers_the_native_tool(self):
-        from VibeCADNativeCapabilityRegistry import resolve_native_provider_surface
-        from VibeCADNativeRegistry import build_native_capability_registry
-        from VibeCADRibbonSurface import read_active_ribbon_surface
+        from SteveCADNativeCapabilityRegistry import resolve_native_provider_surface
+        from SteveCADNativeRegistry import build_native_capability_registry
+        from SteveCADRibbonSurface import read_active_ribbon_surface
         previous = Gui.activeWorkbench().name()
         self.addCleanup(lambda: Gui.activateWorkbench(previous))
         Gui.activateWorkbench("PartDesignWorkbench")
@@ -216,8 +216,8 @@ class TestSheetNativeInspect(unittest.TestCase):
         surface = resolve_native_provider_surface(read_active_ribbon_surface(), build_native_capability_registry())
         self.assertTrue(surface.available, surface.summary())
         self.assertIn("sheet_metal.inspect", surface.tool_names)
-        from VibeCADNativeRuntimeRegistry import build_native_runtime_bindings
-        from VibeCADNativeSheetMetalInspectRuntime import NativeSheetMetalInspectRuntime
+        from SteveCADNativeRuntimeRegistry import build_native_runtime_bindings
+        from SteveCADNativeSheetMetalInspectRuntime import NativeSheetMetalInspectRuntime
         bindings = build_native_runtime_bindings(self.context, ("sheet_metal.inspect",))
         self.assertIsInstance(bindings["sheet_metal.inspect"], NativeSheetMetalInspectRuntime)
         result = bindings["sheet_metal.inspect"].inspect({"operation": "read_sheet", "target": self.target()})

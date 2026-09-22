@@ -6,9 +6,9 @@ from pathlib import Path
 
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
-WORKFLOW = REPO_ROOT / ".github" / "workflows" / "vibecad-release.yml"
+WORKFLOW = REPO_ROOT / ".github" / "workflows" / "stevecad-release.yml"
 UPDATE_VALIDATION_WORKFLOW = (
-    REPO_ROOT / ".github" / "workflows" / "vibecad-update-validate.yml"
+    REPO_ROOT / ".github" / "workflows" / "stevecad-update-validate.yml"
 )
 
 
@@ -37,7 +37,7 @@ class TestReleaseWorkflow(unittest.TestCase):
         release = _job_source(self.workflow, "release")
         self.assertIn("always() && needs.prepare.result == 'success'", release)
         self.assertIn("needs.prepare.outputs.prerelease == 'true'", release)
-        self.assertIn("pattern: vibecad-*", release)
+        self.assertIn("pattern: stevecad-*", release)
         self.assertIn("merge-multiple: true", release)
         self.assertIn("Omitting orphan checksum from preview release", release)
         self.assertIn("Omitting unchecked package from preview release", release)
@@ -52,7 +52,7 @@ class TestReleaseWorkflow(unittest.TestCase):
         self.assertIn("arch: arm64", macos)
         self.assertIn("runner: macos-15-intel", macos)
         self.assertIn("arch: x86_64", macos)
-        self.assertIn("package/rattler-build/osx/VibeCAD-*.dmg", macos)
+        self.assertIn("package/rattler-build/osx/SteveCAD-*.dmg", macos)
 
     def test_stable_release_requires_every_platform(self) -> None:
         release = _job_source(self.workflow, "release")

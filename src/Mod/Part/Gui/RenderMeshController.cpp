@@ -149,7 +149,7 @@ private:
         const bool normalsFromUV = request.normalsFromUV;
         auto cancellation = std::move(request.cancellation);
         auto weakState = weak_from_this();
-        const bool trace = qEnvironmentVariableIsSet("VIBECAD_RESTORE_DETAIL_TRACE");
+        const bool trace = qEnvironmentVariableIsSet("STEVECAD_RESTORE_DETAIL_TRACE");
         using Clock = std::chrono::steady_clock;
         const auto submitted = trace ? Clock::now() : Clock::time_point {};
         struct Prepared
@@ -231,7 +231,7 @@ private:
                                         return std::chrono::duration<double, std::milli>(end - begin).count();
                                     };
                                     Base::Console().message(
-                                        "VIBECAD_RENDER request=%llu target=%p queue_ms=%.3f "
+                                        "STEVECAD_RENDER request=%llu target=%p queue_ms=%.3f "
                                         "prepare_ms=%.3f dispatch_ms=%.3f adopt_ms=%.3f "
                                         "vertices=%zu faces=%zu\n",
                                         static_cast<unsigned long long>(generation), target,

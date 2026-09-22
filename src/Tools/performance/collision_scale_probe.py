@@ -20,10 +20,10 @@ def main():
     args = parser.parse_args()
     if args.module_dir:
         sys.path.insert(0, str(args.module_dir.resolve()))
-    import VibeCADMechanismGeometry as geometry
+    import SteveCADMechanismGeometry as geometry
     if args.module_dir:
         assert Path(geometry.__file__).parent == args.module_dir.resolve(), geometry.__file__
-    from VibeCADMechanismGeometry import (
+    from SteveCADMechanismGeometry import (
         DynamicCollisionEvaluator, evaluate_dynamic_collisions,
     )
 

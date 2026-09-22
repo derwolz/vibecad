@@ -12,7 +12,7 @@ set(Points_Scripts
 
 set(Points_TestScripts
     PointsTests/__init__.py
-    PointsTests/TestVibeCADRibbonTools.py
+    PointsTests/TestSteveCADRibbonTools.py
 )
 
 if(BUILD_GUI)

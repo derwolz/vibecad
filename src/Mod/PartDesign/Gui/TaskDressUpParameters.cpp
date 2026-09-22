@@ -199,7 +199,7 @@ void TaskDressUpParameters::populateReferences(QListWidget* widget) const
             );
             item->setData(
                 bodyIdentityRole,
-                QString::fromStdString(body->VibeCADBodyId.getValueStr())
+                QString::fromStdString(body->SteveCADBodyId.getValueStr())
             );
             item->setData(
                 subelementRole,
@@ -467,7 +467,7 @@ void TaskDressUpParameters::deleteRef(QListWidget* widget)
             const std::string subelement =
                 item->data(subelementRole).toString().toStdString();
             for (std::size_t index = 0; index < bodies.size(); ++index) {
-                if (bodies[index]->VibeCADBodyId.getValueStr() != bodyId) {
+                if (bodies[index]->SteveCADBodyId.getValueStr() != bodyId) {
                     continue;
                 }
                 std::erase(groups[index], subelement);

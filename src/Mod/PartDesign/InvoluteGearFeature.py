@@ -96,12 +96,12 @@ class CommandInvoluteGear:
             if existing is None:
                 FreeCADGui.addModule("InvoluteGearFeature")
                 FreeCADGui.doCommand(
-                    "_vibecad_involute_gear = "
+                    "_stevecad_involute_gear = "
                     "InvoluteGearFeature.makeInvoluteGear("
                     f"'InvoluteGear', App.getDocument({document.Name!r}))"
                 )
                 existing = FreeCADGui.doCommandEval(
-                    "_vibecad_involute_gear"
+                    "_stevecad_involute_gear"
                 )
                 if (
                     existing is None

@@ -83,5 +83,5 @@ class LiveSheetTabPrompt(live_sheet_flange_prompt.LiveSheetFlangePrompt):
             point = self.stock_center + App.Vector(x, y, 0)
             self.assertTrue(root.Shape.isInside(point, 1e-6, True))
             self.assertTrue(geometry.folded.isInside(point, 1e-6, True), 'The surrounding plate moved')
-        self.assertEqual(fold.VibeCADTimelineEditCommand, 'SheetMetal_EditSource')
-        self.assertEqual(cut.VibeCADTimelineRole, 'operation')
+        self.assertEqual(fold.SteveCADTimelineEditCommand, 'SheetMetal_EditSource')
+        self.assertEqual(cut.SteveCADTimelineRole, 'operation')

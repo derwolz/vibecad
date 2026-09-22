@@ -15,9 +15,9 @@ MACRO = '''import os, pathlib, sys, unittest
 import FreeCAD as App
 import FreeCADGui as Gui
 from PySide import QtCore
-output = pathlib.Path(os.environ["VIBECAD_TEST_OUTPUT"])
-build = pathlib.Path(os.environ["VIBECAD_TEST_BUILD"])
-assert os.getpid() == int(os.environ["VIBECAD_TEST_PID"])
+output = pathlib.Path(os.environ["STEVECAD_TEST_OUTPUT"])
+build = pathlib.Path(os.environ["STEVECAD_TEST_BUILD"])
+assert os.getpid() == int(os.environ["STEVECAD_TEST_PID"])
 assert pathlib.Path("/proc/self/exe").resolve() == build / "bin/FreeCAD"
 assert QtCore.QDir.tempPath() == os.environ["TMPDIR"]
 assert App.ConfigGet("UserAppData").startswith(os.environ["FREECAD_USER_DATA"])
@@ -37,13 +37,13 @@ class Runner(QtCore.QObject):
         self.requested.connect(self.run, QtCore.Qt.QueuedConnection)
     def run(self):
         try:
-            names = os.environ["VIBECAD_TEST_NAMES"].split(",")
+            names = os.environ["STEVECAD_TEST_NAMES"].split(",")
             suite = unittest.defaultTestLoader.loadTestsFromNames(names)
             with (output / "result.log").open("w") as stream:
                 result = unittest.TextTestRunner(stream=stream, verbosity=2).run(suite)
             (output / "status").write_text(str(result.wasSuccessful()))
         finally:
-            assert os.getpid() == int(os.environ["VIBECAD_TEST_PID"])
+            assert os.getpid() == int(os.environ["STEVECAD_TEST_PID"])
             Gui.getMainWindow().close()
 runner = Runner()
 runner.requested.emit()
@@ -115,8 +115,8 @@ def main():
         FREECAD_USER_DATA=str(output / "data"), FREECAD_USER_TEMP=str(output / "tmp"),
         XDG_CONFIG_HOME=str(output / "config"), XDG_DATA_HOME=str(output / "data"),
         XDG_RUNTIME_DIR=str(output / "runtime"), QT_QPA_PLATFORM="xcb",
-        VIBECAD_TEST_OUTPUT=str(output), VIBECAD_TEST_BUILD=str(build),
-        VIBECAD_TEST_NAMES=",".join(args.tests),
+        STEVECAD_TEST_OUTPUT=str(output), STEVECAD_TEST_BUILD=str(build),
+        STEVECAD_TEST_NAMES=",".join(args.tests),
     )
     # A copied build retains its original CMake RUNPATH entries. Resolve every
     # module dependency from this runtime before those paths, otherwise Python
@@ -132,7 +132,7 @@ def main():
                  "SESSION_MANAGER", "DBUS_SESSION_BUS_ADDRESS"):
         env.pop(name, None)
     command = [
-        "xvfb-run", "-a", "bash", "-c", 'export VIBECAD_TEST_PID=$$; exec "$@"',
+        "xvfb-run", "-a", "bash", "-c", 'export STEVECAD_TEST_PID=$$; exec "$@"',
         "sheetmetal-test", str(build / "bin/FreeCAD"), "-u", str(output / "user.cfg"),
         "-s", str(output / "system.cfg"), "-M", str(build / "Mod/Part"), str(macro),
     ]

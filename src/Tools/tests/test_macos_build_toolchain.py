@@ -68,7 +68,7 @@ class TestMacOSBuildToolchain(unittest.TestCase):
             "codex-resources/zsh/bin/zsh",
         ):
             with self.subTest(path=path):
-                installed = "Mod/VibeCAD/codex_runtime/" + path
+                installed = "Mod/SteveCAD/codex_runtime/" + path
                 self.assertFalse(any(fnmatch.fnmatchcase(installed, p) for p in patterns))
 
     def test_macos_build_exports_flags_to_cmake(self) -> None:
@@ -94,7 +94,7 @@ source "$1"
                         if initial_flags is not None:
                             env["CXXFLAGS"] = initial_flags
                         env.update(
-                            VIBECAD_TARGET_PLATFORM=platform,
+                            STEVECAD_TARGET_PLATFORM=platform,
                             CCACHE_DIR="",
                             PREFIX=prefix,
                         )
@@ -133,7 +133,7 @@ source "$1"
                 env = os.environ.copy()
                 env.pop("HOST", None)
                 env["CCACHE_DIR"] = ""
-                env["VIBECAD_TARGET_PLATFORM"] = platform
+                env["STEVECAD_TARGET_PLATFORM"] = platform
                 result = subprocess.run(
                     ["bash", "-e", "-c", setup + '\nprintf "%s" "$CMAKE_PRESET"'],
                     cwd=REPO_ROOT,
@@ -184,10 +184,10 @@ source "$1"
         build_script = BUILD_SCRIPT.read_text(encoding="utf-8")
 
         self.assertIn(
-            "VIBECAD_TARGET_PLATFORM: ${{ target_platform }}",
+            "STEVECAD_TARGET_PLATFORM: ${{ target_platform }}",
             recipe,
         )
-        self.assertIn("VIBECAD_TARGET_PLATFORM:-${HOST:-}", build_script)
+        self.assertIn("STEVECAD_TARGET_PLATFORM:-${HOST:-}", build_script)
 
         for platform in ("osx-arm64", "osx-64", "arm64-apple-darwin20.0.0"):
             with self.subTest(platform=platform):

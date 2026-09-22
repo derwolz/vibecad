@@ -1,6 +1,6 @@
 # ***************************************************************************
 # *                                                                         *
-# *   VibeCAD Drawing-ribbon behavior contracts.                            *
+# *   SteveCAD Drawing-ribbon behavior contracts.                            *
 # *                                                                         *
 # ***************************************************************************
 
@@ -499,7 +499,7 @@ def _function_body(text: str, signature: str) -> str:
 
 
 class TechDrawGuiBehaviorSourceContractTest(unittest.TestCase):
-    """Product contracts for the VibeCAD Drawing ribbon, independent of legacy tests."""
+    """Product contracts for the SteveCAD Drawing ribbon, independent of legacy tests."""
 
     @classmethod
     def setUpClass(cls):
@@ -575,7 +575,7 @@ class TechDrawGuiBehaviorSourceContractTest(unittest.TestCase):
         )
         self.assertEqual(actual, SHIPPED_DRAWING_COMMANDS)
 
-        ribbon = (self.techdraw.parents[1] / "Gui/VibeCADRibbon.cpp").read_text(encoding="utf-8")
+        ribbon = (self.techdraw.parents[1] / "Gui/SteveCADRibbon.cpp").read_text(encoding="utf-8")
         shared_inspection = _function_body(
             ribbon,
             "const std::vector<QString>& " "sharedInspectionCommands()",
@@ -1108,8 +1108,8 @@ class TechDrawGuiBehaviorSourceContractTest(unittest.TestCase):
         self.assertIn("resolveExactOutput", grouping)
         self.assertNotIn("addDynamicProperty", grouping)
         self.assertNotIn(".addProperty(", grouping)
-        self.assertNotIn("VibeCADTimelineRole =", grouping)
-        self.assertNotIn("VibeCADTimelineOwner =", grouping)
+        self.assertNotIn("SteveCADTimelineRole =", grouping)
+        self.assertNotIn("SteveCADTimelineOwner =", grouping)
         self.assertIn(
             "timeline->publishProvisionalOperationBlock(" "group,liveOutputs)",
             "".join(grouping.split()),
@@ -1290,21 +1290,21 @@ class TechDrawGuiBehaviorSourceContractTest(unittest.TestCase):
             "void recordAcceptedVisualInspection(",
         )
         self.assertIn(
-            "__vibecad_inspection_resources.append(",
+            "__stevecad_inspection_resources.append(",
             recorded,
         )
         self.assertLess(
             recorded.index("'Inspection::Feature'"),
             recorded.index("'Inspection::Group'"),
         )
-        self.assertNotIn("VibeCADTimelineOwner", recorded)
-        self.assertNotIn("VibeCADTimelineRole", recorded)
+        self.assertNotIn("SteveCADTimelineOwner", recorded)
+        self.assertNotIn("SteveCADTimelineRole", recorded)
         self.assertIn(
             "publishProvisionalTimelineOperationBlock(",
             recorded,
         )
         self.assertIn(
-            "for __vibecad_inspection in " "__vibecad_inspection_resources:",
+            "for __stevecad_inspection in " "__stevecad_inspection_resources:",
             recorded,
         )
         self.assertLess(
@@ -1551,7 +1551,7 @@ class TechDrawGuiBehaviorSourceContractTest(unittest.TestCase):
         )
 
         transaction_owner = (
-            self.techdraw.parent / "VibeCAD/VibeCADNativeTransaction.py"
+            self.techdraw.parent / "SteveCAD/SteveCADNativeTransaction.py"
         ).read_text(encoding="utf-8")
         self.assertIn(
             "document.openTransaction(name)",
@@ -2078,7 +2078,7 @@ class TechDrawGuiBehaviorRuntimeContractTest(unittest.TestCase):
         self.assertTrue(action.isEnabled())
         self.assertTrue(page.KeepUpdated)
 
-        timeline = self.document.getObject("VibeCADTimeline")
+        timeline = self.document.getObject("SteveCADTimeline")
         operations_before = tuple(operation.Name for operation in timeline.Operations)
         self.document.UndoMode = True
         undo_before = self.document.UndoCount
@@ -2236,7 +2236,7 @@ class TechDrawGuiBehaviorRuntimeContractTest(unittest.TestCase):
         timeline = _wait_until(
             lambda: Gui.getMainWindow().findChild(
                 QtGui.QListWidget,
-                "VibeCADFeatureTimelineItems",
+                "SteveCADFeatureTimelineItems",
             )
         )
         self.assertIsNotNone(timeline)
@@ -2248,10 +2248,10 @@ class TechDrawGuiBehaviorRuntimeContractTest(unittest.TestCase):
             ),
             _visible_history_names(timeline),
         )
-        self.assertEqual(front.VibeCADTimelineRole, "resource")
-        self.assertEqual(front.VibeCADTimelineOwner, group)
+        self.assertEqual(front.SteveCADTimelineRole, "resource")
+        self.assertEqual(front.SteveCADTimelineOwner, group)
         self.assertEqual(
-            front.getTypeIdOfProperty("VibeCADTimelineOwner"),
+            front.getTypeIdOfProperty("SteveCADTimelineOwner"),
             "App::PropertyLinkHidden",
         )
         self.assertNotIn(group, front.OutList)
@@ -2274,7 +2274,7 @@ class TechDrawGuiBehaviorRuntimeContractTest(unittest.TestCase):
         restored_front = self.document.getObject(front_name)
         self.assertIsNotNone(restored_group)
         self.assertIsNotNone(restored_front)
-        self.assertIs(restored_front.VibeCADTimelineOwner, restored_group)
+        self.assertIs(restored_front.SteveCADTimelineOwner, restored_group)
 
         self.document.redo()
         Gui.updateGui()
@@ -2293,22 +2293,22 @@ class TechDrawGuiBehaviorRuntimeContractTest(unittest.TestCase):
         page.Template = template
         page.addProperty(
             "App::PropertyString",
-            "VibeCADTimelineRole",
+            "SteveCADTimelineRole",
             "Timeline",
         )
-        page.VibeCADTimelineRole = "operation"
+        page.SteveCADTimelineRole = "operation"
         template.addProperty(
             "App::PropertyString",
-            "VibeCADTimelineRole",
+            "SteveCADTimelineRole",
             "Timeline",
         )
         template.addProperty(
             "App::PropertyLinkHidden",
-            "VibeCADTimelineOwner",
+            "SteveCADTimelineOwner",
             "Timeline",
         )
-        template.VibeCADTimelineRole = "resource"
-        template.VibeCADTimelineOwner = page
+        template.SteveCADTimelineRole = "resource"
+        template.SteveCADTimelineOwner = page
         self.document.recompute()
 
         page_name = page.Name
@@ -2327,7 +2327,7 @@ class TechDrawGuiBehaviorRuntimeContractTest(unittest.TestCase):
         self.assertIsNotNone(restored_page)
         self.assertIsNotNone(restored_template)
         self.assertIs(
-            restored_template.VibeCADTimelineOwner,
+            restored_template.SteveCADTimelineOwner,
             restored_page,
         )
 
@@ -2359,7 +2359,7 @@ class TechDrawGuiBehaviorRuntimeContractTest(unittest.TestCase):
         controller = self.document.getObject("DrawingViews")
         self.assertIsNotNone(controller)
         self.assertEqual(
-            controller.VibeCADTimelineRole,
+            controller.SteveCADTimelineRole,
             "operation",
         )
         outputs = list(controller.Group)
@@ -2374,11 +2374,11 @@ class TechDrawGuiBehaviorRuntimeContractTest(unittest.TestCase):
         )
         for output in outputs:
             self.assertEqual(
-                output.VibeCADTimelineRole,
+                output.SteveCADTimelineRole,
                 "resource",
             )
             self.assertIs(
-                output.VibeCADTimelineOwner,
+                output.SteveCADTimelineOwner,
                 controller,
             )
             self.assertNotIn(controller, output.OutList)
@@ -2386,7 +2386,7 @@ class TechDrawGuiBehaviorRuntimeContractTest(unittest.TestCase):
         timeline_widget = _wait_until(
             lambda: Gui.getMainWindow().findChild(
                 QtGui.QListWidget,
-                "VibeCADFeatureTimelineItems",
+                "SteveCADFeatureTimelineItems",
             )
         )
         self.assertIsNotNone(timeline_widget)
@@ -2418,11 +2418,11 @@ class TechDrawGuiBehaviorRuntimeContractTest(unittest.TestCase):
         )
         for output in outputs:
             self.assertIs(
-                output.VibeCADTimelineOwner,
+                output.SteveCADTimelineOwner,
                 controller,
             )
 
-        timeline = self.document.getObject("VibeCADTimeline")
+        timeline = self.document.getObject("SteveCADTimeline")
         operations = list(timeline.Operations)
         operation_index = operations.index(controller)
         output_indices = [operations.index(output) for output in outputs]
@@ -2438,11 +2438,11 @@ class TechDrawGuiBehaviorRuntimeContractTest(unittest.TestCase):
         self.assertEqual(int(timeline.Position), len(operations))
         previous = Gui.getMainWindow().findChild(
             QtGui.QToolButton,
-            "VibeCADFeatureTimelinePrevious",
+            "SteveCADFeatureTimelinePrevious",
         )
         end = Gui.getMainWindow().findChild(
             QtGui.QToolButton,
-            "VibeCADFeatureTimelineEnd",
+            "SteveCADFeatureTimelineEnd",
         )
         self.assertIsNotNone(previous)
         self.assertIsNotNone(end)
@@ -2480,17 +2480,17 @@ class TechDrawGuiBehaviorRuntimeContractTest(unittest.TestCase):
         )
         controller.addProperty(
             "App::PropertyString",
-            "VibeCADTimelineRole",
+            "SteveCADTimelineRole",
             "Timeline",
         )
-        controller.VibeCADTimelineRole = "operation"
+        controller.SteveCADTimelineRole = "operation"
         controller.Label = "Grouped Drawing Outputs"
         self.document.recompute()
 
         timeline = _wait_until(
             lambda: Gui.getMainWindow().findChild(
                 QtGui.QListWidget,
-                "VibeCADFeatureTimelineItems",
+                "SteveCADFeatureTimelineItems",
             )
         )
         self.assertIsNotNone(timeline)
@@ -2500,7 +2500,7 @@ class TechDrawGuiBehaviorRuntimeContractTest(unittest.TestCase):
         self.assertIsNotNone(controller_item)
 
         self.assertIn(
-            "VibeCADTimelineEdit",
+            "SteveCADTimelineEdit",
             _timeline_context_action_names(
                 timeline,
                 annotation_item,
@@ -2508,7 +2508,7 @@ class TechDrawGuiBehaviorRuntimeContractTest(unittest.TestCase):
         )
         controller_item = _wait_until(lambda: _history_item(timeline, controller.Name))
         self.assertNotIn(
-            "VibeCADTimelineEdit",
+            "SteveCADTimelineEdit",
             _timeline_context_action_names(
                 timeline,
                 controller_item,

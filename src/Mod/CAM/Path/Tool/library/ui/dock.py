@@ -32,7 +32,7 @@ import Path.Base.Util as PathUtil
 import Path.Tool.Gui.Controller as PathToolControllerGui
 import PathScripts.PathUtilsGui as PathUtilsGui
 from Path.CommandBoundary import active_jobs, is_job
-from VibeCADNativeTransaction import _OwnedDocumentTransaction
+from SteveCADNativeTransaction import _OwnedDocumentTransaction
 from PySide import QtGui, QtCore, QtWidgets
 from functools import partial
 from typing import List, Tuple

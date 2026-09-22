@@ -1,11 +1,11 @@
 // SPDX-License-Identifier: LGPL-2.1-or-later
 
 /***************************************************************************
- *   Copyright (c) 2026 VibeCAD contributors                               *
+ *   Copyright (c) 2026 SteveCAD contributors                               *
  *                                                                         *
- *   This file is part of VibeCAD.                                         *
+ *   This file is part of SteveCAD.                                         *
  *                                                                         *
- *   VibeCAD is free software: you can redistribute it and/or modify it     *
+ *   SteveCAD is free software: you can redistribute it and/or modify it     *
  *   under the terms of the GNU Lesser General Public License as           *
  *   published by the Free Software Foundation, either version 2.1 of the  *
  *   License, or (at your option) any later version.                       *
@@ -144,7 +144,7 @@ bool Gui::ThemeManager::applyImpl(Mode mode, bool refreshGui, bool loadProfile)
             }
             else {
                 Base::Console().error(
-                    "VibeCAD %s theme profile is missing: %s\n",
+                    "SteveCAD %s theme profile is missing: %s\n",
                     modeName(mode),
                     Base::FileInfo::pathToString(path).c_str()
                 );
@@ -152,7 +152,7 @@ bool Gui::ThemeManager::applyImpl(Mode mode, bool refreshGui, bool loadProfile)
         }
         catch (const std::exception& error) {
             Base::Console().error(
-                "VibeCAD could not load the %s theme profile: %s\n",
+                "SteveCAD could not load the %s theme profile: %s\n",
                 modeName(mode),
                 error.what()
             );

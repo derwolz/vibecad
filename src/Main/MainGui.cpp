@@ -145,7 +145,7 @@ static bool hasBoolParameter(const ParameterGrp::handle& group, const char* name
     return false;
 }
 
-static void initializeVibeCADDockDefaults()
+static void initializeSteveCADDockDefaults()
 {
     const auto dockWindows = App::GetApplication().GetParameterGroupByPath(
         "User parameter:BaseApp/Preferences/DockWindows"
@@ -230,18 +230,18 @@ int main(int argc, char** argv)
 #endif
 
     // Name and Version of the Application
-    App::Application::Config()["ExeName"] = "VibeCAD";
-    App::Application::Config()["ExeVendor"] = "VibeCAD";
+    App::Application::Config()["ExeName"] = "SteveCAD";
+    App::Application::Config()["ExeVendor"] = "SteveCAD";
     App::Application::Config()["AppDataSkipVendor"] = "true";
     App::Application::Config()["MaintainerUrl"] = "https://github.com/10-X-eng/vibecad";
 
     // set the banner (for logging and console)
     App::Application::Config()["CopyrightInfo"] = sBanner;
-    App::Application::Config()["AppIcon"] = "vibecad";
-    App::Application::Config()["SplashScreen"] = "vibecadsplash";
+    App::Application::Config()["AppIcon"] = "stevecad";
+    App::Application::Config()["SplashScreen"] = "stevecadsplash";
     App::Application::Config()["AboutImage"] = App::Application::isDevelopmentVersion()
-        ? "vibecadaboutdev"
-        : "vibecadabout";
+        ? "stevecadaboutdev"
+        : "stevecadabout";
     App::Application::Config()["StartWorkbench"] = "PartDesignWorkbench";
     // App::Application::Config()["HiddenDockWindow"] = "Property editor";
     App::Application::Config()["SplashAlignment"] = "Bottom|Left";
@@ -250,7 +250,7 @@ int main(int argc, char** argv)
     App::Application::Config()["SplashInfoColor"] = "#74c0fc";
     App::Application::Config()["SplashInfoExeName"] = "";
     App::Application::Config()["SplashInfoPosition"] = "250,280";
-    App::Application::Config()["DesktopFileName"] = "vibecad";
+    App::Application::Config()["DesktopFileName"] = "stevecad";
 
     try {
         // Init phase ===========================================================
@@ -290,9 +290,9 @@ int main(int argc, char** argv)
 
         if (inGuiMode()) {
             // MainWindow constructs native docks before InitGui.py runs. Apply
-            // VibeCAD's fresh-profile browser layout at the only startup point
+            // SteveCAD's fresh-profile browser layout at the only startup point
             // where preferences are loaded but no dock widgets exist yet.
-            initializeVibeCADDockDefaults();
+            initializeSteveCADDockDefaults();
         }
 
         Gui::Application::initApplication();

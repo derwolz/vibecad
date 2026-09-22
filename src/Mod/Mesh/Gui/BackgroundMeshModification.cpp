@@ -43,7 +43,7 @@ void MeshGui::startBackgroundMeshModification(
                 facets
             ));
         }
-        PyObject* imported = PyImport_ImportModule("VibeCADMeshModificationGui");
+        PyObject* imported = PyImport_ImportModule("SteveCADMeshModificationGui");
         if (!imported) {
             throw Py::Exception();
         }

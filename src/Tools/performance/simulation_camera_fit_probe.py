@@ -19,7 +19,7 @@ import FreeCADGui as Gui
 import Part
 from PySide6 import QtCore
 
-candidate = os.environ.get('VIBECAD_SIMULATION_SOURCE')
+candidate = os.environ.get('STEVECAD_SIMULATION_SOURCE')
 if candidate:
     name = 'CommandCreateSimulation'
     spec = importlib.util.spec_from_file_location(
@@ -29,7 +29,7 @@ if candidate:
     spec.loader.exec_module(module)
 from CommandCreateSimulation import TaskAssemblyCreateSimulation
 
-output = Path(os.environ['VIBECAD_TRACE_PROBE_RESULT'])
+output = Path(os.environ['STEVECAD_TRACE_PROBE_RESULT'])
 if App.listDocuments():
     raise RuntimeError('Use a disposable empty GUI for the camera fit probe')
 document = None

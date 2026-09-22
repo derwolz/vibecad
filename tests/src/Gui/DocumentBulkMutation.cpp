@@ -86,7 +86,7 @@ LONG CALLBACK captureAccessViolation(EXCEPTION_POINTERS* exception)
         return EXCEPTION_CONTINUE_SEARCH;
     }
     static std::atomic_flag captured;
-    const auto path = qEnvironmentVariable("VIBECAD_TEST_ACCESS_VIOLATION_DUMP");
+    const auto path = qEnvironmentVariable("STEVECAD_TEST_ACCESS_VIOLATION_DUMP");
     if (path.isEmpty() || captured.test_and_set()) {
         return EXCEPTION_CONTINUE_SEARCH;
     }
@@ -422,11 +422,11 @@ private Q_SLOTS:
     {
         tests::initApplication();
 #ifdef _MSC_VER
-        if (qEnvironmentVariableIsSet("VIBECAD_TEST_ACCESS_VIOLATION_DUMP")) {
+        if (qEnvironmentVariableIsSet("STEVECAD_TEST_ACCESS_VIOLATION_DUMP")) {
             exceptionHandler = AddVectoredExceptionHandler(1, captureAccessViolation);
         }
 #endif
-        if (qEnvironmentVariableIsSet("VIBECAD_RESTORE_DETAIL_TRACE")) {
+        if (qEnvironmentVariableIsSet("STEVECAD_RESTORE_DETAIL_TRACE")) {
             console = std::make_unique<Base::ConsoleObserverStd>();
             Base::Console().attachObserver(console.get());
         }
@@ -1504,7 +1504,7 @@ private Q_SLOTS:
         history->Operations.setValues(projectionObjects);
         history->Position.setValue(projectionObjectCount);
         auto* featureTimeline = mainWindow.findChild<QListWidget*>(
-            QStringLiteral("VibeCADFeatureTimelineItems")
+            QStringLiteral("SteveCADFeatureTimelineItems")
         );
         QVERIFY(featureTimeline);
         QTRY_COMPARE_WITH_TIMEOUT(featureTimeline->count(), projectionObjectCount + 1, 10000);

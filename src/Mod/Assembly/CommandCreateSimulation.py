@@ -58,7 +58,7 @@ if App.GuiUp:
 
 import UtilsAssembly
 import Preferences
-from VibeCADNativeTransaction import _OwnedDocumentTransaction
+from SteveCADNativeTransaction import _OwnedDocumentTransaction
 
 translate = App.Qt.translate
 
@@ -302,7 +302,7 @@ class ViewProviderSimulation:
                 return False
 
         playback_only = bool(
-            str(getattr(operation, "VibeCADVibeScriptProgramId", "") or "")
+            str(getattr(operation, "SteveCADVibeScriptProgramId", "") or "")
         )
         if not playback_only and UtilsAssembly.activeAssembly() != assembly:
             gui_document = Gui.getDocument(assembly.Document.Name)
@@ -1116,7 +1116,7 @@ class TaskAssemblyCreateSimulation(QtCore.QObject):
                     str(
                         getattr(
                             component,
-                            "VibeCADVibeScriptOutputType",
+                            "SteveCADVibeScriptOutputType",
                             "",
                         )
                         or ""
@@ -1215,16 +1215,16 @@ class TaskAssemblyCreateSimulation(QtCore.QObject):
         # can distinguish saved, read-only playback from every editable native
         # Assembly task without relying on translated labels or widget layout.
         self.form.setProperty(
-            "vibecadSavedAssemblySimulationPlayback",
+            "stevecadSavedAssemblySimulationPlayback",
             self.playback_only,
         )
         if self.playback_only:
             self.form.setProperty(
-                "vibecadSimulationDocumentUid",
+                "stevecadSimulationDocumentUid",
                 str(getattr(self.doc, "Uid", "") or ""),
             )
             self.form.setProperty(
-                "vibecadSimulationObjectName",
+                "stevecadSimulationObjectName",
                 str(simFeaturePy.Name),
             )
         self.form.motionList.installEventFilter(self)
@@ -1931,7 +1931,7 @@ class TaskAssemblyCreateSimulation(QtCore.QObject):
         encoded = str(
             getattr(
                 self.simFeaturePy,
-                "VibeCADAssemblySimulationValidation",
+                "SteveCADAssemblySimulationValidation",
                 "",
             )
             or ""
@@ -2232,10 +2232,10 @@ class TaskAssemblyCreateSimulation(QtCore.QObject):
             if Path(file_path).suffix.lower() not in {'.gif', '.mp4', '.avi'}:
                 raise ValueError('Animation export requires GIF, MP4 or AVI')
             from AnimationExport import AnimationExportController, AnimationExportJob
-            from VibeCADCore import get_service
-            from VibeCADHostIsolation import execute_staged_script, _freecadcmd
-            import VibeCADHostIsolation
-            from VibeCADPreferences import load_settings
+            from SteveCADCore import get_service
+            from SteveCADHostIsolation import execute_staged_script, _freecadcmd
+            import SteveCADHostIsolation
+            from SteveCADPreferences import load_settings
 
             self.stopAnimation()
             self._cancelPendingFrame()
@@ -2246,7 +2246,7 @@ class TaskAssemblyCreateSimulation(QtCore.QObject):
             # Resolve GUI/application paths before crossing to the supervisor.
             isolation = {
                 'app': App, 'executable': str(_freecadcmd(App.getHomePath())),
-                'module_root': str(Path(VibeCADHostIsolation.__file__).parent),
+                'module_root': str(Path(SteveCADHostIsolation.__file__).parent),
                 'memory_limit_bytes': load_settings().scripted_memory_limit_mb * 1024 * 1024,
                 'environment': {},
             }

@@ -97,7 +97,7 @@ PROPERTY_SOURCE(Part::Feature, App::GeoFeature)
 
 Feature::Feature()
 {
-    const bool traceConstruction = std::getenv("VIBECAD_RESTORE_DETAIL_TRACE") != nullptr;
+    const bool traceConstruction = std::getenv("STEVECAD_RESTORE_DETAIL_TRACE") != nullptr;
     const auto traceStart = std::chrono::steady_clock::now();
     ADD_PROPERTY(Shape, (TopoDS_Shape()));
     const auto shapeReady = std::chrono::steady_clock::now();
@@ -112,7 +112,7 @@ Feature::Feature()
         const auto total = elapsed(traceStart, propertyReady);
         if (total >= 20) {
             Base::Console().message(
-                "VIBECAD_RESTORE_DETAIL part_feature_ctor shape_ms=%lld "
+                "STEVECAD_RESTORE_DETAIL part_feature_ctor shape_ms=%lld "
                 "default_material_ms=%lld material_property_ms=%lld total_ms=%lld\n",
                 static_cast<long long>(elapsed(traceStart, shapeReady)),
                 static_cast<long long>(elapsed(shapeReady, materialReady)),

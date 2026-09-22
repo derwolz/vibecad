@@ -24,8 +24,8 @@ def main():
                         help='Cancel adapter validation after this many seconds, then retry.')
     args = parser.parse_args()
     sys.path.insert(0, str(args.module_dir.resolve()))
-    import VibeCADVibeScriptDomainRuntime as runtime
-    from VibeCADVibeScriptDomains import get_vibescript_pack
+    import SteveCADVibeScriptDomainRuntime as runtime
+    from SteveCADVibeScriptDomains import get_vibescript_pack
 
     assert Path(runtime.__file__).parent == args.module_dir.resolve()
     started = time.perf_counter()

@@ -131,7 +131,7 @@ class CatalogWindow:
 
         header = self.Gtk.HeaderBar()
         header.set_title("Insert McMaster-Carr Component")
-        header.set_subtitle("Download 3-D STEP to insert it into VibeCAD")
+        header.set_subtitle("Download 3-D STEP to insert it into SteveCAD")
         header.set_show_close_button(True)
         window.set_titlebar(header)
 
@@ -229,7 +229,7 @@ class CatalogWindow:
             self._set_status(f"Download finished, but could not publish it: {exc}")
             return
         print(f"Downloaded {target}", flush=True)
-        self._set_status(f"Downloaded {target.name}. VibeCAD is importing it now.")
+        self._set_status(f"Downloaded {target.name}. SteveCAD is importing it now.")
         if not self.downloads:
             self.GLib.timeout_add(500, self._quit)
 
@@ -241,7 +241,7 @@ class CatalogWindow:
 
     def _load_changed(self, view, event) -> None:
         if event == self.WebKit2.LoadEvent.FINISHED:
-            self._set_status("Download 3-D STEP to insert it into VibeCAD.")
+            self._set_status("Download 3-D STEP to insert it into SteveCAD.")
         elif event == self.WebKit2.LoadEvent.STARTED:
             self._set_status("Loading McMaster-Carr…")
 

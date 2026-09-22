@@ -157,7 +157,7 @@ def run_fem_solver(solver, working_dir=None, blocking=False):
         and not blocking
         and solver.Proxy.Type in _DETACHED_GUI_SOLVER_TYPES
     ):
-        from VibeCADAnalyzeSolverGui import run_solver_detached
+        from SteveCADAnalyzeSolverGui import run_solver_detached
 
         try:
             return run_solver_detached(solver)

@@ -9,11 +9,11 @@ import traceback
 
 import FreeCAD as App
 import FreeCADGui as Gui
-import VibeCADGui as runtime
+import SteveCADGui as runtime
 from PySide6 import QtCore, QtGui, QtWidgets
 
-output = Path(os.environ['VIBECAD_TRACE_PROBE_RESULT'])
-source = Path(os.environ['VIBECAD_ROUNDTRIP_COPY'])
+output = Path(os.environ['STEVECAD_TRACE_PROBE_RESULT'])
+source = Path(os.environ['STEVECAD_ROUNDTRIP_COPY'])
 if source.parent != output.parent or source.name != 'probe-document.FCStd' or App.listDocuments():
     raise RuntimeError('Use a fresh isolated instance and disposable probe document')
 

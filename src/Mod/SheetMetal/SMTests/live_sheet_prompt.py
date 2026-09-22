@@ -51,17 +51,17 @@ class LiveSheetPrompt(unittest.TestCase):
         return document
 
     def test_editable_bracket_from_ordinary_request(self):
-        import VibeCADGui as VibeGui
-        import VibeCADCodex as Codex
-        from VibeCADCore import get_service
-        from VibeCADMCP import get_control_mode_controller
-        from VibeCADProvider import CodexProvider
-        from VibeCADSession import run_prompt, run_native_surface_continuation
+        import SteveCADGui as VibeGui
+        import SteveCADCodex as Codex
+        from SteveCADCore import get_service
+        from SteveCADMCP import get_control_mode_controller
+        from SteveCADProvider import CodexProvider
+        from SteveCADSession import run_prompt, run_native_surface_continuation
         import SheetMetalEditable as Editable
 
-        output = Path(os.environ["VIBECAD_TEST_OUTPUT"])
-        model = os.environ.get("VIBECAD_SHEET_PROMPT_MODEL", "qwen3.5:9b")
-        auth = os.environ.get("VIBECAD_SHEET_PROMPT_AUTH", "api_key")
+        output = Path(os.environ["STEVECAD_TEST_OUTPUT"])
+        model = os.environ.get("STEVECAD_SHEET_PROMPT_MODEL", "qwen3.5:9b")
+        auth = os.environ.get("STEVECAD_SHEET_PROMPT_AUTH", "api_key")
         settings = {"case": self.case_id, "prompt": self.prompt, "model": model,
                     "auth_mode": auth, "reasoning_effort": "high", "timeout_seconds": None}
         (output/"case.json").write_text(json.dumps(settings, indent=2))
@@ -84,7 +84,7 @@ class LiveSheetPrompt(unittest.TestCase):
             _events()
         provider = CodexProvider(model=model, auth_mode=auth,
             api_key="ollama-local" if auth == "api_key" else None,
-            base_url=(os.environ.get("VIBECAD_SHEET_PROMPT_BASE_URL", "http://127.0.0.1:11434/v1")
+            base_url=(os.environ.get("STEVECAD_SHEET_PROMPT_BASE_URL", "http://127.0.0.1:11434/v1")
                       if auth == "api_key" else None),
             reasoning_effort="high", timeout_seconds=None,
             web_search_enabled=False, skills_enabled=False)

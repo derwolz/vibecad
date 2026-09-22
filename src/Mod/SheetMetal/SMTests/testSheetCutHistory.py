@@ -41,7 +41,7 @@ class TestSheetCutHistory(unittest.TestCase):
 
     def button(self, suffix):
         button = Gui.getMainWindow().findChild(QtWidgets.QToolButton,
-                                               "VibeCADFeatureTimeline" + suffix)
+                                               "SteveCADFeatureTimeline" + suffix)
         self.assertIsNotNone(button)
         self.fixture.wait_for(lambda: button.isVisible() and button.isEnabled())
         button.click()
@@ -72,8 +72,8 @@ class TestSheetCutHistory(unittest.TestCase):
         self.assertGreater(initial, first.Shape.Volume)
         self.assertGreater(first.Shape.Volume, second.Shape.Volume)
         for step in (first, second):
-            self.assertEqual(step.VibeCADTimelineRole, "operation")
-            self.assertEqual(list(step.VibeCADTimelineReplacedInputs), [step.BaseSheet])
+            self.assertEqual(step.SteveCADTimelineRole, "operation")
+            self.assertEqual(list(step.SteveCADTimelineReplacedInputs), [step.BaseSheet])
             self.assertIs(history.get_prepared(step).mapping, mapping)
             for shape in (step.Shape, step.FlatShape):
                 self.assertTrue(shape.isValid())
@@ -193,7 +193,7 @@ class TestSheetCutHistory(unittest.TestCase):
     def test_history_editor_edits_exact_cut_asynchronously_and_can_reload_stale_values(self):
         import SheetMetalCutGui as CutGui
         step = self.cut()
-        widget = Gui.getMainWindow().findChild(QtWidgets.QListWidget, "VibeCADFeatureTimelineItems")
+        widget = Gui.getMainWindow().findChild(QtWidgets.QListWidget, "SteveCADFeatureTimelineItems")
         self.assertIsNotNone(widget)
         def item():
             return next((widget.item(row) for row in range(widget.count())
@@ -235,7 +235,7 @@ class TestSheetCutHistory(unittest.TestCase):
         QtWidgets.QApplication.sync()
         screen = Gui.getMainWindow().windowHandle().screen()
         self.assertTrue(screen.grabWindow(Gui.getMainWindow().winId()).save(
-            str(Path(os.environ["VIBECAD_TEST_OUTPUT"]) / "sheet-cut-history-editor.png")))
+            str(Path(os.environ["STEVECAD_TEST_OUTPUT"]) / "sheet-cut-history-editor.png")))
         self.model.edit(lambda: self.history().update_circle_step(step, radius=3))
         editor.radius.setValue(6)
         editor.apply_button.click()

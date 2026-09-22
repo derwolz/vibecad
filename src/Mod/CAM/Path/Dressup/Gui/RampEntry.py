@@ -18,7 +18,7 @@ import Path.Dressup.Utils as PathDressup
 import Path.Main.Job as PathJob
 import PathScripts.PathUtils as PathUtils
 from PySide.QtCore import QT_TRANSLATE_NOOP
-from VibeCADNativeTransaction import _OwnedDocumentTransaction
+from SteveCADNativeTransaction import _OwnedDocumentTransaction
 
 
 class AnnotatedGCode(RampEntryCore.AnnotatedGCode):
@@ -178,7 +178,7 @@ def _validate_result(
         or result not in tuple(job.Operations.Group or ())
         or base in tuple(job.Operations.Group or ())
         or not document.isProvisionallyEnrolledInTimelineByCurrentTransaction(result)
-        or tuple(result.VibeCADTimelineReplacedInputs)
+        or tuple(result.SteveCADTimelineReplacedInputs)
         != ((base,) if base_was_visible else ())
         or bool(base.ViewObject.Visibility)
         or not bool(result.ViewObject.Visibility)

@@ -8,7 +8,7 @@ import Path.Dressup.Utils as PathDressup
 import Path.Main.Job as PathJob
 import PathScripts.PathUtils as PathUtils
 from Path.CommandBoundary import can_start_document_command
-from VibeCADNativeTransaction import _OwnedDocumentTransaction
+from SteveCADNativeTransaction import _OwnedDocumentTransaction
 
 from PySide.QtCore import QT_TRANSLATE_NOOP
 

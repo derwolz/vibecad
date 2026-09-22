@@ -27,7 +27,7 @@ class TestMcMasterRibbon(unittest.TestCase):
             pass
 
         freecad = ModuleType("FreeCAD")
-        freecad.getResourceDir = lambda: "C:/VibeCAD/"
+        freecad.getResourceDir = lambda: "C:/SteveCAD/"
         freecad.Console = SimpleNamespace(
             PrintMessage=messages.append,
             PrintError=lambda _message: None,
@@ -65,7 +65,7 @@ class TestMcMasterRibbon(unittest.TestCase):
         self.assertEqual(
             os.path.normpath(registered[0].Icon),
             os.path.normpath(
-                "C:/VibeCAD/Mod/McMasterInsert/icons/mcmaster-workbench.svg"
+                "C:/SteveCAD/Mod/McMasterInsert/icons/mcmaster-workbench.svg"
             ),
         )
         self.assertEqual(messages, [])

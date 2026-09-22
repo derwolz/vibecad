@@ -8,7 +8,7 @@ import time
 import FreeCAD as App
 import Part
 
-output = Path(os.environ['VIBECAD_GENERATED_DOCUMENT']).resolve()
+output = Path(os.environ['STEVECAD_GENERATED_DOCUMENT']).resolve()
 if output.exists():
     raise RuntimeError('Refusing to replace an existing generated document')
 output.parent.mkdir(parents=True, exist_ok=True)
@@ -56,6 +56,6 @@ report = {
     'runtime': dict(App.hostRuntimeStatus()), 'expected_results': actual,
 }
 output.with_suffix('.json').write_text(json.dumps(report, indent=2), encoding='utf-8')
-print('VIBECAD_GENERATED_WORKLOAD ' + json.dumps({key: value for key, value in report.items()
+print('STEVECAD_GENERATED_WORKLOAD ' + json.dumps({key: value for key, value in report.items()
                                                if key != 'expected_results'}), flush=True)
 App.closeDocument(doc.Name)

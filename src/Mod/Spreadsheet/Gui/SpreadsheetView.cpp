@@ -69,7 +69,7 @@ SheetView::SheetView(Gui::Document* pcDocument, App::DocumentObject* docObj, QWi
     : MDIView(pcDocument, parent)
     , sheet(static_cast<Sheet*>(docObj))
 {
-    setProperty("vibecadUsesModelBrowser", false);
+    setProperty("stevecadUsesModelBrowser", false);
 
     // Set up ui
 

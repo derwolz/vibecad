@@ -74,7 +74,7 @@ TEST_F(DocumentProjectionTest, BrowserGraphSurvivesDisplayChangesButRejectsStruc
     EXPECT_GT(_document->getObjectChangeGeneration(), fullRevision);
 
     auto* metadata = static_cast<App::PropertyString*>(
-        object->addDynamicProperty("App::PropertyString", "VibeCADTreeRole"));
+        object->addDynamicProperty("App::PropertyString", "SteveCADTreeRole"));
     EXPECT_FALSE(snapshot.isCurrent());
     const Gui::ModelTreeBrowserProjection withProperty(_document);
     metadata->setValue("meshes");

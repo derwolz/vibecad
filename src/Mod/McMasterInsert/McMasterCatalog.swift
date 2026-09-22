@@ -2,9 +2,9 @@ import Cocoa
 import CoreGraphics
 import WebKit
 
-/// Overlay catalog for VibeCAD. Runs as a separate process so WebKit cannot
-/// crash VibeCAD. Intercepts CAD downloads (no Save dialog) and writes them
-/// into --out-dir for VibeCAD to import.
+/// Overlay catalog for SteveCAD. Runs as a separate process so WebKit cannot
+/// crash SteveCAD. Intercepts CAD downloads (no Save dialog) and writes them
+/// into --out-dir for SteveCAD to import.
 
 final class AppDelegate: NSObject, NSApplicationDelegate, WKNavigationDelegate, WKDownloadDelegate, WKUIDelegate {
     var window: NSWindow!
@@ -21,7 +21,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, WKNavigationDelegate, 
         super.init()
     }
 
-    static let raiseName = Notification.Name("com.vibecad.McMasterCatalog.raise")
+    static let raiseName = Notification.Name("com.stevecad.McMasterCatalog.raise")
     static let catalogURL = URL(string: "https://www.mcmaster.com/")!
 
     func applicationDidFinishLaunching(_ notification: Notification) {
@@ -207,7 +207,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, WKNavigationDelegate, 
     func download(_ download: WKDownload, didFailWithError error: Error, resumeData: Data?) {}
 
     func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
-        status.stringValue = "McMaster-Carr — download 3-D STEP to import into VibeCAD"
+        status.stringValue = "McMaster-Carr — download 3-D STEP to import into SteveCAD"
         raiseCatalog()
     }
 

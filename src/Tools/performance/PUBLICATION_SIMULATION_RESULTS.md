@@ -15,7 +15,7 @@ Red: fresh-wrapper launch failed its exact postcondition, and an unclosed task
 was incorrectly reported stopped. Green: 39 tests passed in 5.31 s using:
 
 ```powershell
-.pixi/envs/default/python.exe -m pytest src/Mod/VibeCAD/vibecad_tests/test_async_simulation_service.py src/Mod/VibeCAD/vibecad_tests/test_native_assembly_playback.py src/Mod/VibeCAD/vibecad_tests/test_simulation_playback_cache.py -q --tb=short
+.pixi/envs/default/python.exe -m pytest src/Mod/SteveCAD/stevecad_tests/test_async_simulation_service.py src/Mod/SteveCAD/stevecad_tests/test_native_assembly_playback.py src/Mod/SteveCAD/stevecad_tests/test_simulation_playback_cache.py -q --tb=short
 ```
 
 The compiled-GUI Native lifecycle gate is not yet green: its first run stopped
@@ -36,8 +36,8 @@ The first GUI replay caught a mismatch absent from the initial unit fixture:
 call. Wrapper identity cannot prove task ownership. Lookup and queued player
 cancellation now verify the exact hosted Qt form instead. Unrelated tasks,
 objects and presentations remain protected. The GUI replay uses
-`VIBECAD_SIMULATION_PLAYBACK_ASYNC=1`, `VIBECAD_SIMULATION_AI_PLAYBACK=1`,
-`VIBECAD_SIMULATION_AI_RESEEK=1` and an explicit Python candidate source tree;
+`STEVECAD_SIMULATION_PLAYBACK_ASYNC=1`, `STEVECAD_SIMULATION_AI_PLAYBACK=1`,
+`STEVECAD_SIMULATION_AI_RESEEK=1` and an explicit Python candidate source tree;
 it is not evidence of a rebuilt native package. The retained probe can run
 without candidate injection against the final archive.
 
@@ -53,8 +53,8 @@ Verification commands:
 ```powershell
 cmd /d /c build\authoritative-runtime-build.cmd Assembly_tests_run
 build/authoritative-runtime-native/bin/Assembly_tests_run.exe
-$tests=(Get-ChildItem src/Mod/VibeCAD/vibecad_tests -Filter 'test_codex*.py').FullName
-.pixi/envs/default/python.exe -m pytest @tests src/Mod/VibeCAD/vibecad_tests/test_async_simulation_service.py src/Mod/VibeCAD/vibecad_tests/test_simulation_playback_cache.py src/Mod/VibeCAD/vibecad_tests/test_native_assembly_playback.py src/Mod/VibeCAD/vibecad_tests/test_vibescript_publication_progress.py src/Mod/VibeCAD/vibecad_tests/test_assembly_solver_policy.py -q --tb=short
+$tests=(Get-ChildItem src/Mod/SteveCAD/stevecad_tests -Filter 'test_codex*.py').FullName
+.pixi/envs/default/python.exe -m pytest @tests src/Mod/SteveCAD/stevecad_tests/test_async_simulation_service.py src/Mod/SteveCAD/stevecad_tests/test_simulation_playback_cache.py src/Mod/SteveCAD/stevecad_tests/test_native_assembly_playback.py src/Mod/SteveCAD/stevecad_tests/test_vibescript_publication_progress.py src/Mod/SteveCAD/stevecad_tests/test_assembly_solver_policy.py -q --tb=short
 ```
 
 Use the configured native dependency and module directories on PATH and its
@@ -86,7 +86,7 @@ This prevents recompute, presolve and autosolve from overwriting replayed state.
 Focused command:
 
 ```
-.pixi/envs/default/python.exe -m pytest src/Mod/VibeCAD/vibecad_tests/test_assembly_solver_policy.py -q --tb=short
+.pixi/envs/default/python.exe -m pytest src/Mod/SteveCAD/stevecad_tests/test_assembly_solver_policy.py -q --tb=short
 ```
 
 Red: 5 failed, 9 passed. Green: 14 passed. These execute the production callback
@@ -117,7 +117,7 @@ phase before changing retained references. Complete downstream blocks move
 after the latest required input without disabling chronology validation.
 
 ```
-.pixi/envs/default/python.exe -m pytest src/Mod/VibeCAD/vibecad_tests/test_vibescript_publication_progress.py src/Mod/VibeCAD/vibecad_tests/test_assembly_solver_policy.py src/Mod/VibeCAD/vibecad_tests/test_simulation_playback_cache.py src/Mod/VibeCAD/vibecad_tests/test_async_simulation_service.py src/Mod/VibeCAD/vibecad_tests/test_native_assembly_playback.py -q --tb=short
+.pixi/envs/default/python.exe -m pytest src/Mod/SteveCAD/stevecad_tests/test_vibescript_publication_progress.py src/Mod/SteveCAD/stevecad_tests/test_assembly_solver_policy.py src/Mod/SteveCAD/stevecad_tests/test_simulation_playback_cache.py src/Mod/SteveCAD/stevecad_tests/test_async_simulation_service.py src/Mod/SteveCAD/stevecad_tests/test_native_assembly_playback.py -q --tb=short
 cmd /d /c build\authoritative-runtime-build.cmd App_tests_run
 App_tests_run.exe --gtest_filter=DocumentTest.dependencyRebase*
 ```
@@ -146,7 +146,7 @@ The simulation contains 337 components, 22 frames and 7,414 recorded poses.
 
 Frame 11's Python profile attributes 0.476 s to 336 joint redraw callbacks,
 including 672 repeated owner resolutions (0.178 s) and 672 marker updates
-(0.225 s). Placement notifications invoke the VibeCAD object observer 672 times
+(0.225 s). Placement notifications invoke the SteveCAD object observer 672 times
 (0.219 s), including source-staleness propagation (0.075 s). These nested times
 must not be summed as independent costs.
 
@@ -173,7 +173,7 @@ Commands (after activating the MSVC x64 environment):
 .pixi/envs/default/Library/bin/cmake.exe --build build/ondsel-parallel-test -j 16
 build/ondsel-parallel-test/tests/test_run.exe --gtest_filter=OndselSolver.KinematicSimulationUsesHostExecutorAndPreservesEveryPose
 .pixi/envs/default/Library/bin/ctest.exe --test-dir build/ondsel-parallel-test --output-on-failure
-.pixi/envs/default/python.exe -m pytest src/Mod/VibeCAD/vibecad_tests/test_simulation_playback_cache.py -q --tb=short
+.pixi/envs/default/python.exe -m pytest src/Mod/SteveCAD/stevecad_tests/test_simulation_playback_cache.py -q --tb=short
 ```
 
 Red: native executor call count was zero. Green: the kinematic test passes;
@@ -202,7 +202,7 @@ Red: compilation failed because `setCancellationCheck` did not exist. Green:
 ```powershell
 build/ondsel-parallel-test/tests/test_run.exe --gtest_filter=OndselSolver.KinematicSimulationHonorsCancellationBetweenFrames
 .pixi/envs/default/Library/bin/ctest.exe --test-dir build/ondsel-parallel-test --output-on-failure
-.pixi/envs/default/python.exe -m pytest src/Mod/VibeCAD/vibecad_tests/test_simulation_playback_cache.py src/Mod/VibeCAD/vibecad_tests/test_native_assembly_playback.py src/Mod/VibeCAD/vibecad_tests/test_native_assembly_simulation.py src/Mod/VibeCAD/vibecad_tests/test_assembly_solver_policy.py -q --tb=short
+.pixi/envs/default/python.exe -m pytest src/Mod/SteveCAD/stevecad_tests/test_simulation_playback_cache.py src/Mod/SteveCAD/stevecad_tests/test_native_assembly_playback.py src/Mod/SteveCAD/stevecad_tests/test_native_assembly_simulation.py src/Mod/SteveCAD/stevecad_tests/test_assembly_solver_policy.py -q --tb=short
 ```
 
 Results: cancellation regression passes, 39/39 Ondsel tests pass in 18.85 s,
@@ -337,8 +337,8 @@ passed 18 tests (1.39 s). The Qt check verifies queued owner delivery and signal
 cleanup; it is not a full FreeCAD GUI or performance test.
 
 ```powershell
-.pixi/envs/default/python.exe -m pytest src/Mod/VibeCAD/vibecad_tests/test_async_simulation_service.py src/Mod/VibeCAD/vibecad_tests/test_native_dispatch.py src/Mod/VibeCAD/vibecad_tests/test_native_session.py src/Mod/VibeCAD/vibecad_tests/test_native_assembly_playback.py src/Mod/VibeCAD/vibecad_tests/test_simulation_playback_cache.py src/Mod/VibeCAD/vibecad_tests/test_native_assembly_simulation.py src/Mod/VibeCAD/vibecad_tests/test_native_assembly_view.py src/Mod/VibeCAD/vibecad_tests/test_tool_surface_guardrails.py -q --tb=short
-.pixi/envs/default/python.exe -m pytest src/Mod/VibeCAD/vibecad_tests/test_simulation_playback_cache.py -q --tb=short
+.pixi/envs/default/python.exe -m pytest src/Mod/SteveCAD/stevecad_tests/test_async_simulation_service.py src/Mod/SteveCAD/stevecad_tests/test_native_dispatch.py src/Mod/SteveCAD/stevecad_tests/test_native_session.py src/Mod/SteveCAD/stevecad_tests/test_native_assembly_playback.py src/Mod/SteveCAD/stevecad_tests/test_simulation_playback_cache.py src/Mod/SteveCAD/stevecad_tests/test_native_assembly_simulation.py src/Mod/SteveCAD/stevecad_tests/test_native_assembly_view.py src/Mod/SteveCAD/stevecad_tests/test_tool_surface_guardrails.py -q --tb=short
+.pixi/envs/default/python.exe -m pytest src/Mod/SteveCAD/stevecad_tests/test_simulation_playback_cache.py -q --tb=short
 ```
 
 Packaged GUI launch/postconditions, real robot timings, animation export and
@@ -346,7 +346,7 @@ remaining publication work are still outstanding. No new user instance has
 been launched from this intermediate source boundary.
 
 The retained `simulation_playback_probe.py` supports the optional environment
-setting `VIBECAD_SIMULATION_PLAYBACK_ASYNC=1`. It records submission duration,
+setting `STEVECAD_SIMULATION_PLAYBACK_ASYNC=1`. It records submission duration,
 completion duration/CPU time, and GUI heartbeat gaps while checking exact
 adopted frame selection. Without the option it retains the legacy baseline
 path. The updated probe is syntax-checked but awaits the complete package.
@@ -391,10 +391,10 @@ and repeatable destination failure. The focused Python command passed 30 tests
 closing while a PNG is still in flight:
 
 ```powershell
-.pixi/envs/default/python.exe -m pytest src/Mod/VibeCAD/vibecad_tests/test_animation_encoder.py src/Mod/VibeCAD/vibecad_tests/test_animation_export.py src/Mod/VibeCAD/vibecad_tests/test_simulation_playback_cache.py -q --tb=short
+.pixi/envs/default/python.exe -m pytest src/Mod/SteveCAD/stevecad_tests/test_animation_encoder.py src/Mod/SteveCAD/stevecad_tests/test_animation_export.py src/Mod/SteveCAD/stevecad_tests/test_simulation_playback_cache.py -q --tb=short
 ```
 
-The packaged-GUI probe now accepts `VIBECAD_SIMULATION_EXPORT=1` alongside the
+The packaged-GUI probe now accepts `STEVECAD_SIMULATION_EXPORT=1` alongside the
 async-player option. It calls the real Save Animation method with only its file
 chooser redirected to a disposable GIF, watches completion and validates frame
 count. It is syntax-checked, not yet executed on the updated package. Image
@@ -403,7 +403,7 @@ remain to be measured there; source/native checks are not substitutes.
 
 ## Packaged GUI measurements (79b04224, September 8)
 
-The complete `pixi reinstall -e default vibecad`, `pixi install -e package`,
+The complete `pixi reinstall -e default stevecad`, `pixi install -e package`,
 and `pixi run -e package create_bundle` workflow completed successfully in
 `package/rattler-build`, including the bundled runtime smoke checks. The 7z
 was extracted and the following actual GUI probes used that exact package:
@@ -411,8 +411,8 @@ was extracted and the following actual GUI probes used that exact package:
 - `simulation_runtime_probe.py`: pass; 50 grounded components, four generated
   frames, result reuse, stale-input rejection, supersession, cancellation and
   close with work pending; 2.59 s total.
-- `simulation_playback_probe.py` with `VIBECAD_SIMULATION_PLAYBACK_ASYNC=1` and
-  `VIBECAD_SIMULATION_EXPORT=1`: pass on the disposable robot, 3,022 objects.
+- `simulation_playback_probe.py` with `STEVECAD_SIMULATION_PLAYBACK_ASYNC=1` and
+  `STEVECAD_SIMULATION_EXPORT=1`: pass on the disposable robot, 3,022 objects.
   Generation plus first adoption took 47.72 s (64.77 process CPU seconds).
   Frame submissions took 3.1-3.4 ms; completions took 250-373 ms. Export took
   10.70 s and decoded as 22 frames, 1516 by 536 pixels. The maximum heartbeat
@@ -452,7 +452,7 @@ Green commands:
 ```powershell
 cmd /d /c build\authoritative-runtime-build.cmd App_tests_run
 build/authoritative-runtime-native/bin/App_tests_run.exe --gtest_filter=DocumentTest.*Generation*
-.pixi/envs/default/python.exe -m pytest src/Mod/VibeCAD/vibecad_tests/test_vibescript_publication_progress.py src/Mod/VibeCAD/vibecad_tests/test_simulation_playback_cache.py src/Mod/VibeCAD/vibecad_tests/test_async_simulation_service.py src/Mod/VibeCAD/vibecad_tests/test_native_assembly_playback.py -q --tb=short
+.pixi/envs/default/python.exe -m pytest src/Mod/SteveCAD/stevecad_tests/test_vibescript_publication_progress.py src/Mod/SteveCAD/stevecad_tests/test_simulation_playback_cache.py src/Mod/SteveCAD/stevecad_tests/test_async_simulation_service.py src/Mod/SteveCAD/stevecad_tests/test_native_assembly_playback.py -q --tb=short
 ```
 
 The native test command used the build's matching host Python and Qt/DLL paths.
@@ -464,8 +464,8 @@ claim.
 
 ## AI service playback reproduction (September 8)
 
-With `VIBECAD_SIMULATION_PLAYBACK_ASYNC=1` and
-`VIBECAD_SIMULATION_AI_PLAYBACK=1`, the packaged probe called the real
+With `STEVECAD_SIMULATION_PLAYBACK_ASYNC=1` and
+`STEVECAD_SIMULATION_AI_PLAYBACK=1`, the packaged probe called the real
 `assembly.play_simulation` service entry on the 3,022-object robot. The assembly
 was made visible in the disposable document. Generation plus initial display
 took 47.90 s (66.17 process CPU seconds); three exact seeks completed in
@@ -495,7 +495,7 @@ Red/green: the four initial paging tests failed on the prior implementation;
 the runtime release test failed on 0.144.5. Consolidated green: 250 tests in 5.77 s:
 
 ```powershell
-.pixi/envs/default/python.exe -m pytest src/Mod/VibeCAD/vibecad_tests/test_source_context_paging.py src/Mod/VibeCAD/vibecad_tests/test_model_context_contract.py src/Mod/VibeCAD/vibecad_tests/test_modeling_surface_architecture.py src/Mod/VibeCAD/vibecad_tests/test_codex_subscription.py src/Mod/VibeCAD/vibecad_tests/test_codex_runtime_package.py -q
+.pixi/envs/default/python.exe -m pytest src/Mod/SteveCAD/stevecad_tests/test_source_context_paging.py src/Mod/SteveCAD/stevecad_tests/test_model_context_contract.py src/Mod/SteveCAD/stevecad_tests/test_modeling_surface_architecture.py src/Mod/SteveCAD/stevecad_tests/test_codex_subscription.py src/Mod/SteveCAD/stevecad_tests/test_codex_runtime_package.py -q
 ```
 
 ## Synchronous recompute owner/worker boundary (September 8)
@@ -522,7 +522,7 @@ After rebuilding every native target together, the compiled GUI lifecycle gate
 passed generation, moving seek, step, bidirectional playback, pause, mutation
 rejection, save/dirty-save baselines, manual close, idempotency, pose restoration,
 selection preservation and stable Native revisions. The exact source gate was
-`src/Mod/VibeCAD/vibecad_tests/native_assembly_playback_gui_integration.py`.
+`src/Mod/SteveCAD/stevecad_tests/native_assembly_playback_gui_integration.py`.
 The earlier revision conflict did not reproduce in this completed run.
 
 A diagnostic crash before the full native rebuild was traced to a stale
@@ -585,7 +585,7 @@ Exact build and test commands (matching native module and dependency paths):
 ```powershell
 cmd /d /c build\authoritative-runtime-build.cmd Assembly_tests_run
 $native = (Resolve-Path build/authoritative-runtime-native).Path
-$prefix = (Resolve-Path build/performance-system/package/rattler-build/.pixi/bld/vibecad/FIH7JWrkDlw).Path
+$prefix = (Resolve-Path build/performance-system/package/rattler-build/.pixi/bld/stevecad/FIH7JWrkDlw).Path
 $mods = (Get-ChildItem "$native/Mod" -Directory).FullName -join ';'
 $env:PATH = "$native/bin;$mods;$prefix/host;$prefix/host/Library/bin;$prefix/bld/Library/bin;$env:PATH"
 $env:PYTHONHOME = "$prefix/host"
@@ -623,7 +623,7 @@ Commands:
 
 ```powershell
 # In package/rattler-build, with the pixi executable directory on PATH:
-pixi reinstall -e default vibecad
+pixi reinstall -e default stevecad
 $env:BUILD_TAG='v26.3.1-RC6-build1'
 $env:MAKE_PORTABLE_ARCHIVE='true'
 $env:MAKE_INSTALLER='false'
@@ -650,7 +650,7 @@ application closed normally afterward.
 Rollback comparison checked every object's name/type, outgoing links, placement,
 label, visibility and program revision. It does not claim byte-for-byte equality
 of every arbitrary property. The optional probe mode is
-`VIBECAD_PUBLICATION_CANCEL_AFTER=900`, alongside the existing retained working-
+`STEVECAD_PUBLICATION_CANCEL_AFTER=900`, alongside the existing retained working-
 candidate settings. It exercises the real cooperative cancellation exception,
 native abort, then re-captures the native document revision before retrying.
 
@@ -720,7 +720,7 @@ case observed `stage, finalize` instead of no work; the other three cases passed
 Green: all 39 tests in these two suites pass (1.43 s, exit 0):
 
 ```powershell
-.pixi/envs/default/python.exe -m pytest src/Mod/VibeCAD/vibecad_tests/test_vibescript_timeline_publication.py src/Mod/VibeCAD/vibecad_tests/test_vibescript_publication_progress.py -q
+.pixi/envs/default/python.exe -m pytest src/Mod/SteveCAD/stevecad_tests/test_vibescript_timeline_publication.py src/Mod/SteveCAD/stevecad_tests/test_vibescript_publication_progress.py -q
 ```
 
 The complete native `all` build also finished successfully for the preceding
@@ -771,7 +771,7 @@ worker, the first phase still overlapped deferred composed-workbench setup
 observed only 62 ms maximum delay. Do not label this a fixed deadlock or change
 the interpreter timeslice on this evidence.
 
-The publication probe accepts `VIBECAD_PUBLICATION_PROFILE=0` for end-to-end
+The publication probe accepts `STEVECAD_PUBLICATION_PROFILE=0` for end-to-end
 timing without cProfile overhead. It keeps the original profiled default and
 all independent input, native callback, rollback and correctness checks.
 The report records which mode ran; Python profiles and wall-clock acceptance
@@ -805,7 +805,7 @@ commits only change the diagnostic probes and documentation.
 
 ```powershell
 # From package/rattler-build, with the normal pixi binary directory on PATH:
-pixi reinstall -e default vibecad
+pixi reinstall -e default stevecad
 pixi install -e package
 $env:BUILD_TAG='v26.3.1-RC6-build1'
 $env:MAKE_PORTABLE_ARCHIVE='true'
@@ -864,16 +864,16 @@ Reproduction uses `run-packaged-edit-check.ps1` with the exact extracted bundle,
 a disposable copy, and the retained production probes:
 
 ```powershell
-$env:VIBECAD_PUBLICATION_WORKING_CANDIDATE='1'
-$env:VIBECAD_PUBLICATION_CANCEL_AFTER='900'
-$env:VIBECAD_PUBLICATION_PROFILE='0'
-# VIBECAD_PUBLICATION_ATTEMPT and VIBECAD_PUBLICATION_MANIFEST identify the
+$env:STEVECAD_PUBLICATION_WORKING_CANDIDATE='1'
+$env:STEVECAD_PUBLICATION_CANCEL_AFTER='900'
+$env:STEVECAD_PUBLICATION_PROFILE='0'
+# STEVECAD_PUBLICATION_ATTEMPT and STEVECAD_PUBLICATION_MANIFEST identify the
 # ignored copies; run src/Tools/performance/retained_publication_probe.py.
 
-$env:VIBECAD_SIMULATION_PLAYBACK_ASYNC='1'
-$env:VIBECAD_SIMULATION_AI_PLAYBACK='1'
-$env:VIBECAD_SIMULATION_AI_RESEEK='1'
-$env:VIBECAD_SIMULATION_EXPORT='1'
+$env:STEVECAD_SIMULATION_PLAYBACK_ASYNC='1'
+$env:STEVECAD_SIMULATION_AI_PLAYBACK='1'
+$env:STEVECAD_SIMULATION_AI_RESEEK='1'
+$env:STEVECAD_SIMULATION_EXPORT='1'
 # Run src/Tools/performance/simulation_playback_probe.py in a fresh process.
 ```
 
@@ -918,7 +918,7 @@ remaining link cleanup is responsive.
 
 ## Complete portable verification of cd7581be (2026-09-09)
 
-The Actions-pattern `pixi reinstall -e default vibecad` exits 0. The complete
+The Actions-pattern `pixi reinstall -e default stevecad` exits 0. The complete
 `pixi run -e package create_bundle` exits 0 with portable archives enabled and
 installer creation disabled. Provider, geometry-worker, windowless-provider and
 Codex 0.153.4 smoke checks pass. Extraction exits 0. The probe records the actual
@@ -942,7 +942,7 @@ acceptance. Sampled peak working set during the run is about 1.52 GB decimal.
 
 ## Joint visibility invalidated solved simulation frames (2026-09-09)
 
-The extended real-model probe uses `VIBECAD_SIMULATION_LIFECYCLE=1` with the
+The extended real-model probe uses `STEVECAD_SIMULATION_LIFECYCLE=1` with the
 asynchronous AI player, seek and export flags. In the cd7581be package, generation
 succeeded, 336 joints were hidden, then the first AI seek returned
 `SIMULATION_PLAYBACK_FAILED`: "Simulation frames require current asynchronously
@@ -1079,7 +1079,7 @@ Repeat packaged timing before claiming this index removes that pause.
 
 ## Combined 1bbfa624 portable publication (2026-09-09)
 
-The full `pixi reinstall -e default vibecad`, package-environment install,
+The full `pixi reinstall -e default stevecad`, package-environment install,
 `create_bundle` with portable archive enabled, and archive extraction all exit 0.
 The 582,573,173-byte archive contains 48,260 files. Dependency, provider,
 windowless provider, geometry-worker and Codex 0.153.4 execution smokes pass.
@@ -1111,9 +1111,9 @@ simulation lifecycle acceptance is run separately to avoid competing GUI tests.
 ## Combined 1bbfa624 simulation acceptance (2026-09-09)
 
 The same extracted archive passes `simulation_playback_probe.py` on a separate
-fresh robot copy with `VIBECAD_SIMULATION_PLAYBACK_ASYNC`,
-`VIBECAD_SIMULATION_AI_PLAYBACK`, `VIBECAD_SIMULATION_AI_RESEEK`,
-`VIBECAD_SIMULATION_EXPORT`, and `VIBECAD_SIMULATION_LIFECYCLE` set to `1`.
+fresh robot copy with `STEVECAD_SIMULATION_PLAYBACK_ASYNC`,
+`STEVECAD_SIMULATION_AI_PLAYBACK`, `STEVECAD_SIMULATION_AI_RESEEK`,
+`STEVECAD_SIMULATION_EXPORT`, and `STEVECAD_SIMULATION_LIFECYCLE` set to `1`.
 The 3,022-object document opens in 159.047 s. The active simulation has 337
 components and 22 frames (7,414 poses); generation/display takes 47.865 s and
 65.188 process CPU-seconds. This modest generation overlap is not a claim
@@ -1156,9 +1156,9 @@ only undergo path-component parsing when they contain a possible parent segment;
 absolute-path and traversal checks remain intact.
 
 ```powershell
-& .pixi/envs/default/python.exe -m pytest src/Mod/VibeCAD/vibecad_tests/test_model_size_limits.py -k definition_paths -q
-& .pixi/envs/default/python.exe -m pytest src/Mod/VibeCAD/vibecad_tests/test_domain_json_validation.py -q
-& .pixi/envs/default/python.exe -m pytest src/Mod/VibeCAD/vibecad_tests/test_domain_json_validation.py src/Mod/VibeCAD/vibecad_tests/test_model_size_limits.py src/Mod/VibeCAD/vibecad_tests/test_domain_artifact_batch.py src/Mod/VibeCAD/vibecad_tests/test_domain_timeline_runtime.py -q
+& .pixi/envs/default/python.exe -m pytest src/Mod/SteveCAD/stevecad_tests/test_model_size_limits.py -k definition_paths -q
+& .pixi/envs/default/python.exe -m pytest src/Mod/SteveCAD/stevecad_tests/test_domain_json_validation.py -q
+& .pixi/envs/default/python.exe -m pytest src/Mod/SteveCAD/stevecad_tests/test_domain_json_validation.py src/Mod/SteveCAD/stevecad_tests/test_model_size_limits.py src/Mod/SteveCAD/stevecad_tests/test_domain_artifact_batch.py src/Mod/SteveCAD/stevecad_tests/test_domain_timeline_runtime.py -q
 ```
 
 The path regression fails red with 5,004 parses instead of one; all nine
@@ -1199,7 +1199,7 @@ session bridge was absent. A test assertion initially used the wrong failure
 field; it was corrected to the existing `failure_code` contract.
 
 ```powershell
-& .pixi/envs/default/python.exe -m pytest src/Mod/VibeCAD/vibecad_tests/test_assembly_validation_isolation.py src/Mod/VibeCAD/vibecad_tests/test_domain_json_validation.py src/Mod/VibeCAD/vibecad_tests/test_model_size_limits.py src/Mod/VibeCAD/vibecad_tests/test_domain_artifact_batch.py src/Mod/VibeCAD/vibecad_tests/test_domain_timeline_runtime.py src/Mod/VibeCAD/vibecad_tests/test_native_session.py src/Mod/VibeCAD/vibecad_tests/test_scripted_editor_architecture.py -q
+& .pixi/envs/default/python.exe -m pytest src/Mod/SteveCAD/stevecad_tests/test_assembly_validation_isolation.py src/Mod/SteveCAD/stevecad_tests/test_domain_json_validation.py src/Mod/SteveCAD/stevecad_tests/test_model_size_limits.py src/Mod/SteveCAD/stevecad_tests/test_domain_artifact_batch.py src/Mod/SteveCAD/stevecad_tests/test_domain_timeline_runtime.py src/Mod/SteveCAD/stevecad_tests/test_native_session.py src/Mod/SteveCAD/stevecad_tests/test_scripted_editor_architecture.py -q
 ```
 
 Green: 109 passed in 19.33 s. Using the extracted 1bbfa624 runtime with the source
@@ -1213,10 +1213,10 @@ contention. It is not a claim that cold Workbench initialization costs nothing.
 The permanent retained-result probe also exercises real native cancellation:
 
 ```powershell
-$bundle = (Resolve-Path 'build/portable-publication-simulation-1bbfa624/VibeCAD-26.3.1-RC6-build1-Windows-x86_64').Path
+$bundle = (Resolve-Path 'build/portable-publication-simulation-1bbfa624/SteveCAD-26.3.1-RC6-build1-Windows-x86_64').Path
 $env:PATH = "$bundle/bin;$env:PATH"
 $env:PYTHONNOUSERSITE = '1'
-& "$bundle/bin/python.exe" src/Tools/performance/assembly_retained_validation_probe.py --module-dir src/Mod/VibeCAD --attempt build/portable-edit-checks/publication-rollback-fixture-20260908/attempt --adapter --cancel-after 2.5
+& "$bundle/bin/python.exe" src/Tools/performance/assembly_retained_validation_probe.py --module-dir src/Mod/SteveCAD --attempt build/portable-edit-checks/publication-rollback-fixture-20260908/attempt --adapter --cancel-after 2.5
 ```
 
 Cancellation returns at 2.932 s; the same-process retry succeeds in 4.400 s,
@@ -1257,8 +1257,8 @@ location, preserving nested compound placements and the original shape.
 Red/green commands:
 
 ```powershell
-& .pixi/envs/default/python.exe -m pytest src/Mod/VibeCAD/vibecad_tests/test_simulation_playback_cache.py -k camera_fit -q
-& .pixi/envs/default/python.exe -m pytest src/Mod/VibeCAD/vibecad_tests/test_simulation_playback_cache.py src/Mod/VibeCAD/vibecad_tests/test_animation_export.py src/Mod/VibeCAD/vibecad_tests/test_async_simulation_service.py -q
+& .pixi/envs/default/python.exe -m pytest src/Mod/SteveCAD/stevecad_tests/test_simulation_playback_cache.py -k camera_fit -q
+& .pixi/envs/default/python.exe -m pytest src/Mod/SteveCAD/stevecad_tests/test_simulation_playback_cache.py src/Mod/SteveCAD/stevecad_tests/test_animation_export.py src/Mod/SteveCAD/stevecad_tests/test_async_simulation_service.py -q
 & build/authoritative-runtime-build.cmd Part_tests_run
 & build/authoritative-runtime-native/bin/Part_tests_run.exe --gtest_filter=BRepMeshTest.renderCoordinatesExcludeOnlyTheRootPlacement
 & build/authoritative-runtime-build.cmd all
@@ -1308,13 +1308,13 @@ this does not substitute for final newly packaged archive acceptance.
 The complete-runtime rerun passes (`ok: true`) and closes automatically:
 
 ```powershell
-$env:VIBECAD_SIMULATION_PLAYBACK_ASYNC = '1'
-$env:VIBECAD_SIMULATION_AI_PLAYBACK = '1'
-$env:VIBECAD_SIMULATION_AI_RESEEK = '1'
-$env:VIBECAD_SIMULATION_LIFECYCLE = '1'
-$env:VIBECAD_SIMULATION_EXPORT = '1'
-$env:VIBECAD_SIMULATION_EXPORT_CANCEL = '1'
-& build/run-native-gui-diagnostic.ps1 -Name simulation-export-cancel-complete-runtime-20260909 -Script src/Tools/performance/simulation_playback_probe.py -Document build/simulation-publication-20260908-150322/Johhny5.FCStd -Bundle build/portable-publication-simulation-1bbfa624/VibeCAD-26.3.1-RC6-build1-Windows-x86_64
+$env:STEVECAD_SIMULATION_PLAYBACK_ASYNC = '1'
+$env:STEVECAD_SIMULATION_AI_PLAYBACK = '1'
+$env:STEVECAD_SIMULATION_AI_RESEEK = '1'
+$env:STEVECAD_SIMULATION_LIFECYCLE = '1'
+$env:STEVECAD_SIMULATION_EXPORT = '1'
+$env:STEVECAD_SIMULATION_EXPORT_CANCEL = '1'
+& build/run-native-gui-diagnostic.ps1 -Name simulation-export-cancel-complete-runtime-20260909 -Script src/Tools/performance/simulation_playback_probe.py -Document build/simulation-publication-20260908-150322/Johhny5.FCStd -Bundle build/portable-publication-simulation-1bbfa624/SteveCAD-26.3.1-RC6-build1-Windows-x86_64
 ```
 
 Generation/display takes 47.585 s (65.203 s process CPU); camera setup 32.9 ms;
@@ -1370,13 +1370,13 @@ in 224.266 s and exited normally, with empty stderr. Player-close coverage and
 final archive repetition remain pending.
 
 ```powershell
-$env:VIBECAD_SIMULATION_PLAYBACK_ASYNC = '1'
-$env:VIBECAD_SIMULATION_AI_PLAYBACK = '1'
-$env:VIBECAD_SIMULATION_AI_RESEEK = '1'
-$env:VIBECAD_SIMULATION_EXPORT = '1'
-$env:VIBECAD_SIMULATION_EXPORT_CLOSE = 'document'
-& build/run-native-gui-diagnostic.ps1 -Name simulation-export-document-close-dea5265d-20260909 -Script src/Tools/performance/simulation_playback_probe.py -Document build/simulation-publication-20260908-150322/Johhny5.FCStd -Bundle build/portable-publication-simulation-1bbfa624/VibeCAD-26.3.1-RC6-build1-Windows-x86_64
-.pixi/envs/default/python.exe -m pytest src/Mod/VibeCAD/vibecad_tests/test_animation_export.py src/Mod/VibeCAD/vibecad_tests/test_async_simulation_service.py src/Mod/VibeCAD/vibecad_tests/test_simulation_playback_cache.py -q
+$env:STEVECAD_SIMULATION_PLAYBACK_ASYNC = '1'
+$env:STEVECAD_SIMULATION_AI_PLAYBACK = '1'
+$env:STEVECAD_SIMULATION_AI_RESEEK = '1'
+$env:STEVECAD_SIMULATION_EXPORT = '1'
+$env:STEVECAD_SIMULATION_EXPORT_CLOSE = 'document'
+& build/run-native-gui-diagnostic.ps1 -Name simulation-export-document-close-dea5265d-20260909 -Script src/Tools/performance/simulation_playback_probe.py -Document build/simulation-publication-20260908-150322/Johhny5.FCStd -Bundle build/portable-publication-simulation-1bbfa624/SteveCAD-26.3.1-RC6-build1-Windows-x86_64
+.pixi/envs/default/python.exe -m pytest src/Mod/SteveCAD/stevecad_tests/test_animation_export.py src/Mod/SteveCAD/stevecad_tests/test_async_simulation_service.py src/Mod/SteveCAD/stevecad_tests/test_simulation_playback_cache.py -q
 ```
 
 The `publication-joint-notification-green-20260909` replay passes exact
@@ -1434,14 +1434,14 @@ the largest heartbeat gap is 750 ms. Final full-archive acceptance remains
 outstanding; this does not claim every owner callback is short.
 
 ```powershell
-$env:VIBECAD_SIMULATION_PLAYBACK_ASYNC = '1'
-$env:VIBECAD_SIMULATION_AI_PLAYBACK = '1'
-$env:VIBECAD_SIMULATION_AI_RESEEK = '1'
-$env:VIBECAD_SIMULATION_LIFECYCLE = '1'
-$env:VIBECAD_SIMULATION_EXPORT = '1'
-$env:VIBECAD_SIMULATION_EXPORT_CANCEL = '1'
-$env:VIBECAD_SIMULATION_EXPORT_CLOSE = ''
-& build/run-native-gui-diagnostic.ps1 -Name simulation-link-resolution-green-20260909 -Script src/Tools/performance/simulation_playback_probe.py -Document build/simulation-publication-20260908-150322/Johhny5.FCStd -Bundle build/portable-publication-simulation-1bbfa624/VibeCAD-26.3.1-RC6-build1-Windows-x86_64
+$env:STEVECAD_SIMULATION_PLAYBACK_ASYNC = '1'
+$env:STEVECAD_SIMULATION_AI_PLAYBACK = '1'
+$env:STEVECAD_SIMULATION_AI_RESEEK = '1'
+$env:STEVECAD_SIMULATION_LIFECYCLE = '1'
+$env:STEVECAD_SIMULATION_EXPORT = '1'
+$env:STEVECAD_SIMULATION_EXPORT_CANCEL = '1'
+$env:STEVECAD_SIMULATION_EXPORT_CLOSE = ''
+& build/run-native-gui-diagnostic.ps1 -Name simulation-link-resolution-green-20260909 -Script src/Tools/performance/simulation_playback_probe.py -Document build/simulation-publication-20260908-150322/Johhny5.FCStd -Bundle build/portable-publication-simulation-1bbfa624/SteveCAD-26.3.1-RC6-build1-Windows-x86_64
 ```
 
 The consolidated Python command passes: 36 tests in 3.63 s. The new native
@@ -1482,14 +1482,14 @@ and removes staging after the worker finishes. The controller stops polling
 and does not attempt to restore a frame into the closed player.
 
 ```powershell
-$env:VIBECAD_SIMULATION_PLAYBACK_ASYNC = '1'
-$env:VIBECAD_SIMULATION_AI_PLAYBACK = '1'
-$env:VIBECAD_SIMULATION_AI_RESEEK = '1'
-$env:VIBECAD_SIMULATION_LIFECYCLE = '0'
-$env:VIBECAD_SIMULATION_EXPORT = '1'
-$env:VIBECAD_SIMULATION_EXPORT_CANCEL = '0'
-$env:VIBECAD_SIMULATION_EXPORT_CLOSE = 'task'
-& build/run-native-gui-diagnostic.ps1 -Name simulation-export-task-close-d12fbc13-20260909 -Script src/Tools/performance/simulation_playback_probe.py -Document build/simulation-publication-20260908-150322/Johhny5.FCStd -Bundle build/portable-publication-simulation-1bbfa624/VibeCAD-26.3.1-RC6-build1-Windows-x86_64
+$env:STEVECAD_SIMULATION_PLAYBACK_ASYNC = '1'
+$env:STEVECAD_SIMULATION_AI_PLAYBACK = '1'
+$env:STEVECAD_SIMULATION_AI_RESEEK = '1'
+$env:STEVECAD_SIMULATION_LIFECYCLE = '0'
+$env:STEVECAD_SIMULATION_EXPORT = '1'
+$env:STEVECAD_SIMULATION_EXPORT_CANCEL = '0'
+$env:STEVECAD_SIMULATION_EXPORT_CLOSE = 'task'
+& build/run-native-gui-diagnostic.ps1 -Name simulation-export-task-close-d12fbc13-20260909 -Script src/Tools/performance/simulation_playback_probe.py -Document build/simulation-publication-20260908-150322/Johhny5.FCStd -Bundle build/portable-publication-simulation-1bbfa624/SteveCAD-26.3.1-RC6-build1-Windows-x86_64
 ```
 
 This run reproduces the older assembly's Reference1 warning on two joints.
@@ -1513,9 +1513,9 @@ The consolidated command passes 57 tests in 3.51 s; the native touched-area
 build exits 0. Actual publication timing is recorded separately after replay.
 
 ```powershell
-.pixi/envs/default/python.exe -m pytest src/Mod/VibeCAD/vibecad_tests/test_simulation_playback_cache.py -q
+.pixi/envs/default/python.exe -m pytest src/Mod/SteveCAD/stevecad_tests/test_simulation_playback_cache.py -q
 build/authoritative-runtime-build.cmd Assembly src/Mod/Assembly/AssemblyScripts
-.pixi/envs/default/python.exe -m pytest src/Mod/VibeCAD/vibecad_tests/test_animation_export.py src/Mod/VibeCAD/vibecad_tests/test_async_simulation_service.py src/Mod/VibeCAD/vibecad_tests/test_simulation_playback_cache.py -q
+.pixi/envs/default/python.exe -m pytest src/Mod/SteveCAD/stevecad_tests/test_animation_export.py src/Mod/SteveCAD/stevecad_tests/test_async_simulation_service.py src/Mod/SteveCAD/stevecad_tests/test_simulation_playback_cache.py -q
 ```
 
 ## Persisted native playback (2026-09-09)
@@ -1561,17 +1561,17 @@ native `all` build exits 0, not just the Assembly target.
 ```powershell
 build/authoritative-runtime-build.cmd Assembly_tests_run
 build/authoritative-runtime-native/bin/Assembly_tests_run.exe
-.pixi/envs/default/python.exe -m pytest src/Mod/VibeCAD/vibecad_tests/test_simulation_playback_cache.py src/Mod/VibeCAD/vibecad_tests/test_native_assembly_playback.py -q
-.pixi/envs/default/python.exe -m pytest src/Mod/VibeCAD/vibecad_tests/test_animation_export.py src/Mod/VibeCAD/vibecad_tests/test_async_simulation_service.py src/Mod/VibeCAD/vibecad_tests/test_simulation_playback_cache.py src/Mod/VibeCAD/vibecad_tests/test_native_assembly_playback.py src/Tools/performance/test_async_report_writer.py -q
+.pixi/envs/default/python.exe -m pytest src/Mod/SteveCAD/stevecad_tests/test_simulation_playback_cache.py src/Mod/SteveCAD/stevecad_tests/test_native_assembly_playback.py -q
+.pixi/envs/default/python.exe -m pytest src/Mod/SteveCAD/stevecad_tests/test_animation_export.py src/Mod/SteveCAD/stevecad_tests/test_async_simulation_service.py src/Mod/SteveCAD/stevecad_tests/test_simulation_playback_cache.py src/Mod/SteveCAD/stevecad_tests/test_native_assembly_playback.py src/Tools/performance/test_async_report_writer.py -q
 build/authoritative-runtime-build.cmd all
-$env:VIBECAD_SIMULATION_PLAYBACK_ASYNC = '1'
-$env:VIBECAD_SIMULATION_AI_PLAYBACK = '1'
-$env:VIBECAD_SIMULATION_AI_RESEEK = '1'
-$env:VIBECAD_SIMULATION_LIFECYCLE = '1'
-$env:VIBECAD_SIMULATION_EXPORT = '1'
-$env:VIBECAD_SIMULATION_EXPORT_CANCEL = '1'
-$env:VIBECAD_SIMULATION_PERSISTED_REOPEN = '1'
-& build/run-native-gui-diagnostic.ps1 -Name simulation-persisted-reopen-20260909 -Script src/Tools/performance/simulation_playback_probe.py -Document build/simulation-publication-20260908-150322/Johhny5.FCStd -Bundle build/portable-publication-simulation-1bbfa624/VibeCAD-26.3.1-RC6-build1-Windows-x86_64
+$env:STEVECAD_SIMULATION_PLAYBACK_ASYNC = '1'
+$env:STEVECAD_SIMULATION_AI_PLAYBACK = '1'
+$env:STEVECAD_SIMULATION_AI_RESEEK = '1'
+$env:STEVECAD_SIMULATION_LIFECYCLE = '1'
+$env:STEVECAD_SIMULATION_EXPORT = '1'
+$env:STEVECAD_SIMULATION_EXPORT_CANCEL = '1'
+$env:STEVECAD_SIMULATION_PERSISTED_REOPEN = '1'
+& build/run-native-gui-diagnostic.ps1 -Name simulation-persisted-reopen-20260909 -Script src/Tools/performance/simulation_playback_probe.py -Document build/simulation-publication-20260908-150322/Johhny5.FCStd -Bundle build/portable-publication-simulation-1bbfa624/SteveCAD-26.3.1-RC6-build1-Windows-x86_64
 ```
 
 The rebuilt native GUI passes the real 3,022-object robot lifecycle in
@@ -1594,11 +1594,11 @@ acceptance. This native diagnostic is not the final packaged-build acceptance.
 ## Discarded rollback notifications (2026-09-09)
 
 The remaining profiled cancellation callback took 1.187 s. Earlier attribution
-showed 10,808 VibeCAD GUI observer notifications consuming 0.889 s during native
+showed 10,808 SteveCAD GUI observer notifications consuming 0.889 s during native
 abort; their aggregate revision/cache/dependency work is subsequently discarded
 when the publication batch ends with `commit=False`.
 
-An explicit thread-local rollback scope now lets only VibeCAD's advisory
+An explicit thread-local rollback scope now lets only SteveCAD's advisory
 object-created/deleted/changed observer skip this already-discarded work.
 The production cooperative publisher enters that scope around its existing
 native `abortTransaction` call. Native transaction replay and all other native
@@ -1613,16 +1613,16 @@ consolidated state, publication and progress suites pass 108 tests in 1.87 s,
 including the added unbatched compatibility case. The script build exits 0.
 
 ```powershell
-.pixi/envs/default/python.exe -m pytest src/Mod/VibeCAD/vibecad_tests/test_native_state.py -q -k 'publication_abort_skips or rollback_notification_scope'
+.pixi/envs/default/python.exe -m pytest src/Mod/SteveCAD/stevecad_tests/test_native_state.py -q -k 'publication_abort_skips or rollback_notification_scope'
 # Red: seven failures before the rollback scope and integration exist.
-.pixi/envs/default/python.exe -m pytest src/Mod/VibeCAD/vibecad_tests/test_native_state.py src/Mod/VibeCAD/vibecad_tests/test_vibescript_timeline_publication.py src/Mod/VibeCAD/vibecad_tests/test_vibescript_publication_progress.py -q
-build/authoritative-runtime-build.cmd src/Mod/VibeCAD/VibeCADScripts
-$env:VIBECAD_PUBLICATION_ATTEMPT = (Resolve-Path build/native-diagnostics/publication-profile-fixture-dea5265d/attempt).Path
-$env:VIBECAD_PUBLICATION_MANIFEST = (Resolve-Path build/native-diagnostics/publication-profile-fixture-dea5265d/program.json).Path
-$env:VIBECAD_PUBLICATION_PROFILE = '1'
-$env:VIBECAD_PUBLICATION_CANCEL_AFTER = '900'
-$env:VIBECAD_PUBLICATION_WORKING_CANDIDATE = '1'
-& build/run-native-gui-diagnostic.ps1 -Name publication-rollback-observers-green-20260909 -Script src/Tools/performance/retained_publication_probe.py -Document build/simulation-publication-20260908-150322/Johhny5.FCStd -Bundle build/portable-publication-simulation-1bbfa624/VibeCAD-26.3.1-RC6-build1-Windows-x86_64
+.pixi/envs/default/python.exe -m pytest src/Mod/SteveCAD/stevecad_tests/test_native_state.py src/Mod/SteveCAD/stevecad_tests/test_vibescript_timeline_publication.py src/Mod/SteveCAD/stevecad_tests/test_vibescript_publication_progress.py -q
+build/authoritative-runtime-build.cmd src/Mod/SteveCAD/SteveCADScripts
+$env:STEVECAD_PUBLICATION_ATTEMPT = (Resolve-Path build/native-diagnostics/publication-profile-fixture-dea5265d/attempt).Path
+$env:STEVECAD_PUBLICATION_MANIFEST = (Resolve-Path build/native-diagnostics/publication-profile-fixture-dea5265d/program.json).Path
+$env:STEVECAD_PUBLICATION_PROFILE = '1'
+$env:STEVECAD_PUBLICATION_CANCEL_AFTER = '900'
+$env:STEVECAD_PUBLICATION_WORKING_CANDIDATE = '1'
+& build/run-native-gui-diagnostic.ps1 -Name publication-rollback-observers-green-20260909 -Script src/Tools/performance/retained_publication_probe.py -Document build/simulation-publication-20260908-150322/Johhny5.FCStd -Bundle build/portable-publication-simulation-1bbfa624/SteveCAD-26.3.1-RC6-build1-Windows-x86_64
 ```
 
 The actual run passes exact 900-item rollback, returns to the original 3,022

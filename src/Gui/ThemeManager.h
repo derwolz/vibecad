@@ -1,16 +1,16 @@
 // SPDX-License-Identifier: LGPL-2.1-or-later
 
 /***************************************************************************
- *   Copyright (c) 2026 VibeCAD contributors                               *
+ *   Copyright (c) 2026 SteveCAD contributors                               *
  *                                                                         *
- *   This file is part of VibeCAD.                                         *
+ *   This file is part of SteveCAD.                                         *
  *                                                                         *
- *   VibeCAD is free software: you can redistribute it and/or modify it     *
+ *   SteveCAD is free software: you can redistribute it and/or modify it     *
  *   under the terms of the GNU Lesser General Public License as           *
  *   published by the Free Software Foundation, either version 2.1 of the  *
  *   License, or (at your option) any later version.                       *
  *                                                                         *
- *   VibeCAD is distributed in the hope that it will be useful, but        *
+ *   SteveCAD is distributed in the hope that it will be useful, but        *
  *   WITHOUT ANY WARRANTY; without even the implied warranty of            *
  *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU      *
  *   Lesser General Public License for more details.                       *
@@ -29,7 +29,7 @@ namespace Gui
 {
 
 /**
- * Owns VibeCAD's complete, deliberately small appearance contract.
+ * Owns SteveCAD's complete, deliberately small appearance contract.
  *
  * Light and Dark are profiles of appearance values only. Unlike preference
  * packs, applying a theme cannot replace unrelated user preferences, restore

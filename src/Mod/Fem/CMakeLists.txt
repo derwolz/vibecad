@@ -757,7 +757,7 @@ SET(FemGuiTests_SRCS
     femtest/gui/test_exact_native_creation_source.py
     femtest/gui/test_open.py
     femtest/gui/test_python_task_boundary.py
-    femtest/gui/test_vibecad_ribbon_tools.py
+    femtest/gui/test_stevecad_ribbon_tools.py
 )
 
 SET(FemGuiUtils_SRCS

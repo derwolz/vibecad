@@ -669,7 +669,7 @@ void CmdSketcherNewSketch::activated(int iMsg)
         rawSelection.size() == 1
         && isGlobalSketchContext(rawSelection.front());
     if (contextOnly) {
-        // A VibeCAD Sketch is a Design-level reusable definition. A selected
+        // A SteveCAD Sketch is a Design-level reusable definition. A selected
         // Body, Component, or presentation group provides UI context only:
         // it is neither ownership nor attachment support.
     }

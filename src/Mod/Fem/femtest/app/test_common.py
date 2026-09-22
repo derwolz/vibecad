@@ -177,7 +177,7 @@ class TestFemCommon(unittest.TestCase):
     def test_openfoam_environment_file_exposes_its_exact_programs(self):
         from femsolver import runtime
 
-        with tempfile.TemporaryDirectory(prefix="vibecad-openfoam-runtime-") as root:
+        with tempfile.TemporaryDirectory(prefix="stevecad-openfoam-runtime-") as root:
             root_path = Path(root)
             binary_path = root_path / "platforms" / "bin"
             binary_path.mkdir(parents=True)
@@ -260,7 +260,7 @@ class TestFemCommon(unittest.TestCase):
     def test_solver_executable_resolution_falls_back_to_the_application_bundle(self):
         from femsolver import runtime
 
-        with tempfile.TemporaryDirectory(prefix="vibecad-fem-runtime-") as root:
+        with tempfile.TemporaryDirectory(prefix="stevecad-fem-runtime-") as root:
             program = Path(root) / "bin" / "ElmerGrid"
             program.parent.mkdir()
             program.write_text("#!/bin/sh\n", encoding="utf-8")

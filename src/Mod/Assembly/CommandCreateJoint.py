@@ -34,7 +34,7 @@ import JointObject
 from JointObject import TaskAssemblyCreateJoint
 import UtilsAssembly
 import Assembly_rc
-from VibeCADNativeTransaction import _OwnedDocumentTransaction
+from SteveCADNativeTransaction import _OwnedDocumentTransaction
 
 # translate = App.Qt.translate
 

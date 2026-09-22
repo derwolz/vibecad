@@ -17,7 +17,7 @@ class TestDesignModeling(unittest.TestCase):
         self.document = App.newDocument("DesignModeling")
         self.document.UndoMode = True
         self._temporary_directory = tempfile.TemporaryDirectory(
-            prefix="vibecad-design-modeling-"
+            prefix="stevecad-design-modeling-"
         )
 
     def tearDown(self):
@@ -30,14 +30,14 @@ class TestDesignModeling(unittest.TestCase):
     def _finalize_sketch(self, sketch):
         sketch.addProperty(
             "App::PropertyString",
-            "VibeCADTimelineRole",
+            "SteveCADTimelineRole",
             "Timeline",
         )
         sketch.setPropertyStatus(
-            "VibeCADTimelineRole",
+            "SteveCADTimelineRole",
             ("Hidden", "LockDynamic", "NoRecompute"),
         )
-        sketch.VibeCADTimelineRole = "operation"
+        sketch.SteveCADTimelineRole = "operation"
         self.document.finalizeProvisionalTimelineOperationBlock(
             sketch,
             [sketch],
@@ -189,9 +189,9 @@ class TestDesignModeling(unittest.TestCase):
         body = bodies[0]
         state = body.Tip.CurrentState
         state_id = str(state.BodyStateId)
-        body_id = str(body.VibeCADBodyId)
+        body_id = str(body.SteveCADBodyId)
         self.assertEqual(body.Label, "Generated Body")
-        self.assertEqual(generator.VibeCADTimelineRole, "internal")
+        self.assertEqual(generator.SteveCADTimelineRole, "internal")
         self.assertIs(operation.Generator, generator)
         self.assertIs(state.Operation, operation)
         self.assertTrue(operation.Shape.isNull())
@@ -207,7 +207,7 @@ class TestDesignModeling(unittest.TestCase):
         edited = PartDesign.finalizeDesignOperationEdit(edit)
         self.document.commitTransaction()
         self.assertEqual(edited, [body])
-        self.assertEqual(str(body.VibeCADBodyId), body_id)
+        self.assertEqual(str(body.SteveCADBodyId), body_id)
         self.assertEqual(str(body.Tip.CurrentState.BodyStateId), state_id)
         self.assertEqual(body.Label, "Edited Generated Body")
         self.assertAlmostEqual(body.Shape.Volume, 576.0)
@@ -227,7 +227,7 @@ class TestDesignModeling(unittest.TestCase):
         generator = self.document.getObject(generator_name)
         body = self.document.getObject(body_name)
         self.assertIs(operation.Generator, generator)
-        self.assertEqual(str(body.VibeCADBodyId), body_id)
+        self.assertEqual(str(body.SteveCADBodyId), body_id)
         self.assertEqual(str(body.Tip.CurrentState.BodyStateId), state_id)
         self.assertAlmostEqual(body.Shape.Volume, 576.0)
         PartDesign.validateDesign(operation)
@@ -584,7 +584,7 @@ class TestDesignModeling(unittest.TestCase):
                 for index in range(18)
             ]
         )
-        original_body_id = str(body.VibeCADBodyId)
+        original_body_id = str(body.SteveCADBodyId)
         self.document.commitTransaction()
 
         sketch = self._rectangle_sketch("CompoundJoinProfile", 2, 8, 2, 8)
@@ -605,7 +605,7 @@ class TestDesignModeling(unittest.TestCase):
         self.document.commitTransaction()
 
         self.assertEqual(outputs, [body])
-        self.assertEqual(str(body.VibeCADBodyId), original_body_id)
+        self.assertEqual(str(body.SteveCADBodyId), original_body_id)
         self.assertEqual(len(body.Shape.Solids), 18)
         self.assertGreater(body.Shape.Volume, initial.Shape.Volume)
         PartDesign.validateDesign(operation)
@@ -619,7 +619,7 @@ class TestDesignModeling(unittest.TestCase):
 
         reopened_body = self.document.getObject(body_name)
         reopened_operation = self.document.getObject(operation_name)
-        self.assertEqual(str(reopened_body.VibeCADBodyId), original_body_id)
+        self.assertEqual(str(reopened_body.SteveCADBodyId), original_body_id)
         self.assertEqual(len(reopened_body.Shape.Solids), 18)
         PartDesign.validateDesign(reopened_operation)
 
@@ -714,7 +714,7 @@ class TestDesignModeling(unittest.TestCase):
         body = self.document.addObject("PartDesign::Body", "CompoundCutTarget")
         initial = body.newObject("PartDesign::Feature", "CompoundCutInitial")
         initial.Shape = Part.makeBox(10, 10, 10)
-        original_body_id = str(body.VibeCADBodyId)
+        original_body_id = str(body.SteveCADBodyId)
         self.document.commitTransaction()
         sketch = self._rectangle_sketch("CompoundCutProfile", 4, 6, 0, 10)
 
@@ -732,7 +732,7 @@ class TestDesignModeling(unittest.TestCase):
         PartDesign.finalizeDesignOperationEdit(edit)
         self.document.commitTransaction()
 
-        self.assertEqual(str(body.VibeCADBodyId), original_body_id)
+        self.assertEqual(str(body.SteveCADBodyId), original_body_id)
         self.assertEqual(len(body.Shape.Solids), 2)
         self.assertAlmostEqual(body.Shape.Volume, 800.0)
         PartDesign.validateDesign(operation)
@@ -829,7 +829,7 @@ class TestDesignModeling(unittest.TestCase):
         sketch = self._rectangle_sketch("PreflightSketch", 0, 5, 0, 5)
 
         self.document.openTransaction("Reject incomplete Sketch identity")
-        sketch.VibeCADTimelineRole = ""
+        sketch.SteveCADTimelineRole = ""
         operation = self.document.addObject(
             "PartDesign::DesignExtrude",
             "PreflightExtrude",
@@ -895,7 +895,7 @@ class TestDesignModeling(unittest.TestCase):
         self.assertEqual(len(states), 1)
         retained_state = states[0]
 
-        definition.DesignId = self.document.VibeCADTimeline.DesignId
+        definition.DesignId = self.document.SteveCADTimeline.DesignId
         outputs = PartDesign.finalizeDesignOperationEdit(edit)
         self.document.commitTransaction()
         self.assertEqual(len(outputs), 1)
@@ -941,33 +941,33 @@ class TestDesignModeling(unittest.TestCase):
         duplicate.OutputIndex = 0
         duplicate.DesignId = operation.DesignId
         duplicate.OperationId = operation.OperationId
-        duplicate.BodyId = body.VibeCADBodyId
+        duplicate.BodyId = body.SteveCADBodyId
         duplicate.PreviousState = prior
         duplicate.addProperty(
             "App::PropertyString",
-            "VibeCADTimelineRole",
+            "SteveCADTimelineRole",
             "Timeline",
         )
         duplicate.addProperty(
             "App::PropertyLinkHidden",
-            "VibeCADTimelineOwner",
+            "SteveCADTimelineOwner",
             "Timeline",
         )
-        duplicate.VibeCADTimelineRole = "resource"
-        duplicate.VibeCADTimelineOwner = operation
+        duplicate.SteveCADTimelineRole = "resource"
+        duplicate.SteveCADTimelineOwner = operation
         duplicate_name = duplicate.Name
         retained_state.PreviousState = duplicate
         operation.InputStates = [duplicate]
         publication.CurrentState = retained_state
         self.document.commitTransaction()
-        history_count = len(self.document.VibeCADTimeline.Operations)
+        history_count = len(self.document.SteveCADTimeline.Operations)
 
         self.document.openTransaction("Recover interrupted retry")
         PartDesign.beginDesignOperationEdit(operation)
         self.document.recompute()
         self.assertIsNone(self.document.getObject(duplicate_name))
         self.assertEqual(
-            len(self.document.VibeCADTimeline.Operations),
+            len(self.document.SteveCADTimeline.Operations),
             history_count - 1,
         )
         self.assertEqual(operation.InputStates, [prior])
@@ -1020,7 +1020,7 @@ class TestDesignModeling(unittest.TestCase):
             self.assertEqual(body.Shape.Solids.__len__(), 1)
             identities[operation.Name] = (
                 str(operation.OperationId),
-                str(body.VibeCADBodyId),
+                str(body.SteveCADBodyId),
                 str(body.Tip.CurrentState.BodyStateId),
             )
             created_bodies[operation.Name] = body
@@ -1130,10 +1130,10 @@ class TestDesignModeling(unittest.TestCase):
                 candidate
                 for candidate in self.document.Objects
                 if candidate.TypeId == "PartDesign::Body"
-                and str(candidate.VibeCADBodyId) == expected[1]
+                and str(candidate.SteveCADBodyId) == expected[1]
             )
             self.assertEqual(str(operation.OperationId), expected[0])
-            self.assertEqual(str(body.VibeCADBodyId), expected[1])
+            self.assertEqual(str(body.SteveCADBodyId), expected[1])
             self.assertEqual(
                 str(body.Tip.CurrentState.BodyStateId),
                 expected[2],
@@ -1148,7 +1148,7 @@ class TestDesignModeling(unittest.TestCase):
             "CloneSource",
             25,
         )
-        source_body_id = str(source_body.VibeCADBodyId)
+        source_body_id = str(source_body.SteveCADBodyId)
 
         self.document.openTransaction("Create Design Clone")
         clone = self.document.addObject(
@@ -1170,7 +1170,7 @@ class TestDesignModeling(unittest.TestCase):
         self.assertEqual(clone.OutputPreviousInputIndices, [-1])
         self.assertEqual(clone.OutputPresence, (True,))
         self.assertNotEqual(
-            str(output_body.VibeCADBodyId),
+            str(output_body.SteveCADBodyId),
             source_body_id,
         )
         self.assertEqual(output_body.ComponentId, component.ComponentId)
@@ -1200,7 +1200,7 @@ class TestDesignModeling(unittest.TestCase):
 
         identities = (
             str(clone.OperationId),
-            str(output_body.VibeCADBodyId),
+            str(output_body.SteveCADBodyId),
             str(output_body.Tip.CurrentState.BodyStateId),
         )
         path = Path(self._temporary_directory.name) / "DesignClone.FCStd"
@@ -1214,7 +1214,7 @@ class TestDesignModeling(unittest.TestCase):
             body
             for body in self.document.Objects
             if body.TypeId == "PartDesign::Body"
-            and str(body.VibeCADBodyId) == identities[1]
+            and str(body.SteveCADBodyId) == identities[1]
         )
         self.assertEqual(str(clone.OperationId), identities[0])
         self.assertEqual(
@@ -1232,8 +1232,8 @@ class TestDesignModeling(unittest.TestCase):
             30,
         )
         body_ids = (
-            str(first_body.VibeCADBodyId),
-            str(second_body.VibeCADBodyId),
+            str(first_body.SteveCADBodyId),
+            str(second_body.SteveCADBodyId),
         )
 
         self.document.openTransaction("Scale two Bodies")
@@ -1339,7 +1339,7 @@ class TestDesignModeling(unittest.TestCase):
             "CompoundScale",
             [(0, 0, 0), (25, 0, 0)],
         )
-        body_id = str(body.VibeCADBodyId)
+        body_id = str(body.SteveCADBodyId)
 
         self.document.openTransaction("Scale compound Body")
         operation = self.document.addObject(
@@ -1357,7 +1357,7 @@ class TestDesignModeling(unittest.TestCase):
 
         self.assertEqual(outputs, [body])
         self.assertEqual(operation.InputStates, [initial])
-        self.assertEqual(str(body.VibeCADBodyId), body_id)
+        self.assertEqual(str(body.SteveCADBodyId), body_id)
         self.assertEqual(len(body.Shape.Solids), 2)
         self.assertAlmostEqual(body.Shape.Volume, 16000.0)
         self.assertAlmostEqual(body.Shape.BoundBox.XLength, 70.0)
@@ -1406,26 +1406,26 @@ class TestDesignModeling(unittest.TestCase):
 
         self.assertIsNone(reference.getParentGeoFeatureGroup())
         self.assertEqual(reference.Support[0][0], source_state)
-        self.assertNotEqual(str(reference.VibeCADDefinitionId), "")
+        self.assertNotEqual(str(reference.SteveCADDefinitionId), "")
         self.assertEqual(
             str(reference.DesignId),
-            str(self.document.VibeCADTimeline.DesignId),
+            str(self.document.SteveCADTimeline.DesignId),
         )
-        self.assertEqual(reference.VibeCADTimelineRole, "operation")
+        self.assertEqual(reference.SteveCADTimelineRole, "operation")
         self.assertEqual(
-            self.document.VibeCADTimeline.Operations.count(reference),
+            self.document.SteveCADTimeline.Operations.count(reference),
             1,
         )
         self.assertLess(
-            self.document.VibeCADTimeline.Operations.index(
+            self.document.SteveCADTimeline.Operations.index(
                 source_operation
             ),
-            self.document.VibeCADTimeline.Operations.index(reference),
+            self.document.SteveCADTimeline.Operations.index(reference),
         )
         PartDesign.validateDesign(reference)
         self._assert_dependency_graph_acyclic(self.document)
 
-        identity = str(reference.VibeCADDefinitionId)
+        identity = str(reference.SteveCADDefinitionId)
         source_body_name = source_body.Name
         path = (
             Path(self._temporary_directory.name)
@@ -1438,7 +1438,7 @@ class TestDesignModeling(unittest.TestCase):
 
         reference = self.document.getObject("Reference")
         source_body = self.document.getObject(source_body_name)
-        self.assertEqual(str(reference.VibeCADDefinitionId), identity)
+        self.assertEqual(str(reference.SteveCADDefinitionId), identity)
         self.assertEqual(
             reference.Support[0][0],
             source_body.Tip.CurrentState,
@@ -1453,7 +1453,7 @@ class TestDesignModeling(unittest.TestCase):
             "PatternSource",
             lambda primitive: None,
         )
-        source_body_id = str(source_body.VibeCADBodyId)
+        source_body_id = str(source_body.SteveCADBodyId)
 
         self.document.openTransaction("Create body linear pattern")
         pattern = self.document.addObject(
@@ -1476,7 +1476,7 @@ class TestDesignModeling(unittest.TestCase):
         self.assertEqual(pattern.OutputPreviousInputIndices, [-1, -1])
         self.assertEqual(pattern.OutputPresence, (True, True))
         self.assertEqual(len(outputs), 2)
-        first_ids = [str(body.VibeCADBodyId) for body in outputs]
+        first_ids = [str(body.SteveCADBodyId) for body in outputs]
         self.assertEqual(len(set(first_ids + [source_body_id])), 3)
         self.assertEqual(
             [round(body.Shape.BoundBox.XMin, 6) for body in outputs],
@@ -1494,7 +1494,7 @@ class TestDesignModeling(unittest.TestCase):
         self.document.recompute()
         grown = PartDesign.finalizeDesignOperationEdit(edit)
         self.document.commitTransaction()
-        grown_ids = [str(body.VibeCADBodyId) for body in grown]
+        grown_ids = [str(body.SteveCADBodyId) for body in grown]
         self.assertEqual(grown_ids[:2], first_ids)
         self.assertNotIn(grown_ids[2], first_ids + [source_body_id])
         self.assertEqual(
@@ -1511,7 +1511,7 @@ class TestDesignModeling(unittest.TestCase):
         shrunk = PartDesign.finalizeDesignOperationEdit(edit)
         self.document.commitTransaction()
         self.assertEqual(
-            [str(body.VibeCADBodyId) for body in shrunk],
+            [str(body.SteveCADBodyId) for body in shrunk],
             [first_ids[0]],
         )
         self.assertTrue(
@@ -1597,7 +1597,7 @@ class TestDesignModeling(unittest.TestCase):
             "CompoundPatternSource",
             [(0, 0, 0), (0, 20, 0)],
         )
-        source_body_id = str(source_body.VibeCADBodyId)
+        source_body_id = str(source_body.SteveCADBodyId)
 
         self.document.openTransaction("Pattern compound Body")
         operation = self.document.addObject(
@@ -1614,7 +1614,7 @@ class TestDesignModeling(unittest.TestCase):
 
         self.assertEqual(len(outputs), 1)
         output = outputs[0]
-        self.assertNotEqual(str(output.VibeCADBodyId), source_body_id)
+        self.assertNotEqual(str(output.SteveCADBodyId), source_body_id)
         self.assertEqual(len(output.Shape.Solids), 2)
         self.assertAlmostEqual(output.Shape.Volume, 2000.0)
         self.assertAlmostEqual(output.Shape.BoundBox.XMin, 40.0)
@@ -1627,7 +1627,7 @@ class TestDesignModeling(unittest.TestCase):
             "CompoundFeaturePattern",
             [(0, 0, 0), (40, 0, 0)],
         )
-        body_id = str(body.VibeCADBodyId)
+        body_id = str(body.SteveCADBodyId)
 
         self.document.openTransaction("Create compound feature source")
         source = self.document.addObject(
@@ -1655,7 +1655,7 @@ class TestDesignModeling(unittest.TestCase):
         self.document.commitTransaction()
 
         self.assertEqual(outputs, [body])
-        self.assertEqual(str(body.VibeCADBodyId), body_id)
+        self.assertEqual(str(body.SteveCADBodyId), body_id)
         self.assertEqual(len(body.Shape.Solids), 2)
         self.assertAlmostEqual(body.Shape.Volume, 3600.0)
         PartDesign.validateDesign(operation)
@@ -1853,8 +1853,8 @@ class TestDesignModeling(unittest.TestCase):
         self.assertEqual(
             operation.InputBodyIds,
             [
-                first_body.VibeCADBodyId,
-                second_body.VibeCADBodyId,
+                first_body.SteveCADBodyId,
+                second_body.SteveCADBodyId,
             ],
         )
         self.assertEqual(
@@ -1911,9 +1911,9 @@ class TestDesignModeling(unittest.TestCase):
         self.assertTrue(operation.isValid(), operation.getStatusString())
 
         identities = {
-            "sketch": str(sketch.VibeCADSketchId),
-            "first_body": str(first_body.VibeCADBodyId),
-            "second_body": str(second_body.VibeCADBodyId),
+            "sketch": str(sketch.SteveCADSketchId),
+            "first_body": str(first_body.SteveCADBodyId),
+            "second_body": str(second_body.SteveCADBodyId),
             "operation": str(operation.OperationId),
             "first_state": str(first_result.BodyStateId),
             "second_state": str(second_result.BodyStateId),
@@ -1931,13 +1931,13 @@ class TestDesignModeling(unittest.TestCase):
         reopened_first_result = self.document.getObject(first_result_name)
         reopened_second_result = self.document.getObject(second_result_name)
 
-        self.assertEqual(str(reopened_sketch.VibeCADSketchId), identities["sketch"])
+        self.assertEqual(str(reopened_sketch.SteveCADSketchId), identities["sketch"])
         self.assertEqual(
-            str(reopened_first_body.VibeCADBodyId),
+            str(reopened_first_body.SteveCADBodyId),
             identities["first_body"],
         )
         self.assertEqual(
-            str(reopened_second_body.VibeCADBodyId),
+            str(reopened_second_body.SteveCADBodyId),
             identities["second_body"],
         )
         self.assertEqual(
@@ -2188,7 +2188,7 @@ class TestDesignModeling(unittest.TestCase):
         )
         publication = body.Tip
         state = publication.CurrentState
-        body_id = body.VibeCADBodyId
+        body_id = body.SteveCADBodyId
         state_id = state.BodyStateId
         volume = body.Shape.Volume
 
@@ -2200,7 +2200,7 @@ class TestDesignModeling(unittest.TestCase):
         self.assertTrue(state.Shape.isNull())
         self.assertTrue(publication.Shape.isNull())
         self.assertTrue(body.Shape.isNull())
-        self.assertEqual(body.VibeCADBodyId, body_id)
+        self.assertEqual(body.SteveCADBodyId, body_id)
         self.assertEqual(state.BodyStateId, state_id)
         PartDesign.validateDesign(operation)
 
@@ -2212,7 +2212,7 @@ class TestDesignModeling(unittest.TestCase):
         self.assertAlmostEqual(body.Shape.Volume, volume)
         self.assertIs(body.Tip, publication)
         self.assertIs(publication.CurrentState, state)
-        self.assertEqual(body.VibeCADBodyId, body_id)
+        self.assertEqual(body.SteveCADBodyId, body_id)
         self.assertEqual(state.BodyStateId, state_id)
         PartDesign.validateDesign(operation)
 
@@ -2244,7 +2244,7 @@ class TestDesignModeling(unittest.TestCase):
         self.assertEqual(combine.ResultOperation, "Join")
         self.assertEqual(
             str(combine.ResultBodyId),
-            str(result_body.VibeCADBodyId),
+            str(result_body.SteveCADBodyId),
         )
         self.assertFalse(combine.KeepTools)
         self.assertEqual(
@@ -2254,8 +2254,8 @@ class TestDesignModeling(unittest.TestCase):
         self.assertEqual(
             combine.OutputBodyIds,
             [
-                str(result_body.VibeCADBodyId),
-                str(tool_body.VibeCADBodyId),
+                str(result_body.SteveCADBodyId),
+                str(tool_body.SteveCADBodyId),
             ],
         )
         self.assertEqual(
@@ -2300,7 +2300,7 @@ class TestDesignModeling(unittest.TestCase):
         self.assertTrue(combine.KeepTools)
         self.assertEqual(
             combine.OutputBodyIds,
-            [str(result_body.VibeCADBodyId)],
+            [str(result_body.SteveCADBodyId)],
         )
         self.assertEqual(combine.OutputPresence, (True,))
         self.assertIs(result_body.Tip.CurrentState, result_state)
@@ -2357,7 +2357,7 @@ class TestDesignModeling(unittest.TestCase):
             "CompoundCombineTool",
             [(5, 0, 0), (60, 0, 0)],
         )
-        result_body_id = str(result_body.VibeCADBodyId)
+        result_body_id = str(result_body.SteveCADBodyId)
 
         self.document.openTransaction("Combine compound Bodies")
         operation = self.document.addObject(
@@ -2377,7 +2377,7 @@ class TestDesignModeling(unittest.TestCase):
 
         self.assertEqual(outputs, [result_body])
         self.assertEqual(operation.InputStates, [result_input, tool_input])
-        self.assertEqual(str(result_body.VibeCADBodyId), result_body_id)
+        self.assertEqual(str(result_body.SteveCADBodyId), result_body_id)
         self.assertEqual(len(result_body.Shape.Solids), 3)
         self.assertAlmostEqual(result_body.Shape.Volume, 3500.0)
         self.assertEqual(len(tool_body.Shape.Solids), 2)
@@ -2481,7 +2481,7 @@ class TestDesignModeling(unittest.TestCase):
         )
         self.assertEqual(
             str(operation.SourceBodyId),
-            str(source_body.VibeCADBodyId),
+            str(source_body.SteveCADBodyId),
         )
         self.assertTrue(operation.RetainedRegionChosen)
         self.assertAlmostEqual(source_body.Shape.Volume, 500.0)
@@ -2490,8 +2490,8 @@ class TestDesignModeling(unittest.TestCase):
             source_body.Placement.Base.x,
             created_body.Placement.Base.x,
         )
-        source_body_id = str(source_body.VibeCADBodyId)
-        created_body_id = str(created_body.VibeCADBodyId)
+        source_body_id = str(source_body.SteveCADBodyId)
+        created_body_id = str(created_body.SteveCADBodyId)
         source_state_id = str(source_body.Tip.CurrentState.BodyStateId)
         created_state_id = str(created_body.Tip.CurrentState.BodyStateId)
         source_name = source_body.Name
@@ -2513,11 +2513,11 @@ class TestDesignModeling(unittest.TestCase):
         component = self.document.getObject("SourceComponent")
         splitter = self.document.getObject("SplitterPlane")
         self.assertEqual(
-            str(source_body.VibeCADBodyId),
+            str(source_body.SteveCADBodyId),
             source_body_id,
         )
         self.assertEqual(
-            str(created_body.VibeCADBodyId),
+            str(created_body.SteveCADBodyId),
             created_body_id,
         )
         self.assertEqual(
@@ -2536,11 +2536,11 @@ class TestDesignModeling(unittest.TestCase):
         self.assertAlmostEqual(source_body.Shape.Volume, 600.0)
         self.assertAlmostEqual(created_body.Shape.Volume, 400.0)
         self.assertEqual(
-            str(source_body.VibeCADBodyId),
+            str(source_body.SteveCADBodyId),
             source_body_id,
         )
         self.assertEqual(
-            str(created_body.VibeCADBodyId),
+            str(created_body.SteveCADBodyId),
             created_body_id,
         )
         self.assertEqual(
@@ -2590,11 +2590,11 @@ class TestDesignModeling(unittest.TestCase):
         reopened_source = self.document.getObject(source_name)
         reopened_created = self.document.getObject(created_name)
         self.assertEqual(
-            str(reopened_source.VibeCADBodyId),
+            str(reopened_source.SteveCADBodyId),
             source_body_id,
         )
         self.assertEqual(
-            str(reopened_created.VibeCADBodyId),
+            str(reopened_created.SteveCADBodyId),
             created_body_id,
         )
         self.assertEqual(
@@ -2624,7 +2624,7 @@ class TestDesignModeling(unittest.TestCase):
             [(0, 0, 0), (20, 0, 0)],
         )
         component.addObject(source_body)
-        source_body_id = str(source_body.VibeCADBodyId)
+        source_body_id = str(source_body.SteveCADBodyId)
         splitter = self.document.addObject(
             "PartDesign::Feature",
             "CompoundSplitterPlane",
@@ -2664,7 +2664,7 @@ class TestDesignModeling(unittest.TestCase):
         self.assertEqual(len(outputs), 3)
         self.assertIs(outputs[0], source_body)
         self.assertEqual(operation.InputStates, [source_input])
-        self.assertEqual(str(source_body.VibeCADBodyId), source_body_id)
+        self.assertEqual(str(source_body.SteveCADBodyId), source_body_id)
         self.assertTrue(all(len(body.Shape.Solids) == 1 for body in outputs))
         self.assertEqual(
             sorted(round(body.Shape.Volume) for body in outputs),
@@ -2724,15 +2724,15 @@ class TestDesignModeling(unittest.TestCase):
             all(body.Tip.CurrentState.Operation is operation for body in bodies)
         )
         self.assertEqual(
-            self.document.VibeCADTimeline.Operations.count(operation),
+            self.document.SteveCADTimeline.Operations.count(operation),
             1,
         )
         self.assertLess(
-            self.document.VibeCADTimeline.Operations.index(source),
-            self.document.VibeCADTimeline.Operations.index(operation),
+            self.document.SteveCADTimeline.Operations.index(source),
+            self.document.SteveCADTimeline.Operations.index(operation),
         )
         body_names = [body.Name for body in bodies]
-        body_ids = [str(body.VibeCADBodyId) for body in bodies]
+        body_ids = [str(body.SteveCADBodyId) for body in bodies]
         state_ids = [
             str(body.Tip.CurrentState.BodyStateId)
             for body in bodies
@@ -2755,7 +2755,7 @@ class TestDesignModeling(unittest.TestCase):
         self.document.recompute()
         self.assertTrue(operation.isValid(), operation.getStatusString())
         self.assertEqual(
-            [str(self.document.getObject(name).VibeCADBodyId)
+            [str(self.document.getObject(name).SteveCADBodyId)
              for name in body_names],
             body_ids,
         )
@@ -2810,7 +2810,7 @@ class TestDesignModeling(unittest.TestCase):
 
         reopened = self.document.getObject("Separate")
         self.assertEqual(
-            [str(self.document.getObject(name).VibeCADBodyId)
+            [str(self.document.getObject(name).SteveCADBodyId)
              for name in body_names],
             body_ids,
         )
@@ -2840,7 +2840,7 @@ class TestDesignModeling(unittest.TestCase):
         restored = self.document.getObject("Separate")
         self.assertIsNotNone(restored)
         self.assertEqual(
-            [str(self.document.getObject(name).VibeCADBodyId)
+            [str(self.document.getObject(name).SteveCADBodyId)
              for name in body_names],
             body_ids,
         )
@@ -2882,7 +2882,7 @@ class TestDesignModeling(unittest.TestCase):
         initial_bodies = PartDesign.finalizeDesignOperationEdit(edit)
         self.document.commitTransaction()
 
-        initial_ids = [str(body.VibeCADBodyId) for body in initial_bodies]
+        initial_ids = [str(body.SteveCADBodyId) for body in initial_bodies]
         initial_state_ids = [
             str(body.Tip.CurrentState.BodyStateId)
             for body in initial_bodies
@@ -2905,7 +2905,7 @@ class TestDesignModeling(unittest.TestCase):
         added_bodies = PartDesign.finalizeDesignOperationEdit(add_edit)
         self.document.commitTransaction()
 
-        added_ids = [str(body.VibeCADBodyId) for body in added_bodies]
+        added_ids = [str(body.SteveCADBodyId) for body in added_bodies]
         added_state_ids = [
             str(body.Tip.CurrentState.BodyStateId)
             for body in added_bodies
@@ -2928,7 +2928,7 @@ class TestDesignModeling(unittest.TestCase):
         self.document.undo()
         self.document.recompute()
         self.assertEqual(
-            [str(body.VibeCADBodyId) for body in initial_bodies],
+            [str(body.SteveCADBodyId) for body in initial_bodies],
             initial_ids,
         )
         self.assertIsNone(
@@ -2936,7 +2936,7 @@ class TestDesignModeling(unittest.TestCase):
                 (
                     body
                     for body in self.document.findObjects("PartDesign::Body")
-                    if str(body.VibeCADBodyId) == added_ids[2]
+                    if str(body.SteveCADBodyId) == added_ids[2]
                 ),
                 None,
             )
@@ -2966,7 +2966,7 @@ class TestDesignModeling(unittest.TestCase):
         self.document.commitTransaction()
 
         self.assertEqual(
-            [str(body.VibeCADBodyId) for body in remaining_bodies],
+            [str(body.SteveCADBodyId) for body in remaining_bodies],
             [added_ids[0], added_ids[2]],
         )
         self.assertEqual(
@@ -2981,7 +2981,7 @@ class TestDesignModeling(unittest.TestCase):
                 (
                     body
                     for body in self.document.findObjects("PartDesign::Body")
-                    if str(body.VibeCADBodyId) == added_ids[1]
+                    if str(body.SteveCADBodyId) == added_ids[1]
                 ),
                 None,
             )
@@ -3183,7 +3183,7 @@ class TestDesignModeling(unittest.TestCase):
                 Part.makeBox(10, 10, 10, App.Vector(20, 0, 0)),
             ]
         )
-        original_body_id = str(body.VibeCADBodyId)
+        original_body_id = str(body.SteveCADBodyId)
         self.document.commitTransaction()
 
         self.document.openTransaction("Fillet compound Body")
@@ -3202,7 +3202,7 @@ class TestDesignModeling(unittest.TestCase):
         self.document.commitTransaction()
 
         self.assertEqual(outputs, [body])
-        self.assertEqual(str(body.VibeCADBodyId), original_body_id)
+        self.assertEqual(str(body.SteveCADBodyId), original_body_id)
         self.assertEqual(len(body.Shape.Solids), 2)
         self.assertLess(body.Shape.Volume, 2000.0)
         self.assertAlmostEqual(body.Shape.Solids[1].Volume, 1000.0)
@@ -3524,7 +3524,7 @@ class TestDesignModeling(unittest.TestCase):
                 str(sweep_body.DesignId),
                 str(helix_body.DesignId),
             },
-            {str(self.document.VibeCADTimeline.DesignId)},
+            {str(self.document.SteveCADTimeline.DesignId)},
         )
         self._assert_dependency_graph_acyclic(self.document)
 
@@ -3594,7 +3594,7 @@ class TestDesignModeling(unittest.TestCase):
         PartDesign.finalizeDesignOperationEdit(edit)
         self.document.commitTransaction()
 
-        self.assertEqual(shared_cut.TargetBodyIds, [str(first_body.VibeCADBodyId)])
+        self.assertEqual(shared_cut.TargetBodyIds, [str(first_body.SteveCADBodyId)])
         self.assertEqual(shared_cut.InputStates, [first_input])
         self.assertEqual(downstream.InputStates, [second_input])
         self.assertIs(downstream_state.PreviousState, second_input)
@@ -3618,7 +3618,7 @@ class TestDesignModeling(unittest.TestCase):
         publication = body.Tip
         state = publication.CurrentState
         identities = (
-            str(body.VibeCADBodyId),
+            str(body.SteveCADBodyId),
             str(state.BodyStateId),
             body.Name,
             publication.Name,
@@ -3635,7 +3635,7 @@ class TestDesignModeling(unittest.TestCase):
         self.assertEqual(edited_bodies, [body])
         self.assertEqual(
             (
-                str(body.VibeCADBodyId),
+                str(body.SteveCADBodyId),
                 str(state.BodyStateId),
                 body.Name,
                 publication.Name,
@@ -3671,7 +3671,7 @@ class TestDesignModeling(unittest.TestCase):
         self.document.commitTransaction()
         fillet_state = publication.CurrentState
         original_volume = body.Shape.Volume
-        identities = (body.VibeCADBodyId, pad_state.BodyStateId, fillet_state.BodyStateId)
+        identities = (body.SteveCADBodyId, pad_state.BodyStateId, fillet_state.BodyStateId)
 
         def assert_history():
             self.assertIs(body.Tip, publication)
@@ -3679,7 +3679,7 @@ class TestDesignModeling(unittest.TestCase):
             self.assertIs(fillet_state.PreviousState, pad_state)
             self.assertEqual(fillet.InputStates, [pad_state])
             self.assertEqual(
-                (body.VibeCADBodyId, pad_state.BodyStateId, fillet_state.BodyStateId),
+                (body.SteveCADBodyId, pad_state.BodyStateId, fillet_state.BodyStateId),
                 identities,
             )
             PartDesign.validateDesign(pad)
@@ -3802,8 +3802,8 @@ class TestDesignModeling(unittest.TestCase):
         new_body = created[0]
         self.assertIsNot(new_body, target)
         self.assertNotEqual(
-            str(new_body.VibeCADBodyId),
-            str(target.VibeCADBodyId),
+            str(new_body.SteveCADBodyId),
+            str(target.SteveCADBodyId),
         )
         self.assertEqual(operation.ResultOperation, "New Body")
         self.assertEqual(operation.InputStates, [])
@@ -3845,7 +3845,7 @@ class TestDesignModeling(unittest.TestCase):
         publication = body.Tip
         state = publication.CurrentState
         identities = (
-            str(body.VibeCADBodyId),
+            str(body.SteveCADBodyId),
             str(state.BodyStateId),
             body.Name,
             publication.Name,
@@ -3866,7 +3866,7 @@ class TestDesignModeling(unittest.TestCase):
         self.assertEqual(moved, [body])
         self.assertEqual(
             (
-                str(body.VibeCADBodyId),
+                str(body.SteveCADBodyId),
                 str(state.BodyStateId),
                 body.Name,
                 publication.Name,
@@ -3915,8 +3915,8 @@ class TestDesignModeling(unittest.TestCase):
 
         source_ids = {
             str(component.ComponentId),
-            str(profile.VibeCADSketchId),
-            str(body.VibeCADBodyId),
+            str(profile.SteveCADSketchId),
+            str(body.SteveCADBodyId),
             str(operation.OperationId),
             str(state.BodyStateId),
         }
@@ -3943,8 +3943,8 @@ class TestDesignModeling(unittest.TestCase):
 
         copied_ids = {
             str(copied_component.ComponentId),
-            str(copied_profile.VibeCADSketchId),
-            str(copied_body.VibeCADBodyId),
+            str(copied_profile.SteveCADSketchId),
+            str(copied_body.SteveCADBodyId),
             str(copied_operation.OperationId),
             str(copied_state.BodyStateId),
         }
@@ -3959,11 +3959,11 @@ class TestDesignModeling(unittest.TestCase):
                 str(copied_state.DesignId),
                 str(copied_publication.DesignId),
             },
-            {str(self.document.VibeCADTimeline.DesignId)},
+            {str(self.document.SteveCADTimeline.DesignId)},
         )
         self.assertEqual(
             copied_operation.TargetBodyIds,
-            [str(copied_body.VibeCADBodyId)],
+            [str(copied_body.SteveCADBodyId)],
         )
         self.assertEqual(
             copied_operation.DestinationComponentId,
@@ -3977,11 +3977,11 @@ class TestDesignModeling(unittest.TestCase):
         )
         self.assertEqual(
             str(copied_state.BodyId),
-            str(copied_body.VibeCADBodyId),
+            str(copied_body.SteveCADBodyId),
         )
         self.assertEqual(
             str(copied_publication.BodyId),
-            str(copied_body.VibeCADBodyId),
+            str(copied_body.SteveCADBodyId),
         )
         self.assertIs(copied_publication.CurrentState, copied_state)
         self.assertAlmostEqual(copied_body.Shape.Volume, 1000.0)
@@ -3995,15 +3995,15 @@ class TestDesignModeling(unittest.TestCase):
         copied_state_name = copied_state.Name
         copied_property_by_name = {
             copied_component_name: "ComponentId",
-            copied_profile_name: "VibeCADSketchId",
-            copied_body_name: "VibeCADBodyId",
+            copied_profile_name: "SteveCADSketchId",
+            copied_body_name: "SteveCADBodyId",
             copied_operation_name: "OperationId",
             copied_state_name: "BodyStateId",
         }
         copied_identity_by_name = {
             copied_component_name: str(copied_component.ComponentId),
-            copied_profile_name: str(copied_profile.VibeCADSketchId),
-            copied_body_name: str(copied_body.VibeCADBodyId),
+            copied_profile_name: str(copied_profile.SteveCADSketchId),
+            copied_body_name: str(copied_body.SteveCADBodyId),
             copied_operation_name: str(copied_operation.OperationId),
             copied_state_name: str(copied_state.BodyStateId),
         }
@@ -4030,14 +4030,14 @@ class TestDesignModeling(unittest.TestCase):
         )
         self._assert_dependency_graph_acyclic(self.document)
 
-        design_id = str(self.document.VibeCADTimeline.DesignId)
+        design_id = str(self.document.SteveCADTimeline.DesignId)
         path = Path(self._temporary_directory.name) / "CopiedComponent.FCStd"
         self.document.saveAs(str(path))
         App.closeDocument(self.document.Name)
         self.document = App.openDocument(str(path))
         self.document.recompute()
 
-        self.assertEqual(str(self.document.VibeCADTimeline.DesignId), design_id)
+        self.assertEqual(str(self.document.SteveCADTimeline.DesignId), design_id)
         self.assertEqual(
             {
                 name: str(
@@ -4063,7 +4063,7 @@ class TestDesignModeling(unittest.TestCase):
         )
         self.assertEqual(
             reopened_operation.TargetBodyIds,
-            [str(reopened_body.VibeCADBodyId)],
+            [str(reopened_body.SteveCADBodyId)],
         )
         PartDesign.validateDesign(reopened_operation)
         self._assert_dependency_graph_acyclic(self.document)
@@ -4206,7 +4206,7 @@ class TestDesignModeling(unittest.TestCase):
         created_body = PartDesign.finalizeDesignOperationEdit(edit)[0]
         self.document.commitTransaction()
         created_body_name = created_body.Name
-        created_body_id = str(created_body.VibeCADBodyId)
+        created_body_id = str(created_body.SteveCADBodyId)
         created_state_name = created_body.Tip.CurrentState.Name
 
         self.document.undo()
@@ -4226,7 +4226,7 @@ class TestDesignModeling(unittest.TestCase):
         redone_body = self.document.getObject(created_body_name)
         self.assertEqual(redone_operation.ResultOperation, "New Body")
         self.assertIsNotNone(redone_body)
-        self.assertEqual(str(redone_body.VibeCADBodyId), created_body_id)
+        self.assertEqual(str(redone_body.SteveCADBodyId), created_body_id)
         self.assertIsNone(self.document.getObject(cut_state_name))
         self.assertIs(redone_target.Tip.CurrentState, initial)
         self.assertAlmostEqual(redone_target.Shape.Volume, 1000.0)
@@ -4243,7 +4243,7 @@ class TestDesignModeling(unittest.TestCase):
         reopened_body = self.document.getObject(created_body_name)
         reopened_state = self.document.getObject(created_state_name)
         self.assertEqual(reopened_operation.ResultOperation, "New Body")
-        self.assertEqual(str(reopened_body.VibeCADBodyId), created_body_id)
+        self.assertEqual(str(reopened_body.SteveCADBodyId), created_body_id)
         self.assertIs(reopened_body.Tip.CurrentState, reopened_state)
         self.assertAlmostEqual(reopened_body.Shape.Volume, 360.0)
         PartDesign.validateDesign(reopened_operation)
@@ -4261,7 +4261,7 @@ class TestDesignModeling(unittest.TestCase):
             ),
         )
         created_body_name = created_body.Name
-        created_body_id = str(created_body.VibeCADBodyId)
+        created_body_id = str(created_body.SteveCADBodyId)
         created_state_name = created_body.Tip.CurrentState.Name
 
         self.document.openTransaction("Convert new body to cut")
@@ -4277,7 +4277,7 @@ class TestDesignModeling(unittest.TestCase):
         self.assertIsNone(self.document.getObject(created_state_name))
         self.assertNotIn(
             created_body_id,
-            [str(body.VibeCADBodyId) for body in self.document.findObjects(
+            [str(body.SteveCADBodyId) for body in self.document.findObjects(
                 "PartDesign::Body"
             )],
         )
@@ -4372,7 +4372,7 @@ class TestDesignModeling(unittest.TestCase):
         self.assertEqual(
             sum(
                 item is operation
-                for item in self.document.VibeCADTimeline.Operations
+                for item in self.document.SteveCADTimeline.Operations
             ),
             1,
         )
@@ -4411,7 +4411,7 @@ class TestDesignModeling(unittest.TestCase):
         self.assertEqual(len(bodies), 1)
         body = bodies[0]
         body_name = body.Name
-        body_id = str(body.VibeCADBodyId)
+        body_id = str(body.SteveCADBodyId)
         operation_name = operation.Name
         self.assertEqual(len(body.Shape.Solids), 2)
         self.assertAlmostEqual(body.Shape.Volume, 2000.0)
@@ -4425,7 +4425,7 @@ class TestDesignModeling(unittest.TestCase):
 
         operation = self.document.getObject(operation_name)
         body = self.document.getObject(body_name)
-        self.assertEqual(str(body.VibeCADBodyId), body_id)
+        self.assertEqual(str(body.SteveCADBodyId), body_id)
         self.assertEqual(len(body.Shape.Solids), 2)
         self.assertAlmostEqual(body.Shape.Volume, 2000.0)
         PartDesign.validateDesign(operation)
@@ -4509,7 +4509,7 @@ class TestDesignModeling(unittest.TestCase):
         self.assertEqual(operation.ScriptOutputKeys, [])
         self.assertEqual(operation.OutputBodyIds, [])
         self.assertEqual(
-            self.document.VibeCADTimeline.Operations.count(operation),
+            self.document.SteveCADTimeline.Operations.count(operation),
             1,
         )
         PartDesign.validateDesign(operation)
@@ -4532,10 +4532,10 @@ class TestDesignModeling(unittest.TestCase):
         self.document.commitTransaction()
         self.assertEqual(len(bodies), 1)
         body_name = bodies[0].Name
-        body_id = str(bodies[0].VibeCADBodyId)
+        body_id = str(bodies[0].SteveCADBodyId)
         self.assertAlmostEqual(bodies[0].Shape.Volume, 288.0)
         self.assertEqual(
-            self.document.VibeCADTimeline.Operations.count(operation),
+            self.document.SteveCADTimeline.Operations.count(operation),
             1,
         )
         PartDesign.validateDesign(operation)
@@ -4567,7 +4567,7 @@ class TestDesignModeling(unittest.TestCase):
         self.document.recompute()
         restored = self.document.getObject(body_name)
         self.assertIsNotNone(restored)
-        self.assertEqual(str(restored.VibeCADBodyId), body_id)
+        self.assertEqual(str(restored.SteveCADBodyId), body_id)
         self.assertEqual(operation.ProgramRevision, "revision-2")
         PartDesign.validateDesign(operation)
 
@@ -4601,7 +4601,7 @@ class TestDesignModeling(unittest.TestCase):
         original = {
             key: (
                 body.Name,
-                str(body.VibeCADBodyId),
+                str(body.SteveCADBodyId),
                 body.Tip.CurrentState.Name,
             )
             for key, body in zip(operation.ScriptOutputKeys, original_bodies)
@@ -4632,7 +4632,7 @@ class TestDesignModeling(unittest.TestCase):
             [original["Pin"][0], original["Bracket"][0]],
         )
         self.assertEqual(
-            [str(body.VibeCADBodyId) for body in edited_bodies[:2]],
+            [str(body.SteveCADBodyId) for body in edited_bodies[:2]],
             [original["Pin"][1], original["Bracket"][1]],
         )
         self.assertEqual(
@@ -4665,7 +4665,7 @@ class TestDesignModeling(unittest.TestCase):
         self.assertEqual(
             [
                 str(
-                    self.document.getObject(original[key][0]).VibeCADBodyId
+                    self.document.getObject(original[key][0]).SteveCADBodyId
                 )
                 for key in ("Pin", "Bracket")
             ],
@@ -4737,7 +4737,7 @@ class TestDesignModeling(unittest.TestCase):
         self.document.commitTransaction()
         operation_name = operation.Name
         body_names = [body.Name for body in bodies]
-        body_ids = [str(body.VibeCADBodyId) for body in bodies]
+        body_ids = [str(body.SteveCADBodyId) for body in bodies]
         state_names = [body.Tip.CurrentState.Name for body in bodies]
 
         self.document.openTransaction("Delete VibeScript program operation")
@@ -4758,7 +4758,7 @@ class TestDesignModeling(unittest.TestCase):
         self.assertIsNotNone(restored_operation)
         self.assertEqual(
             [
-                str(self.document.getObject(name).VibeCADBodyId)
+                str(self.document.getObject(name).SteveCADBodyId)
                 for name in body_names
             ],
             body_ids,

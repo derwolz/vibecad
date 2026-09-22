@@ -28,7 +28,7 @@ void MeshGui::startBackgroundMeshCurvature(
             }
             pythonSources.append(Py::asObject(source->getPyObject()));
         }
-        PyObject* imported = PyImport_ImportModule("VibeCADMeshCurvatureGui");
+        PyObject* imported = PyImport_ImportModule("SteveCADMeshCurvatureGui");
         if (!imported) {
             throw Py::Exception();
         }

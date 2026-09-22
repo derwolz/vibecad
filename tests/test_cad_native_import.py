@@ -292,7 +292,7 @@ class OpenHandlersTest(unittest.TestCase):
     @unittest.skipUnless(os.name == "nt", "Windows-only process behavior")
     def test_external_converter_is_launched_without_a_console_window(self):
         completed = SimpleNamespace(returncode=1, stdout=b"", stderr=b"")
-        with mock.patch.dict(importJT.os.environ, {"VIBECAD_EXCHANGERCONV": ""}):
+        with mock.patch.dict(importJT.os.environ, {"STEVECAD_EXCHANGERCONV": ""}):
             with mock.patch.object(
                 importJT.shutil, "which", return_value="ExchangerConv.exe"
             ):
@@ -310,7 +310,7 @@ class OpenHandlersTest(unittest.TestCase):
 
     def test_external_converter_retries_share_one_timeout_budget(self):
         completed = SimpleNamespace(returncode=1, stdout=b"", stderr=b"")
-        with mock.patch.dict(importJT.os.environ, {"VIBECAD_EXCHANGERCONV": ""}):
+        with mock.patch.dict(importJT.os.environ, {"STEVECAD_EXCHANGERCONV": ""}):
             with mock.patch.object(
                 importJT.shutil, "which", return_value="ExchangerConv"
             ):

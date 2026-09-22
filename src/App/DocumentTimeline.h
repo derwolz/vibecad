@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: LGPL-2.1-or-later
 
 /***************************************************************************
- *   Copyright (c) 2026 VibeCAD contributors                              *
+ *   Copyright (c) 2026 SteveCAD contributors                              *
  *                                                                         *
  *   This file is part of the FreeCAD CAx development system.              *
  *                                                                         *
@@ -105,16 +105,16 @@ class AppExport DocumentTimeline: public DocumentObject
     PROPERTY_HEADER_WITH_OVERRIDE(App::DocumentTimeline);
 
 public:
-    static constexpr const char* ObjectName = "VibeCADTimeline";
+    static constexpr const char* ObjectName = "SteveCADTimeline";
     static constexpr long CurrentSchemaVersion = 2;
     static constexpr long CurrentDesignSchemaVersion = 1;
-    static constexpr const char* RolePropertyName = "VibeCADTimelineRole";
-    static constexpr const char* OwnerPropertyName = "VibeCADTimelineOwner";
-    static constexpr const char* EditorPropertyName = "VibeCADTimelineEditor";
-    static constexpr const char* EditCommandPropertyName = "VibeCADTimelineEditCommand";
-    static constexpr const char* DeleteCommandPropertyName = "VibeCADTimelineDeleteCommand";
-    static constexpr const char* ReplacedInputsPropertyName = "VibeCADTimelineReplacedInputs";
-    static constexpr const char* DefinitionIdPropertyName = "VibeCADDefinitionId";
+    static constexpr const char* RolePropertyName = "SteveCADTimelineRole";
+    static constexpr const char* OwnerPropertyName = "SteveCADTimelineOwner";
+    static constexpr const char* EditorPropertyName = "SteveCADTimelineEditor";
+    static constexpr const char* EditCommandPropertyName = "SteveCADTimelineEditCommand";
+    static constexpr const char* DeleteCommandPropertyName = "SteveCADTimelineDeleteCommand";
+    static constexpr const char* ReplacedInputsPropertyName = "SteveCADTimelineReplacedInputs";
+    static constexpr const char* DefinitionIdPropertyName = "SteveCADDefinitionId";
     static constexpr const char* DesignIdPropertyName = "DesignId";
     static constexpr const char* OperationRole = "operation";
     static constexpr const char* ResourceRole = "resource";

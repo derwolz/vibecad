@@ -138,8 +138,8 @@ class TestSheetGui(unittest.TestCase):
         previous = Gui.activeWorkbench().name()
         self.addCleanup(lambda: Gui.activateWorkbench(previous))
         Gui.activateWorkbench("SMWorkbench")
-        controller = Gui.getMainWindow().findChild(QtCore.QObject, "VibeCADRibbonController")
-        self.fixture.wait_for(lambda: controller.property("VibeCADActiveSurfaceId") == "sheet_metal")
+        controller = Gui.getMainWindow().findChild(QtCore.QObject, "SteveCADRibbonController")
+        self.fixture.wait_for(lambda: controller.property("SteveCADActiveSurfaceId") == "sheet_metal")
         self.gui.ensure_commands_registered()
         original = self.gui.SheetPanel
         panels = []
@@ -165,7 +165,7 @@ class TestSheetGui(unittest.TestCase):
         active.fitAll()
         Gui.updateGui()
         active.redraw()
-        render = str(Path(os.environ["VIBECAD_TEST_OUTPUT"])/"sheet-panel-model.png")
+        render = str(Path(os.environ["STEVECAD_TEST_OUTPUT"])/"sheet-panel-model.png")
         active.saveImage(render, 800, 600, "White")
         image = QtGui.QImage(render)
         foreground = sum(image.pixelColor(x, y) != QtGui.QColor("white")
@@ -174,7 +174,7 @@ class TestSheetGui(unittest.TestCase):
         QtWidgets.QApplication.sync()
         screen = Gui.getMainWindow().windowHandle().screen()
         self.assertTrue(screen.grabWindow(Gui.getMainWindow().winId()).save(
-            str(Path(os.environ["VIBECAD_TEST_OUTPUT"])/"sheet-cuts-panel.png")))
+            str(Path(os.environ["STEVECAD_TEST_OUTPUT"])/"sheet-cuts-panel.png")))
         close_buttons = [box.button(QtWidgets.QDialogButtonBox.Close)
                          for box in Gui.getMainWindow().findChildren(QtWidgets.QDialogButtonBox)]
         button = next(button for button in close_buttons if button is not None and button.isVisible())
@@ -234,12 +234,12 @@ class TestSheetGui(unittest.TestCase):
         self.assertEqual(self.sheet.SourceFace, (source, [f"Face{self.model.root}"]))
 
     def test_existing_ribbon_publishes_sheetmetal_groups(self):
-        from VibeCADRibbonSurface import read_active_ribbon_surface
+        from SteveCADRibbonSurface import read_active_ribbon_surface
         previous = Gui.activeWorkbench().name()
         self.addCleanup(lambda: Gui.activateWorkbench(previous))
         Gui.activateWorkbench("SMWorkbench")
-        controller = Gui.getMainWindow().findChild(QtCore.QObject, "VibeCADRibbonController")
-        self.fixture.wait_for(lambda: controller.property("VibeCADActiveSurfaceId") == "sheet_metal")
+        controller = Gui.getMainWindow().findChild(QtCore.QObject, "SteveCADRibbonController")
+        self.fixture.wait_for(lambda: controller.property("SteveCADActiveSurfaceId") == "sheet_metal")
         surface = read_active_ribbon_surface(controller)
         self.assertEqual(surface.surface_id, "sheet_metal")
         labels = {group.label for group in surface.groups}

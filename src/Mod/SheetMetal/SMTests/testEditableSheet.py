@@ -16,7 +16,7 @@ from PySide import QtCore
 
 import SheetMetalEditable as Editable
 from SheetMetalBaseCmd import SMBaseBend
-from VibeCADNativeTransaction import _OwnedDocumentTransaction
+from SteveCADNativeTransaction import _OwnedDocumentTransaction
 
 
 class TestEditableSheet(unittest.TestCase):

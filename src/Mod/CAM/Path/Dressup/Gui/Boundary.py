@@ -148,7 +148,7 @@ class TaskPanel(object):
                 self.obj,
                 resources,
             )
-        if self.base is not None and self.base in self.obj.VibeCADTimelineReplacedInputs:
+        if self.base is not None and self.base in self.obj.SteveCADTimelineReplacedInputs:
             self.base.ViewObject.Visibility = False
         self.transaction.commit((self.obj,), recompute=False)
         self.cleanup(True)

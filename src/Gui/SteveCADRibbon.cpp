@@ -1,0 +1,2388 @@
+// SPDX-License-Identifier: LGPL-2.1-or-later
+
+/***************************************************************************
+ *   Copyright (c) 2026 SteveCAD contributors                               *
+ *                                                                         *
+ *   This file is part of SteveCAD.                                         *
+ *                                                                         *
+ *   SteveCAD is free software: you can redistribute it and/or modify it     *
+ *   under the terms of the GNU Lesser General Public License as           *
+ *   published by the Free Software Foundation, either version 2.1 of the  *
+ *   License, or (at your option) any later version.                       *
+ ***************************************************************************/
+
+#include "SteveCADRibbon.h"
+
+#include <algorithm>
+#include <array>
+#include <string_view>
+#include <utility>
+#include <vector>
+
+#include <QAction>
+#include <QApplication>
+#include <QColor>
+#include <QCompleter>
+#include <QEvent>
+#include <QFrame>
+#include <QHBoxLayout>
+#include <QHash>
+#include <QIcon>
+#include <QKeySequence>
+#include <QLineEdit>
+#include <QList>
+#include <QMenu>
+#include <QMenuBar>
+#include <QMdiArea>
+#include <QMdiSubWindow>
+#include <QPointer>
+#include <QResizeEvent>
+#include <QSet>
+#include <QSignalBlocker>
+#include <QSizePolicy>
+#include <QStringListModel>
+#include <QStyle>
+#include <QTabBar>
+#include <QTimer>
+#include <QToolBar>
+#include <QToolButton>
+#include <QVariantList>
+#include <QVariantMap>
+#include <QVBoxLayout>
+#include <QWidgetAction>
+
+#include <App/Application.h>
+#include <App/DocumentObject.h>
+#include <Base/Parameter.h>
+
+#include "Action.h"
+#include "Application.h"
+#include "BitmapFactory.h"
+#include "Command.h"
+#include "Document.h"
+#include "MainWindow.h"
+#include "ThemeManager.h"
+#include "ViewProviderDocumentObject.h"
+#include "SteveCADRibbonBuildFeatures.h"
+#include "Workbench.h"
+#include "WorkbenchManager.h"
+
+namespace
+{
+
+struct DomainDefinition
+{
+    const char* label;
+    const char* workbench;
+    const char* surface;
+};
+
+constexpr std::array<DomainDefinition, 10> domains = {{
+    {"Model", "PartDesignWorkbench", "model"},
+    {"Assemble", "AssemblyWorkbench", "assemble"},
+    {"Mesh", "MeshWorkbench", "mesh"},
+    {"Analyze", "FemWorkbench", "analyze"},
+    {"Manufacture", "CAMWorkbench", "manufacture"},
+    {"Sheet Metal", "SMWorkbench", "sheet_metal"},
+    {"Drawing", "TechDrawWorkbench", "drawing"},
+    {"Parameters", "SpreadsheetWorkbench", "parameters"},
+    {"Aero", "SteveCADAeroWorkbench", "aero"},
+    {"3D Print", "SteveCADPrintWorkbench", "print"},
+}};
+
+constexpr auto chromePreferencesPath = "User parameter:BaseApp/Preferences/SteveCAD/Chrome";
+constexpr auto showFullMenuBarPreference = "ShowFullMenuBar";
+
+struct CommandEntry
+{
+    QAction* action = nullptr;
+    bool separator = false;
+    QList<QAction*> childActions;
+    Gui::ActionGroup* actionGroup = nullptr;
+    bool ownedAction = false;
+};
+
+using CommandEntries = std::vector<CommandEntry>;
+using GroupDefinition = std::pair<QString, std::vector<QString>>;
+
+QString actionCommandId(const QAction* action)
+{
+    if (!action) {
+        return {};
+    }
+    QString commandId = action->property("SteveCADCommandId").toString().trimmed();
+    if (commandId.isEmpty()) {
+        commandId = action->property("CommandName").toString().trimmed();
+    }
+    if (commandId.isEmpty()) {
+        commandId = action->property("FreeCADCommandGroupChildId").toString().trimmed();
+    }
+    if (commandId.isEmpty()) {
+        commandId = action->objectName().trimmed();
+    }
+    return commandId;
+}
+
+QString accessibleActionName(const QAction* action, const QString& commandId)
+{
+    QString name = action ? action->text() : QString();
+    name.remove(QLatin1Char('&'));
+    name = name.trimmed();
+    return name.isEmpty() ? commandId : name;
+}
+
+QIcon commandFallbackIcon(const QString& commandId)
+{
+    const QByteArray encoded = commandId.toUtf8();
+    QIcon icon = Gui::BitmapFactory().iconFromTheme(encoded.constData());
+    if (icon.isNull()) {
+        icon = QIcon::fromTheme(commandId);
+    }
+    if (icon.isNull()) {
+        icon = QIcon(QStringLiteral(":/icons/%1.svg").arg(commandId));
+    }
+    return icon;
+}
+
+void ensureActionPresentation(QAction* action, const QString& commandId, bool unavailable = false)
+{
+    if (!action) {
+        return;
+    }
+
+    action->setProperty("SteveCADCommandId", commandId);
+    action->setProperty("SteveCADUnavailable", unavailable);
+    if (action->text().trimmed().isEmpty()) {
+        action->setText(unavailable ? QObject::tr("%1 (Unavailable)").arg(commandId) : commandId);
+    }
+
+    const QString accessibleName = accessibleActionName(action, commandId);
+    action->setProperty("SteveCADAccessibleName", accessibleName);
+    if (action->toolTip().trimmed().isEmpty()) {
+        action->setToolTip(
+            unavailable ? QObject::tr("%1 is unavailable in this build.").arg(commandId) : accessibleName
+        );
+    }
+    if (action->statusTip().trimmed().isEmpty()) {
+        action->setStatusTip(action->toolTip());
+    }
+
+    bool missingIcon = action->property("SteveCADMissingIcon").toBool();
+    if (action->icon().isNull()) {
+        QIcon fallback = commandFallbackIcon(commandId);
+        if (fallback.isNull()) {
+            missingIcon = true;
+            fallback = QApplication::style()->standardIcon(QStyle::SP_MessageBoxWarning);
+        }
+        action->setIcon(fallback);
+    }
+    action->setProperty("SteveCADMissingIcon", missingIcon);
+    if (unavailable) {
+        action->setEnabled(false);
+    }
+}
+
+void decorateCompositeWrapper(QAction* wrapper, const CommandEntry& entry)
+{
+    if (!wrapper || !entry.action) {
+        return;
+    }
+    const QPointer<QAction> source(entry.action);
+    const QPointer<QAction> target(wrapper);
+    const auto synchronize = [source, target]() {
+        if (!source || !target) {
+            return;
+        }
+        target->setText(source->text());
+        target->setIcon(source->icon());
+        target->setEnabled(source->isEnabled());
+        target->setVisible(source->isVisible());
+        target->setProperty("SteveCADCommandId", actionCommandId(source));
+        target->setProperty("SteveCADComposite", true);
+        target->setProperty("SteveCADUnavailable", source->property("SteveCADUnavailable"));
+        target->setProperty("SteveCADMissingIcon", source->property("SteveCADMissingIcon"));
+        target->setProperty("SteveCADAccessibleName", source->property("SteveCADAccessibleName"));
+        target->setToolTip(source->toolTip());
+        target->setStatusTip(source->statusTip());
+    };
+    synchronize();
+    QObject::connect(entry.action, &QAction::changed, wrapper, synchronize);
+}
+
+QString sanitizedObjectName(QString value)
+{
+    for (int index = 0; index < value.size(); ++index) {
+        if (!value.at(index).isLetterOrNumber()) {
+            value[index] = QLatin1Char('_');
+        }
+    }
+    return value;
+}
+
+void connectActionGroupMenu(QMenu* menu, Gui::ActionGroup* actionGroup)
+{
+    if (!menu || !actionGroup) {
+        return;
+    }
+    QObject::connect(menu, &QMenu::aboutToShow, actionGroup, [actionGroup, menu]() {
+        Q_EMIT actionGroup->aboutToShow(menu);
+    });
+    QObject::connect(menu, &QMenu::aboutToHide, actionGroup, [actionGroup, menu]() {
+        Q_EMIT actionGroup->aboutToHide(menu);
+    });
+}
+
+QToolButton* actionButton(const CommandEntry& entry, QWidget* parent)
+{
+    auto* button = new QToolButton(parent);
+    button->setDefaultAction(entry.action);
+    button->setProperty("ribbonCommand", true);
+    button->setProperty("SteveCADCommandId", actionCommandId(entry.action));
+    button->setProperty("SteveCADUnavailable", entry.action->property("SteveCADUnavailable"));
+    button->setProperty("SteveCADMissingIcon", entry.action->property("SteveCADMissingIcon"));
+    button->setAccessibleName(entry.action->property("SteveCADAccessibleName").toString());
+    button->setToolTip(entry.action->toolTip());
+    button->setAutoRaise(true);
+    button->setToolButtonStyle(Qt::ToolButtonIconOnly);
+    button->setIconSize(QSize(28, 28));
+    button->setFocusPolicy(Qt::StrongFocus);
+    if (!entry.childActions.isEmpty()) {
+        auto* menu = new QMenu(button);
+        menu->addActions(entry.childActions);
+        connectActionGroupMenu(menu, entry.actionGroup);
+        button->setMenu(menu);
+        button->setPopupMode(QToolButton::MenuButtonPopup);
+    }
+    return button;
+}
+
+void appendMenuEntries(QMenu* menu, const CommandEntries& entries, int skipActions = 0)
+{
+    int seenActions = 0;
+    bool hasAction = false;
+    bool separatorPending = false;
+
+    for (const CommandEntry& entry : entries) {
+        if (entry.separator) {
+            if (hasAction && seenActions >= skipActions) {
+                separatorPending = true;
+            }
+            continue;
+        }
+        if (!entry.action) {
+            continue;
+        }
+        if (seenActions++ < skipActions) {
+            continue;
+        }
+        if (separatorPending) {
+            menu->addSeparator();
+            separatorPending = false;
+        }
+        if (entry.childActions.isEmpty()) {
+            menu->addAction(entry.action);
+        }
+        else {
+            auto* submenu = menu->addMenu(entry.action->icon(), entry.action->text());
+            decorateCompositeWrapper(submenu->menuAction(), entry);
+            submenu->addActions(entry.childActions);
+            connectActionGroupMenu(submenu, entry.actionGroup);
+        }
+        hasAction = true;
+    }
+}
+
+int entryActionCount(const CommandEntries& entries)
+{
+    return static_cast<int>(std::count_if(entries.begin(), entries.end(), [](const CommandEntry& entry) {
+        return entry.action != nullptr;
+    }));
+}
+
+QVariantMap actionManifestRecord(const QAction* action, const QString& kind)
+{
+    QVariantMap record;
+    if (!action || action->isSeparator()) {
+        return record;
+    }
+
+    const QString commandId = actionCommandId(action);
+    if (commandId.isEmpty()) {
+        return record;
+    }
+    record.insert(QStringLiteral("command_id"), commandId);
+    record.insert(QStringLiteral("kind"), kind);
+    record.insert(
+        QStringLiteral("label"),
+        action->property("SteveCADAccessibleName").toString().trimmed()
+    );
+    record.insert(
+        QStringLiteral("available"),
+        !action->property("SteveCADUnavailable").toBool()
+    );
+    return record;
+}
+
+QVariantMap entryManifestRecord(const CommandEntry& entry)
+{
+    QVariantMap record = actionManifestRecord(
+        entry.action,
+        entry.childActions.isEmpty() ? QStringLiteral("command") : QStringLiteral("composite")
+    );
+    if (record.isEmpty() || entry.childActions.isEmpty()) {
+        return record;
+    }
+
+    QVariantList children;
+    for (const QAction* child : entry.childActions) {
+        QVariantMap childRecord = actionManifestRecord(child, QStringLiteral("command"));
+        if (childRecord.isEmpty()) {
+            continue;
+        }
+        childRecord.insert(
+            QStringLiteral("parent_command_id"),
+            record.value(QStringLiteral("command_id"))
+        );
+        children.push_back(childRecord);
+    }
+    record.insert(QStringLiteral("children"), children);
+    return record;
+}
+
+QVariantMap groupManifestRecord(const QString& label, const CommandEntries& entries)
+{
+    QVariantList actions;
+    for (const CommandEntry& entry : entries) {
+        QVariantMap record = entryManifestRecord(entry);
+        if (!record.isEmpty()) {
+            actions.push_back(record);
+        }
+    }
+
+    QVariantMap group;
+    group.insert(QStringLiteral("label"), label);
+    group.insert(QStringLiteral("actions"), actions);
+    return group;
+}
+
+QVariantMap compiledFeatureFlags()
+{
+    QVariantMap result;
+    result.insert(QStringLiteral("assembly"), bool(STEVECAD_BUILD_ASSEMBLY));
+    result.insert(QStringLiteral("cam"), bool(STEVECAD_BUILD_CAM));
+    result.insert(QStringLiteral("fasteners"), bool(STEVECAD_BUILD_FASTENERS));
+    result.insert(QStringLiteral("fem"), bool(STEVECAD_BUILD_FEM));
+    result.insert(QStringLiteral("fem_netgen"), bool(STEVECAD_BUILD_FEM_NETGEN));
+    result.insert(QStringLiteral("fem_vtk"), bool(STEVECAD_BUILD_FEM_VTK));
+    result.insert(
+        QStringLiteral("fem_vtk_python"),
+        bool(STEVECAD_BUILD_FEM_VTK_PYTHON)
+    );
+    result.insert(QStringLiteral("flat_mesh"), bool(STEVECAD_BUILD_FLAT_MESH));
+    result.insert(QStringLiteral("inspection"), bool(STEVECAD_BUILD_INSPECTION));
+    result.insert(QStringLiteral("measure"), bool(STEVECAD_BUILD_MEASURE));
+    result.insert(QStringLiteral("mesh"), bool(STEVECAD_BUILD_MESH));
+    result.insert(QStringLiteral("mesh_part"), bool(STEVECAD_BUILD_MESH_PART));
+    result.insert(QStringLiteral("part"), bool(STEVECAD_BUILD_PART));
+    result.insert(QStringLiteral("part_design"), bool(STEVECAD_BUILD_PART_DESIGN));
+    result.insert(QStringLiteral("points"), bool(STEVECAD_BUILD_POINTS));
+    result.insert(
+        QStringLiteral("reverse_engineering"),
+        bool(STEVECAD_BUILD_REVERSEENGINEERING)
+    );
+    result.insert(QStringLiteral("robot"), bool(STEVECAD_BUILD_ROBOT));
+    result.insert(QStringLiteral("sketcher"), bool(STEVECAD_BUILD_SKETCHER));
+    result.insert(QStringLiteral("spreadsheet"), bool(STEVECAD_BUILD_SPREADSHEET));
+    result.insert(QStringLiteral("surface"), bool(STEVECAD_BUILD_SURFACE));
+    result.insert(QStringLiteral("techdraw"), bool(STEVECAD_BUILD_TECHDRAW));
+    return result;
+}
+
+QVariantMap relevantSurfacePreferences(const QString& surfaceId)
+{
+    QVariantMap result;
+    if (surfaceId == QStringLiteral("manufacture")) {
+        const ParameterGrp::handle preferences
+            = App::GetApplication().GetParameterGroupByPath(
+                "User parameter:BaseApp/Preferences/Mod/CAM"
+            );
+        result.insert(
+            QStringLiteral("cam.default_simulator_legacy"),
+            preferences->GetBool("DefaultSimulatorLegacy", false)
+        );
+        result.insert(
+            QStringLiteral("cam.enable_advanced_ocl_features"),
+            preferences->GetBool("EnableAdvancedOCLFeatures", false)
+        );
+        result.insert(
+            QStringLiteral("cam.enable_experimental_features"),
+            preferences->GetBool("EnableExperimentalFeatures", false)
+        );
+    }
+    else if (surfaceId == QStringLiteral("drawing")) {
+        const ParameterGrp::handle preferences
+            = App::GetApplication().GetParameterGroupByPath(
+                "User parameter:BaseApp/Preferences/Mod/TechDraw/dimensioning"
+            );
+        result.insert(
+            QStringLiteral("techdraw.separated_dimensioning_tools"),
+            preferences->GetBool("SeparatedDimensioningTools", false)
+        );
+        result.insert(
+            QStringLiteral("techdraw.single_dimensioning_tool"),
+            preferences->GetBool("SingleDimensioningTool", true)
+        );
+    }
+    return result;
+}
+
+QVariantMap surfaceEnvironmentRecord(const QString& surfaceId)
+{
+    QVariantMap result;
+    result.insert(QStringLiteral("schema_version"), 1);
+    result.insert(QStringLiteral("build_features"), compiledFeatureFlags());
+    result.insert(QStringLiteral("preferences"), relevantSurfacePreferences(surfaceId));
+    return result;
+}
+
+class RibbonGroup final: public QFrame
+{
+public:
+    RibbonGroup(
+        QString title,
+        CommandEntries entries,
+        int primaryActionCount = 4,
+        QString displayTitle = {},
+        QWidget* parent = nullptr
+    )
+        : QFrame(parent)
+        , _title(std::move(title))
+        , _entries(std::move(entries))
+    {
+        displayTitle = displayTitle.trimmed();
+        if (displayTitle.isEmpty()) {
+            displayTitle = _title;
+        }
+        setObjectName(QStringLiteral("SteveCADRibbonGroup_") + sanitizedObjectName(_title));
+        setProperty("ribbonGroup", true);
+        setProperty("SteveCADSemanticGroupTitle", _title);
+        setProperty("SteveCADDisplayGroupTitle", displayTitle);
+        setFrameShape(QFrame::NoFrame);
+        setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
+
+        auto* outer = new QHBoxLayout(this);
+        outer->setContentsMargins(2, 0, 2, 0);
+        outer->setSpacing(0);
+
+        _expanded = new QWidget(this);
+        _expanded->setObjectName(QStringLiteral("SteveCADRibbonGroupExpanded"));
+        auto* expandedLayout = new QVBoxLayout(_expanded);
+        expandedLayout->setContentsMargins(3, 1, 3, 1);
+        expandedLayout->setSpacing(0);
+
+        auto* commands = new QWidget(_expanded);
+        auto* commandsLayout = new QHBoxLayout(commands);
+        commandsLayout->setContentsMargins(0, 0, 0, 0);
+        commandsLayout->setSpacing(1);
+
+        primaryActionCount = std::clamp(primaryActionCount, 1, 4);
+        int addedActions = 0;
+        for (CommandEntry& entry : _entries) {
+            if (entry.ownedAction && entry.action && !entry.action->parent()) {
+                entry.action->setParent(this);
+            }
+        }
+        for (const CommandEntry& entry : _entries) {
+            if (!entry.action || addedActions >= primaryActionCount) {
+                continue;
+            }
+            commandsLayout->addWidget(actionButton(entry, commands));
+            ++addedActions;
+        }
+
+        expandedLayout->addWidget(commands, 0, Qt::AlignHCenter);
+
+        auto* groupMenu = new QToolButton(_expanded);
+        groupMenu->setObjectName(QStringLiteral("SteveCADRibbonGroupMenu"));
+        groupMenu->setText(displayTitle.toUpper());
+        groupMenu->setAccessibleName(_title);
+        groupMenu->setToolTip(QObject::tr("Open all %1 tools").arg(_title));
+        groupMenu->setToolButtonStyle(Qt::ToolButtonTextOnly);
+        groupMenu->setPopupMode(QToolButton::InstantPopup);
+        groupMenu->setAutoRaise(true);
+        auto* groupMenuEntries = new QMenu(groupMenu);
+        appendMenuEntries(groupMenuEntries, _entries);
+        groupMenu->setMenu(groupMenuEntries);
+        expandedLayout->addWidget(groupMenu);
+
+        _collapsed = new QToolButton(this);
+        _collapsed->setObjectName(QStringLiteral("SteveCADRibbonCollapsedGroup"));
+        _collapsed->setText(displayTitle);
+        _collapsed->setAccessibleName(_title);
+        _collapsed->setToolTip(QObject::tr("Open all %1 tools").arg(_title));
+        _collapsed->setToolButtonStyle(Qt::ToolButtonTextOnly);
+        _collapsed->setPopupMode(QToolButton::InstantPopup);
+        _collapsed->setAutoRaise(true);
+        auto* collapsedMenu = new QMenu(_collapsed);
+        appendMenuEntries(collapsedMenu, _entries);
+        _collapsed->setMenu(collapsedMenu);
+
+        outer->addWidget(_expanded);
+        outer->addWidget(_collapsed);
+
+        const int labelWidth = fontMetrics().horizontalAdvance(displayTitle.toUpper()) + 30;
+        _expandedWidth = std::max(labelWidth, addedActions * 42 + 12);
+        _collapsedWidth = std::clamp(labelWidth, 68, 120);
+        setFixedHeight(56);
+        setCollapsed(false);
+    }
+
+    int expandedWidth() const
+    {
+        return _expandedWidth;
+    }
+
+    int collapsedWidth() const
+    {
+        return _collapsedWidth;
+    }
+
+    const QString& title() const
+    {
+        return _title;
+    }
+
+    void appendCommandsTo(QMenu* menu) const
+    {
+        appendMenuEntries(menu, _entries);
+    }
+
+    void setCollapsed(bool collapse)
+    {
+        if (_isCollapsed == collapse && width() > 0) {
+            return;
+        }
+        _isCollapsed = collapse;
+        _expanded->setVisible(!collapse);
+        _collapsed->setVisible(collapse);
+        setProperty("collapsed", collapse);
+        setFixedWidth(collapse ? _collapsedWidth : _expandedWidth);
+        style()->unpolish(this);
+        style()->polish(this);
+    }
+
+private:
+    QString _title;
+    CommandEntries _entries;
+    QWidget* _expanded = nullptr;
+    QToolButton* _collapsed = nullptr;
+    int _expandedWidth = 0;
+    int _collapsedWidth = 0;
+    bool _isCollapsed = true;
+};
+
+class RibbonPage final: public QWidget
+{
+public:
+    explicit RibbonPage(QWidget* parent = nullptr)
+        : QWidget(parent)
+    {
+        setObjectName(QStringLiteral("SteveCADRibbonPage"));
+        setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
+        setFixedHeight(58);
+        _layout = new QHBoxLayout(this);
+        _layout->setContentsMargins(2, 0, 2, 0);
+        _layout->setSpacing(2);
+        _layout->addStretch(1);
+    }
+
+    QSize minimumSizeHint() const override
+    {
+        return QSize(120, 58);
+    }
+
+    void setGroups(std::vector<RibbonGroup*> groups)
+    {
+        // Layout changes can synchronously deliver resize/layout events. Stop
+        // updateCollapse() from traversing the previous page while its widgets
+        // are being destroyed, and release every stale observer before the
+        // first child is deleted.
+        _updating = true;
+        _groups.clear();
+        _overflow = nullptr;
+        _overflowMenu = nullptr;
+        while (_layout->count() > 0) {
+            QLayoutItem* item = _layout->takeAt(0);
+            if (QWidget* widget = item->widget()) {
+                delete widget;
+            }
+            delete item;
+        }
+        _groups = std::move(groups);
+        int groupOrder = 0;
+        for (RibbonGroup* group : _groups) {
+            group->setParent(this);
+            group->setProperty("ribbonOrder", groupOrder++);
+            _layout->addWidget(group);
+        }
+
+        _overflow = new QToolButton(this);
+        _overflow->setObjectName(QStringLiteral("SteveCADRibbonPageMore"));
+        _overflow->setText(QObject::tr("More"));
+        _overflow->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
+        _overflow->setPopupMode(QToolButton::InstantPopup);
+        _overflow->setAutoRaise(true);
+        _overflow->setIcon(
+            QApplication::style()->standardIcon(QStyle::SP_ToolBarHorizontalExtensionButton)
+        );
+        _overflow->setIconSize(QSize(20, 20));
+        _overflow->setFixedSize(72, 54);
+        _overflowMenu = new QMenu(_overflow);
+        _overflow->setMenu(_overflowMenu);
+        _overflow->hide();
+        _layout->addWidget(_overflow);
+        _layout->addStretch(1);
+        _updating = false;
+        updateCollapse();
+    }
+
+protected:
+    void resizeEvent(QResizeEvent* event) override
+    {
+        QWidget::resizeEvent(event);
+        updateCollapse();
+    }
+
+private:
+    void updateCollapse()
+    {
+        if (_updating || _groups.empty()) {
+            return;
+        }
+        _updating = true;
+
+        const QMargins margins = _layout->contentsMargins();
+        int required = margins.left() + margins.right()
+            + std::max(0, static_cast<int>(_groups.size()) - 1) * _layout->spacing();
+        _overflow->hide();
+        _overflowMenu->clear();
+        for (RibbonGroup* group : _groups) {
+            group->show();
+            group->setCollapsed(false);
+            required += group->expandedWidth();
+        }
+
+        for (auto it = _groups.rbegin(); it != _groups.rend() && required > width(); ++it) {
+            RibbonGroup* group = *it;
+            group->setCollapsed(true);
+            required -= group->expandedWidth() - group->collapsedWidth();
+        }
+
+        std::vector<RibbonGroup*> hidden;
+        if (required > width()) {
+            required += _overflow->width() + (_groups.empty() ? 0 : _layout->spacing());
+            for (auto it = _groups.rbegin(); it != _groups.rend() && required > width(); ++it) {
+                RibbonGroup* group = *it;
+                group->hide();
+                hidden.push_back(group);
+                required -= group->collapsedWidth() + _layout->spacing();
+            }
+        }
+
+        if (!hidden.empty()) {
+            std::reverse(hidden.begin(), hidden.end());
+            for (RibbonGroup* group : hidden) {
+                QMenu* submenu = _overflowMenu->addMenu(group->title());
+                group->appendCommandsTo(submenu);
+            }
+            _overflow->show();
+        }
+
+        _updating = false;
+    }
+
+    QHBoxLayout* _layout = nullptr;
+    std::vector<RibbonGroup*> _groups;
+    QToolButton* _overflow = nullptr;
+    QMenu* _overflowMenu = nullptr;
+    bool _updating = false;
+};
+
+std::vector<GroupDefinition> sketchGroups()
+{
+    return {
+        {QObject::tr("Finish"),
+         {"Sketcher_LeaveSketch", "Sketcher_CancelSketch", "Sketcher_ViewSketch", "Sketcher_ViewSection"}},
+        {QObject::tr("Geometry"),
+         {"Sketcher_CreatePoint",
+          "Sketcher_CompLine",
+          "Sketcher_CompCreateArc",
+          "Sketcher_CompCreateConic",
+          "Sketcher_CompCreateRectangles",
+          "Sketcher_CompCreateRegularPolygon",
+          "Sketcher_CompSlot",
+          "Sketcher_CompCreateBSpline",
+          "Sketcher_CreateText",
+          "Separator",
+          "Sketcher_ToggleConstruction"}},
+        {QObject::tr("Constraints"),
+         {"Sketcher_CompDimensionTools",
+          "Separator",
+          "Sketcher_ConstrainCoincidentUnified",
+          "Sketcher_CompHorVer",
+          "Sketcher_ConstrainParallel",
+          "Sketcher_ConstrainPerpendicular",
+          "Sketcher_ConstrainTangent",
+          "Sketcher_ConstrainEqual",
+          "Sketcher_ConstrainSymmetric",
+          "Sketcher_ConstrainBlock",
+          "Sketcher_ConstrainGroup",
+          "Separator",
+          "Sketcher_CompToggleConstraints"}},
+        {QObject::tr("Modify"),
+         {"Sketcher_CompCreateFillets",
+          "Sketcher_CompCurveEdition",
+          "Sketcher_CompExternal",
+          "Sketcher_CarbonCopy",
+          "Separator",
+          "Sketcher_Translate",
+          "Sketcher_Rotate",
+          "Sketcher_Scale",
+          "Sketcher_Offset",
+          "Sketcher_Symmetry",
+          "Sketcher_RemoveAxesAlignment"}},
+        {QObject::tr("B-Spline"),
+         {"Sketcher_BSplineConvertToNURBS",
+          "Sketcher_BSplineIncreaseDegree",
+          "Sketcher_BSplineDecreaseDegree",
+          "Sketcher_CompModifyKnotMultiplicity",
+          "Sketcher_BSplineInsertKnot",
+          "Sketcher_JoinCurves"}},
+        {QObject::tr("Visual"),
+         {"Sketcher_SelectConstraints",
+          "Sketcher_SelectElementsAssociatedWithConstraints",
+          "Separator",
+          "Sketcher_ArcOverlay",
+          "Sketcher_CompBSplineShowHideGeometryInformation",
+          "Sketcher_RestoreInternalAlignmentGeometry",
+          "Sketcher_SwitchVirtualSpace"}},
+    };
+}
+
+std::vector<GroupDefinition> sketchSetupGroups()
+{
+    return {
+        {QObject::tr("Sketch"),
+         {"Sketcher_NewSketch",
+          "Sketcher_EditSketch",
+          "Sketcher_MapSketch",
+          "Sketcher_ReorientSketch",
+          "Sketcher_ValidateSketch",
+          "Sketcher_MergeSketches",
+          "Sketcher_MirrorSketch"}},
+    };
+}
+
+const std::vector<GroupDefinition>& surfaceGroups()
+{
+    static const std::vector<GroupDefinition> groups = {
+        {QObject::tr("Surface"),
+         {"Surface_Filling",
+          "Surface_GeomFillSurface",
+          "Surface_Sections",
+          "Surface_ExtendFace",
+          "Surface_CurveOnMesh",
+          "Surface_BlendCurve"}},
+    };
+    return groups;
+}
+
+const std::vector<GroupDefinition>& pointsGroups()
+{
+    static const std::vector<GroupDefinition> groups = {
+        {QObject::tr("Points"),
+         {"Points_Import",
+          "Points_Export",
+          "Separator",
+          "Points_Convert",
+          "Points_Structure",
+          "Points_Merge",
+          "Points_PolyCut"}},
+    };
+    return groups;
+}
+
+const std::vector<GroupDefinition>& reverseEngineeringGroups()
+{
+    static const std::vector<GroupDefinition> groups = {
+        {QObject::tr("Rebuild"), {"Reen_PoissonReconstruction", "Reen_ViewTriangulation"}},
+        {QObject::tr("Segment"),
+         {"Reen_Segmentation",
+          "Reen_SegmentationManual",
+          "Reen_SegmentationFromComponents",
+          "Reen_MeshBoundary"}},
+        {QObject::tr("Approximate"),
+         {"Reen_ApproxPlane",
+          "Reen_ApproxCylinder",
+          "Reen_ApproxSphere",
+          "Reen_ApproxPolynomial",
+          "Separator",
+          "Reen_ApproxSurface",
+          "Reen_ApproxCurve"}},
+    };
+    return groups;
+}
+
+const std::vector<GroupDefinition>& sheetMetalGroups()
+{
+    static const std::vector<GroupDefinition> groups = {
+        {"Create", {"SheetMetal_CreateBaseShape", "SheetMetal_CreateFromSketch", "SheetMetal_CreateFromSolid",
+                    "SheetMetal_CreateEditable"}},
+        {"Bend/Form", {"SheetMetal_CreateFlange", "SheetMetal_CreateFold", "SheetMetal_EditParameters"}},
+        {"Cut/Relief", {"SheetMetal_EditCuts"}},
+        {"Materials", {"SheetMetal_EditMaterial"}},
+        {"Folded/Flat", {"SheetMetal_ViewFolded", "SheetMetal_ViewFlat"}},
+        {"RMFG", {"SheetMetal_RMFGConnection", "SheetMetal_RMFGManufacture"}},
+    };
+    return groups;
+}
+
+const std::vector<GroupDefinition>& spreadsheetGroups()
+{
+    static const std::vector<GroupDefinition> groups = {
+        {QObject::tr("Sheet"),
+         {"Spreadsheet_CreateSheet", "Spreadsheet_Import", "Spreadsheet_Export"}},
+        {QObject::tr("Cells"),
+         {"Spreadsheet_MergeCells",
+          "Spreadsheet_SplitCell",
+          "Spreadsheet_CellProperties",
+          "Spreadsheet_SetAlias"}},
+        {QObject::tr("Align"),
+         {"Spreadsheet_AlignLeft",
+          "Spreadsheet_AlignCenter",
+          "Spreadsheet_AlignRight",
+          "Spreadsheet_AlignTop",
+          "Spreadsheet_AlignVCenter",
+          "Spreadsheet_AlignBottom"}},
+        {QObject::tr("Style"),
+         {"Spreadsheet_StyleBold", "Spreadsheet_StyleItalic", "Spreadsheet_StyleUnderline"}},
+    };
+    return groups;
+}
+
+const std::vector<GroupDefinition>& robotAssemblyGroups()
+{
+    static const std::vector<GroupDefinition> groups = {
+        {QObject::tr("Robot"),
+         {"Robot_Create", "Robot_AddToolShape", "Robot_SetDefaultOrientation", "Robot_SetDefaultValues"}},
+        {QObject::tr("Trajectory"),
+         {"Robot_CreateTrajectory",
+          "Robot_InsertWaypoint",
+          "Robot_InsertWaypointPreselect",
+          "Robot_Edge2Trac",
+          "Robot_TrajectoryDressUp",
+          "Robot_TrajectoryCompound"}},
+        {QObject::tr("Motion"), {"Robot_SetHomePos", "Robot_RestoreHomePos", "Robot_Simulate"}},
+    };
+    return groups;
+}
+
+const std::vector<GroupDefinition>& robotManufactureGroups()
+{
+    static const std::vector<GroupDefinition> groups = {
+        {QObject::tr("Robot"),
+         {"Robot_Edge2Trac", "Robot_TrajectoryDressUp", "Robot_TrajectoryCompound", "Robot_Simulate"}},
+        {QObject::tr("Export"), {"Robot_ExportKukaCompact", "Robot_ExportKukaFull"}},
+    };
+    return groups;
+}
+
+void mergeGroups(std::vector<GroupDefinition>& destination, const std::vector<GroupDefinition>& source)
+{
+    for (const auto& [title, commands] : source) {
+        auto existing = std::find_if(
+            destination.begin(),
+            destination.end(),
+            [&title](const GroupDefinition& group) { return group.first == title; }
+        );
+        if (existing == destination.end()) {
+            destination.emplace_back(title, commands);
+            continue;
+        }
+
+        auto& existingCommands = existing->second;
+        bool separatorPending = !existingCommands.empty();
+        for (const QString& command : commands) {
+            if (command == QStringLiteral("Separator")) {
+                separatorPending = true;
+                continue;
+            }
+            if (std::find(existingCommands.begin(), existingCommands.end(), command)
+                != existingCommands.end()) {
+                continue;
+            }
+            if (separatorPending && !existingCommands.empty()
+                && existingCommands.back() != QStringLiteral("Separator")) {
+                existingCommands.push_back(QStringLiteral("Separator"));
+            }
+            existingCommands.push_back(command);
+            separatorPending = false;
+        }
+    }
+}
+
+const std::vector<QString>& sharedInspectionCommands()
+{
+    static const std::vector<QString> commands = {
+        QStringLiteral("Std_Measure"),
+        QStringLiteral("Std_MassProperties"),
+        QStringLiteral("Inspection_VisualInspection"),
+        QStringLiteral("Inspection_InspectElement"),
+        QStringLiteral("Part_CheckGeometry"),
+    };
+    return commands;
+}
+
+const std::vector<GroupDefinition>& componentInterfaceGroups()
+{
+    static const std::vector<GroupDefinition> groups = {
+        {QObject::tr("Connect"), {"SteveCAD_PublishInterface"}},
+    };
+    return groups;
+}
+
+bool isSharedInspectionCommand(const QString& command)
+{
+    const std::vector<QString>& commands = sharedInspectionCommands();
+    return std::find(commands.begin(), commands.end(), command) != commands.end();
+}
+
+bool isStandardToolbar(const std::string& title)
+{
+    static const std::array<const char*, 9> standard = {
+        "File",
+        "Edit",
+        "Clipboard",
+        "Workbench",
+        "Macro",
+        "View",
+        "Individual Views",
+        "Structure",
+        "Help",
+    };
+    return std::find_if(
+               standard.begin(),
+               standard.end(),
+               [&title](const char* item) { return title == item; }
+           )
+        != standard.end();
+}
+
+QString presentationGroupTitle(const std::string& implementationTitle)
+{
+    static const std::array<std::pair<const char*, const char*>, 26> groupTitles = {{
+        {"Part Design Helper Features", QT_TRANSLATE_NOOP("SteveCADRibbon", "Structure")},
+        {"Create and Remove Material", QT_TRANSLATE_NOOP("SteveCADRibbon", "Solids")},
+        {"Finish Shape", QT_TRANSLATE_NOOP("SteveCADRibbon", "Finish")},
+        {"Transform Features", QT_TRANSLATE_NOOP("SteveCADRibbon", "Transform")},
+        {"Construction and Surface Geometry", QT_TRANSLATE_NOOP("SteveCADRibbon", "Geometry")},
+        {"Boolean, Split, and Repair", QT_TRANSLATE_NOOP("SteveCADRibbon", "Modify")},
+        {"Standard Components", QT_TRANSLATE_NOOP("SteveCADRibbon", "Fasteners")},
+        {"Electromagnetic Boundary Conditions",
+         QT_TRANSLATE_NOOP("SteveCADRibbon", "Electromagnetics")},
+        {"Fluid Boundary Conditions", QT_TRANSLATE_NOOP("SteveCADRibbon", "Fluids")},
+        {"Geometrical Analysis Features", QT_TRANSLATE_NOOP("SteveCADRibbon", "Geometry")},
+        {"Mechanical Boundary Conditions and Loads", QT_TRANSLATE_NOOP("SteveCADRibbon", "Mechanics")},
+        {"Thermal Boundary Conditions and Loads", QT_TRANSLATE_NOOP("SteveCADRibbon", "Thermal")},
+        {"Project Setup", QT_TRANSLATE_NOOP("SteveCADRibbon", "Setup")},
+        {"Tool Commands", QT_TRANSLATE_NOOP("SteveCADRibbon", "Tools")},
+        {"New Operations", QT_TRANSLATE_NOOP("SteveCADRibbon", "Operations")},
+        {"Path Modification", QT_TRANSLATE_NOOP("SteveCADRibbon", "Modify")},
+        {"Helpful Tools", QT_TRANSLATE_NOOP("SteveCADRibbon", "Area")},
+        {"TechDraw Extend Dimensions", QT_TRANSLATE_NOOP("SteveCADRibbon", "Extend")},
+        {"TechDraw File Access", QT_TRANSLATE_NOOP("SteveCADRibbon", "Files")},
+        {"Mesh Tools", QT_TRANSLATE_NOOP("SteveCADRibbon", "Tools")},
+        {"Mesh Convert", QT_TRANSLATE_NOOP("SteveCADRibbon", "Convert")},
+        {"Mesh Modify", QT_TRANSLATE_NOOP("SteveCADRibbon", "Modify")},
+        {"Mesh Boolean", QT_TRANSLATE_NOOP("SteveCADRibbon", "Boolean")},
+        {"Mesh Cutting", QT_TRANSLATE_NOOP("SteveCADRibbon", "Cut")},
+        {"Mesh Segmentation", QT_TRANSLATE_NOOP("SteveCADRibbon", "Segment")},
+        {"Mesh Analyze", QT_TRANSLATE_NOOP("SteveCADRibbon", "Analyze")},
+    }};
+    for (const auto& [sourceTitle, presentationTitle] : groupTitles) {
+        if (implementationTitle == sourceTitle) {
+            return QCoreApplication::translate("SteveCADRibbon", presentationTitle);
+        }
+    }
+
+    QString title = QCoreApplication::translate("Workbench", implementationTitle.c_str());
+    static const std::array<const char*, 8> implementationPrefixes = {
+        "Part Design ",
+        "PartDesign ",
+        "TechDraw ",
+        "Sketcher ",
+        "Assembly ",
+        "Inspection ",
+        "FEM ",
+        "CAM ",
+    };
+    title = title.trimmed();
+    for (const char* prefix : implementationPrefixes) {
+        const QString candidate = QString::fromLatin1(prefix);
+        if (title.startsWith(candidate, Qt::CaseInsensitive)) {
+            return title.mid(candidate.size()).trimmed();
+        }
+    }
+    return title;
+}
+
+int primaryActionCountFor(const std::string& workbench, const QString& title)
+{
+    if (workbench != "FemWorkbench") {
+        return 4;
+    }
+
+    static const std::array<std::pair<const char*, int>, 10> analyzeCounts = {{
+        {"Model", 3},
+        {"Electromagnetic Boundary Conditions", 1},
+        {"Fluid Boundary Conditions", 2},
+        {"Geometrical Analysis Features", 1},
+        {"Mechanical Boundary Conditions and Loads", 4},
+        {"Thermal Boundary Conditions and Loads", 3},
+        {"Mesh", 3},
+        {"Solve", 3},
+        {"Results", 4},
+        {"Utilities", 1},
+    }};
+    for (const auto& [implementationTitle, count] : analyzeCounts) {
+        if (title == presentationGroupTitle(implementationTitle)) {
+            return count;
+        }
+    }
+    return 4;
+}
+
+QString displayGroupTitleFor(const std::string& workbench, const QString& title)
+{
+    if (
+        workbench == "FemWorkbench"
+        && title == presentationGroupTitle("Electromagnetic Boundary Conditions")
+    ) {
+        return QCoreApplication::translate("SteveCADRibbon", "EM");
+    }
+    return title;
+}
+
+}  // namespace
+
+struct Gui::SteveCADRibbon::Private
+{
+    explicit Private(SteveCADRibbon* owner, MainWindow* window)
+        : q(owner)
+        , mainWindow(window)
+    {
+        legacyMenuVisible = App::GetApplication()
+                                .GetParameterGroupByPath(chromePreferencesPath)
+                                ->GetBool(showFullMenuBarPreference, false);
+    }
+
+    CommandEntry commandEntry(const QString& commandName, bool useToolBarPresentation = false) const
+    {
+        Command* command = Application::Instance->commandManager().getCommandByName(
+            commandName.toUtf8().constData()
+        );
+        if (!command) {
+            auto* unavailable = new QAction();
+            ensureActionPresentation(unavailable, commandName, true);
+            return {unavailable, false, {}, nullptr, true};
+        }
+        command->initAction();
+        if (!command->getAction()) {
+            auto* unavailable = new QAction();
+            ensureActionPresentation(unavailable, commandName, true);
+            return {unavailable, false, {}, nullptr, true};
+        }
+        QAction* action = command->getAction()->action();
+        if (useToolBarPresentation) {
+            if (auto* undo = dynamic_cast<UndoAction*>(command->getAction())) {
+                action = undo->toolBarAction();
+            }
+            else if (auto* redo = dynamic_cast<RedoAction*>(command->getAction())) {
+                action = redo->toolBarAction();
+            }
+        }
+        if (!action) {
+            auto* unavailable = new QAction();
+            ensureActionPresentation(unavailable, commandName, true);
+            return {unavailable, false, {}, nullptr, true};
+        }
+        ensureActionPresentation(action, commandName);
+        auto* actionGroup = dynamic_cast<ActionGroup*>(command->getAction());
+        QList<QAction*> childActions = actionGroup ? actionGroup->actions() : QList<QAction*>();
+        int childIndex = 0;
+        for (QAction* child : childActions) {
+            if (!child || child->isSeparator()) {
+                ++childIndex;
+                continue;
+            }
+            QString childCommandId = actionCommandId(child);
+            const QString nativeParentId
+                = child->property("FreeCADCommandGroupParentId").toString().trimmed();
+            const QVariant nativeIndex = child->property("FreeCADCommandGroupChildIndex");
+            const bool validGroupChild = nativeParentId == commandName && nativeIndex.isValid()
+                && nativeIndex.toInt() == childIndex;
+            const bool validSyntheticChild = child->property("FreeCADCommandGroupSynthetic").toBool()
+                && validGroupChild;
+            bool unavailable = false;
+            if (childCommandId.isEmpty()) {
+                childCommandId = QStringLiteral("%1/child-%2").arg(commandName).arg(childIndex + 1);
+                unavailable = true;
+            }
+            else if (
+                !validGroupChild
+                && !Application::Instance->commandManager().getCommandByName(
+                    childCommandId.toUtf8().constData()
+                )
+            ) {
+                unavailable = true;
+            }
+            ensureActionPresentation(child, childCommandId, unavailable);
+            child->setProperty(
+                "SteveCADParentCommandId",
+                nativeParentId.isEmpty() ? commandName : nativeParentId
+            );
+            child->setProperty(
+                "SteveCADCompositeChildIndex",
+                nativeIndex.isValid() ? nativeIndex : QVariant(childIndex)
+            );
+            child->setProperty("SteveCADGroupCommandChild", validGroupChild);
+            child->setProperty("SteveCADSyntheticCommand", validSyntheticChild);
+            ++childIndex;
+        }
+        return {
+            action,
+            false,
+            std::move(childActions),
+            actionGroup,
+            false,
+        };
+    }
+
+    QAction* commandAction(
+        const QString& commandName,
+        bool* ownedAction = nullptr,
+        bool useToolBarPresentation = false
+    ) const
+    {
+        CommandEntry entry = commandEntry(commandName, useToolBarPresentation);
+        if (ownedAction) {
+            *ownedAction = entry.ownedAction;
+        }
+        return entry.action;
+    }
+
+    ActionGroup* commandActionGroup(const QString& commandName) const
+    {
+        Command* command = Application::Instance->commandManager().getCommandByName(
+            commandName.toUtf8().constData()
+        );
+        if (!command) {
+            return nullptr;
+        }
+        command->initAction();
+        return dynamic_cast<ActionGroup*>(command->getAction());
+    }
+
+    CommandEntries resolveEntries(const std::vector<QString>& commands) const
+    {
+        CommandEntries entries;
+        entries.reserve(commands.size());
+        for (const QString& command : commands) {
+            if (command == QStringLiteral("Separator")) {
+                entries.push_back({nullptr, true, {}, nullptr});
+            }
+            else if (CommandEntry entry = commandEntry(command); entry.action) {
+                entries.push_back(std::move(entry));
+            }
+        }
+        return entries;
+    }
+
+    std::vector<GroupDefinition> groupsFromWorkbench(Workbench* workbench) const
+    {
+        if (!workbench) {
+            return {};
+        }
+
+        std::vector<GroupDefinition> result;
+        for (const auto& [title, commands] : workbench->getToolbarItems()) {
+            if (isStandardToolbar(title)) {
+                continue;
+            }
+            std::vector<QString> commandNames;
+            commandNames.reserve(commands.size());
+            std::transform(
+                commands.begin(),
+                commands.end(),
+                std::back_inserter(commandNames),
+                [](const std::string& command) { return QString::fromStdString(command); }
+            );
+            const QString displayTitle = presentationGroupTitle(title);
+            result.emplace_back(displayTitle, std::move(commandNames));
+        }
+        return result;
+    }
+
+    std::vector<GroupDefinition> currentWorkbenchGroups() const
+    {
+        return groupsFromWorkbench(WorkbenchManager::instance()->active());
+    }
+
+    std::vector<GroupDefinition> namedWorkbenchGroups(const char* workbenchName) const
+    {
+        if (!Application::Instance->initializeWorkbench(workbenchName)) {
+            return {};
+        }
+        return groupsFromWorkbench(WorkbenchManager::instance()->getWorkbench(workbenchName));
+    }
+
+    std::vector<GroupDefinition> modelPageGroups() const
+    {
+        std::vector<GroupDefinition> groups = namedWorkbenchGroups("PartDesignWorkbench");
+        if (Application::Instance->initializeWorkbench("SurfaceWorkbench")) {
+            mergeGroups(groups, surfaceGroups());
+        }
+        mergeGroups(groups, componentInterfaceGroups());
+        return groups;
+    }
+
+    bool sketchEditActive() const
+    {
+        Document* document = Application::Instance->activeDocument();
+        if (!document || !Application::Instance->isInEdit(document)) {
+            return false;
+        }
+        const auto* provider = dynamic_cast<ViewProviderDocumentObject*>(
+            document->getEditViewProvider()
+        );
+        const App::DocumentObject* object = provider ? provider->getObject() : nullptr;
+        return object
+            && std::string_view(object->getTypeId().getName()).starts_with(
+                "Sketcher::SketchObject"
+            );
+    }
+
+    std::vector<GroupDefinition> pageGroups(bool sketchEdit) const
+    {
+        if (sketchEdit) {
+            return sketchGroups();
+        }
+        const std::string activeWorkbench = WorkbenchManager::instance()->activeName();
+        if (activeWorkbench == "SketcherWorkbench") {
+            return sketchSetupGroups();
+        }
+        if (activeWorkbench == "SpreadsheetWorkbench") {
+            return spreadsheetGroups();
+        }
+        if (activeWorkbench == "SMWorkbench") {
+            return sheetMetalGroups();
+        }
+
+        std::vector<GroupDefinition> groups = currentWorkbenchGroups();
+        const auto appendComposed =
+            [&groups](const char* workbench, const std::vector<GroupDefinition>& additions) {
+                if (Application::Instance->initializeWorkbench(workbench)) {
+                    mergeGroups(groups, additions);
+                }
+            };
+
+        if (activeWorkbench == "PartDesignWorkbench") {
+            appendComposed("SurfaceWorkbench", surfaceGroups());
+            mergeGroups(groups, componentInterfaceGroups());
+        }
+        else if (activeWorkbench == "MeshWorkbench") {
+            appendComposed("PointsWorkbench", pointsGroups());
+            appendComposed("ReverseEngineeringWorkbench", reverseEngineeringGroups());
+        }
+        else if (activeWorkbench == "AssemblyWorkbench") {
+            appendComposed("RobotWorkbench", robotAssemblyGroups());
+            mergeGroups(groups, componentInterfaceGroups());
+        }
+        else if (activeWorkbench == "CAMWorkbench") {
+            appendComposed("RobotWorkbench", robotManufactureGroups());
+        }
+        return groups;
+    }
+
+    QString activeSurfaceId(bool sketchEdit) const
+    {
+        if (sketchEdit) {
+            return QStringLiteral("sketch.edit");
+        }
+        if (!tabs || tabs->currentIndex() < 0) {
+            return QStringLiteral("unavailable");
+        }
+        const QString selectedWorkbench = tabs->tabData(tabs->currentIndex()).toString();
+        const QString activeWorkbench
+            = QString::fromStdString(WorkbenchManager::instance()->activeName());
+        if (selectedWorkbench.isEmpty()) {
+            return activeWorkbench == QStringLiteral("SketcherWorkbench")
+                ? QStringLiteral("sketch.setup")
+                : QStringLiteral("unavailable");
+        }
+        if (selectedWorkbench != activeWorkbench) {
+            return QStringLiteral("unavailable");
+        }
+        const auto found = std::find_if(
+            domains.begin(),
+            domains.end(),
+            [&selectedWorkbench](const DomainDefinition& domain) {
+                return selectedWorkbench == QString::fromLatin1(domain.workbench);
+            }
+        );
+        return found == domains.end() ? QStringLiteral("unavailable")
+                                      : QString::fromLatin1(found->surface);
+    }
+
+    void publishSurfaceManifest(const QVariantList& groupRecords, bool sketchEdit)
+    {
+        const QString surfaceId = activeSurfaceId(sketchEdit);
+        QVariantMap manifest;
+        manifest.insert(QStringLiteral("schema_version"), 1);
+        manifest.insert(QStringLiteral("surface_id"), surfaceId);
+        manifest.insert(QStringLiteral("groups"), groupRecords);
+        const QVariantMap environment = surfaceEnvironmentRecord(surfaceId);
+
+        if (manifest != activeSurfaceManifest || environment != activeSurfaceEnvironment) {
+            activeSurfaceManifest = manifest;
+            activeSurfaceEnvironment = environment;
+            ++surfaceRevision;
+        }
+        q->setProperty(
+            "SteveCADActiveSurfaceId",
+            activeSurfaceManifest.value(QStringLiteral("surface_id"))
+        );
+        q->setProperty("SteveCADActiveSurfaceRevision", QVariant::fromValue(surfaceRevision));
+        q->setProperty("SteveCADActiveSurfaceManifest", activeSurfaceManifest);
+        q->setProperty("SteveCADActiveSurfaceEnvironment", activeSurfaceEnvironment);
+    }
+
+    void rebuildPage()
+    {
+        const bool sketchEdit = sketchEditActive();
+        const std::string activeWorkbench = WorkbenchManager::instance()->activeName();
+        std::vector<RibbonGroup*> groups;
+        QVariantList manifestGroups;
+        bool inspectionAdded = false;
+        QSet<QString> surfacedActionIds;
+
+        const auto resolveUniqueEntries =
+            [this, &surfacedActionIds](const std::vector<QString>& commands) {
+                CommandEntries entries;
+                entries.reserve(commands.size());
+                for (const QString& command : commands) {
+                    if (command == QStringLiteral("Separator")) {
+                        entries.push_back({nullptr, true, {}, nullptr});
+                    }
+                    else if (!surfacedActionIds.contains(command)) {
+                        CommandEntry entry = commandEntry(command);
+                        surfacedActionIds.insert(command);
+                        QList<QAction*> uniqueChildren;
+                        uniqueChildren.reserve(entry.childActions.size());
+                        for (QAction* child : std::as_const(entry.childActions)) {
+                            if (!child) {
+                                continue;
+                            }
+                            if (child->isSeparator()) {
+                                uniqueChildren.push_back(child);
+                                continue;
+                            }
+                            const QString childId = actionCommandId(child);
+                            if (!surfacedActionIds.contains(childId)) {
+                                surfacedActionIds.insert(childId);
+                                uniqueChildren.push_back(child);
+                            }
+                        }
+                        entry.childActions = std::move(uniqueChildren);
+                        entries.push_back(std::move(entry));
+                    }
+                }
+                return entries;
+            };
+
+        const auto addGroup = [&activeWorkbench, &groups, &manifestGroups](
+                                  const QString& title,
+                                  CommandEntries entries
+                              ) {
+            if (entryActionCount(entries) <= 0) {
+                return;
+            }
+            manifestGroups.push_back(groupManifestRecord(title, entries));
+            groups.push_back(new RibbonGroup(
+                title,
+                std::move(entries),
+                primaryActionCountFor(activeWorkbench, title),
+                displayGroupTitleFor(activeWorkbench, title)
+            ));
+        };
+
+        const auto addInspectionGroup = [&inspectionAdded, &resolveUniqueEntries, &addGroup]() {
+            if (inspectionAdded) {
+                return;
+            }
+            inspectionAdded = true;
+            CommandEntries entries = resolveUniqueEntries(sharedInspectionCommands());
+            addGroup(QObject::tr("Inspect"), std::move(entries));
+        };
+
+        // View controls stay present in every CAD domain.
+        CommandEntries viewEntries = resolveUniqueEntries(
+            {
+                "Std_ViewFitAll",
+                "Std_ViewIsometric",
+                "SteveCAD_ToggleGrid",
+                "SteveCAD_SectionView",
+            }
+        );
+        addGroup(QObject::tr("View"), std::move(viewEntries));
+
+        for (const auto& [title, commands] : pageGroups(sketchEdit)) {
+            if (!sketchEdit && title == QObject::tr("Fasteners")) {
+                addInspectionGroup();
+            }
+
+            std::vector<QString> domainCommands = commands;
+            if (!sketchEdit) {
+                std::erase_if(domainCommands, isSharedInspectionCommand);
+            }
+            CommandEntries entries = resolveUniqueEntries(domainCommands);
+            addGroup(title, std::move(entries));
+        }
+        if (!sketchEdit && !inspectionAdded) {
+            addInspectionGroup();
+        }
+        publishSurfaceManifest(manifestGroups, sketchEdit);
+        page->setGroups(std::move(groups));
+    }
+
+    void updateThemeButton() const
+    {
+        if (!themeButton) {
+            return;
+        }
+        const ThemeManager::Mode mode = Application::Instance->themeManager()->currentMode();
+        const bool dark = mode == ThemeManager::Mode::Dark;
+        themeButton->setText(QString());
+        themeButton->setIcon(QIcon(QStringLiteral(":/icons/Std_SetAppearance.svg")));
+        themeButton->setToolTip(
+            dark ? QObject::tr("Switch to Light mode") : QObject::tr("Switch to Dark mode")
+        );
+        themeButton->setAccessibleName(
+            dark ? QObject::tr("Dark appearance") : QObject::tr("Light appearance")
+        );
+        themeButton->setProperty("appearanceMode", QString::fromLatin1(ThemeManager::modeName(mode)));
+    }
+
+    void toggleTheme()
+    {
+        const ThemeManager::Mode current = Application::Instance->themeManager()->currentMode();
+        const ThemeManager::Mode next = current == ThemeManager::Mode::Dark
+            ? ThemeManager::Mode::Light
+            : ThemeManager::Mode::Dark;
+        Application::Instance->themeManager()->apply(next);
+        updateThemeButton();
+    }
+
+    QToolButton* addCommandButton(
+        QHBoxLayout* layout,
+        const QString& command,
+        const QString& objectName,
+        const QString& menuCommand = {}
+    ) const
+    {
+        auto* button = new QToolButton(root);
+        bool ownedAction = false;
+        QAction* action = commandAction(command, &ownedAction, true);
+        button->setObjectName(objectName);
+        button->setAutoRaise(true);
+        button->setIconSize(QSize(20, 20));
+        if (action) {
+            auto* sourceCommand = Application::Instance->commandManager().getCommandByName(
+                command.toUtf8().constData()
+            );
+            QAction* shortcutAction = sourceCommand && sourceCommand->getAction()
+                ? sourceCommand->getAction()->action()
+                : nullptr;
+            if (shortcutAction && shortcutAction != action
+                && !shortcutAction->shortcut().isEmpty()
+                && !root->actions().contains(shortcutAction)) {
+                // Undo and Redo use shortcut-free toolbar actions. Associate
+                // their existing command actions with the visible ribbon so
+                // shortcuts remain active while the standard menu is hidden.
+                root->addAction(shortcutAction);
+            }
+            if (ownedAction) {
+                action->setParent(button);
+            }
+            if (action->menu()) {
+                button->setMenu(action->menu());
+                button->setPopupMode(QToolButton::MenuButtonPopup);
+            }
+            button->setDefaultAction(action);
+            button->setProperty("SteveCADCommandId", actionCommandId(action));
+            button->setProperty("SteveCADUnavailable", action->property("SteveCADUnavailable"));
+            button->setProperty("SteveCADMissingIcon", action->property("SteveCADMissingIcon"));
+            button->setAccessibleName(action->property("SteveCADAccessibleName").toString());
+            button->setToolTip(action->toolTip());
+        }
+        else {
+            button->setEnabled(false);
+            button->setText(command);
+        }
+        if (!menuCommand.isEmpty()) {
+            ActionGroup* menuActionGroup = commandActionGroup(menuCommand);
+            const QList<QAction*> menuActions
+                = menuActionGroup ? menuActionGroup->actions() : QList<QAction*>();
+            if (!menuActions.isEmpty()) {
+                auto* menu = new QMenu(button);
+                menu->addActions(menuActions);
+                connectActionGroupMenu(menu, menuActionGroup);
+                button->setMenu(menu);
+                button->setPopupMode(QToolButton::MenuButtonPopup);
+                button->setProperty("SteveCADMenuCommandId", menuCommand);
+            }
+        }
+        button->setToolButtonStyle(Qt::ToolButtonIconOnly);
+        layout->addWidget(button);
+        return button;
+    }
+
+    void buildApplicationStrip(QVBoxLayout* rootLayout)
+    {
+        auto* strip = new QWidget(root);
+        strip->setObjectName(QStringLiteral("SteveCADApplicationStrip"));
+        auto* layout = new QHBoxLayout(strip);
+        layout->setContentsMargins(4, 2, 4, 2);
+        layout->setSpacing(4);
+
+        auto* leadingTools = new QWidget(strip);
+        leadingTools->setObjectName(QStringLiteral("SteveCADLeadingTools"));
+        auto* leadingLayout = new QHBoxLayout(leadingTools);
+        leadingLayout->setContentsMargins(0, 0, 0, 0);
+        leadingLayout->setSpacing(1);
+
+        appButton = new QToolButton(leadingTools);
+        appButton->setObjectName(QStringLiteral("SteveCADAppButton"));
+        appButton->setIcon(QIcon(QStringLiteral(":/icons/stevecad.svg")));
+        appButton->setIconSize(QSize(24, 24));
+        appButton->setToolTip(QObject::tr("SteveCAD menu"));
+        appButton->setAccessibleName(QObject::tr("SteveCAD menu"));
+        appButton->setToolButtonStyle(Qt::ToolButtonIconOnly);
+        appButton->setPopupMode(QToolButton::InstantPopup);
+        appButton->setAutoRaise(true);
+        appMenu = new QMenu(appButton);
+        appButton->setMenu(appMenu);
+        QObject::connect(appMenu, &QMenu::aboutToShow, q, [this]() { populateAppMenu(); });
+        leadingLayout->addWidget(appButton);
+
+        addCommandButton(
+            leadingLayout,
+            QStringLiteral("Std_Open"),
+            QStringLiteral("SteveCADRibbonOpen"),
+            QStringLiteral("Std_RecentFiles")
+        );
+        addCommandButton(leadingLayout, QStringLiteral("Std_Save"), QStringLiteral("SteveCADRibbonSave"));
+
+        auto* fileSeparator = new QFrame(strip);
+        fileSeparator->setFrameShape(QFrame::VLine);
+        fileSeparator->setObjectName(QStringLiteral("SteveCADRibbonSeparator"));
+        leadingLayout->addWidget(fileSeparator);
+
+        addCommandButton(leadingLayout, QStringLiteral("Std_Undo"), QStringLiteral("SteveCADRibbonUndo"));
+        addCommandButton(leadingLayout, QStringLiteral("Std_Redo"), QStringLiteral("SteveCADRibbonRedo"));
+        layout->addWidget(leadingTools);
+
+        documentTabs = new QTabBar(strip);
+        documentTabs->setObjectName(QStringLiteral("SteveCADDocumentTabs"));
+        documentTabs->setDocumentMode(true);
+        documentTabs->setDrawBase(false);
+        documentTabs->setTabsClosable(true);
+        documentTabs->setMovable(true);
+        documentTabs->setExpanding(true);
+        documentTabs->setUsesScrollButtons(true);
+        documentTabs->setElideMode(Qt::ElideMiddle);
+        documentTabs->setIconSize(QSize(16, 16));
+        documentTabs->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
+        QObject::connect(documentTabs, &QTabBar::currentChanged, q, [this](int index) {
+            activateDocumentTab(index);
+        });
+        QObject::connect(documentTabs, &QTabBar::tabCloseRequested, q, [this](int index) {
+            closeDocumentTab(index);
+        });
+        QObject::connect(documentTabs, &QTabBar::tabMoved, q, [this](int from, int to) {
+            moveDocumentTab(from, to);
+        });
+        layout->addWidget(documentTabs, 1);
+
+        newDocumentButton
+            = addCommandButton(layout, QStringLiteral("Std_New"), QStringLiteral("SteveCADRibbonNew"));
+        if (newDocumentButton) {
+            newDocumentButton->setIcon(QIcon(QStringLiteral(":/icons/list-add.svg")));
+            newDocumentButton->setToolTip(QObject::tr("New document"));
+        }
+
+        auto* trailingTools = new QWidget(strip);
+        trailingTools->setObjectName(QStringLiteral("SteveCADTrailingTools"));
+        auto* trailingLayout = new QHBoxLayout(trailingTools);
+        trailingLayout->setContentsMargins(0, 0, 0, 0);
+        trailingLayout->setSpacing(1);
+
+        searchButton = new QToolButton(trailingTools);
+        searchButton->setObjectName(QStringLiteral("SteveCADRibbonSearch"));
+        searchButton->setIcon(
+            QIcon::fromTheme(
+                QStringLiteral("edit-find"),
+                QIcon(QStringLiteral(":/icons/zoom-selection.svg"))
+            )
+        );
+        searchButton->setIconSize(QSize(18, 18));
+        searchButton->setToolTip(QObject::tr("Search commands (Ctrl+K)"));
+        searchButton->setAccessibleName(QObject::tr("Search commands"));
+        searchButton->setAutoRaise(true);
+        searchButton->setPopupMode(QToolButton::InstantPopup);
+
+        searchMenu = new QMenu(searchButton);
+        searchMenu->setObjectName(QStringLiteral("SteveCADCommandSearchMenu"));
+        auto* searchPanel = new QWidget(searchMenu);
+        auto* searchLayout = new QHBoxLayout(searchPanel);
+        searchLayout->setContentsMargins(8, 7, 8, 7);
+        searchLayout->setSpacing(0);
+
+        commandSearch = new QLineEdit(searchPanel);
+        commandSearch->setObjectName(QStringLiteral("SteveCADCommandSearch"));
+        commandSearch->setPlaceholderText(QObject::tr("Search commands"));
+        commandSearch->setClearButtonEnabled(true);
+        commandSearch->setMinimumWidth(320);
+        commandSearch->setMaximumWidth(420);
+        searchLayout->addWidget(commandSearch);
+        auto* searchWidgetAction = new QWidgetAction(searchMenu);
+        searchWidgetAction->setDefaultWidget(searchPanel);
+        searchMenu->addAction(searchWidgetAction);
+        searchButton->setMenu(searchMenu);
+
+        searchModel = new QStringListModel(q);
+        commandCompleter = new QCompleter(searchModel, q);
+        commandCompleter->setCaseSensitivity(Qt::CaseInsensitive);
+        commandCompleter->setCompletionMode(QCompleter::PopupCompletion);
+        commandCompleter->setFilterMode(Qt::MatchContains);
+        commandCompleter->setMaxVisibleItems(16);
+        commandSearch->setCompleter(commandCompleter);
+        QObject::connect(
+            commandCompleter,
+            qOverload<const QString&>(&QCompleter::activated),
+            q,
+            [this](const QString& text) { runSearchCommand(text); }
+        );
+        QObject::connect(commandSearch, &QLineEdit::returnPressed, q, [this]() {
+            runSearchCommand(commandSearch->text());
+        });
+        QObject::connect(searchMenu, &QMenu::aboutToShow, q, [this]() {
+            QTimer::singleShot(0, commandSearch, [this]() {
+                commandSearch->setFocus(Qt::ShortcutFocusReason);
+                commandSearch->selectAll();
+            });
+        });
+        trailingLayout->addWidget(searchButton);
+
+        themeButton = new QToolButton(trailingTools);
+        themeButton->setObjectName(QStringLiteral("SteveCADThemeToggle"));
+        themeButton->setAutoRaise(true);
+        themeButton->setIconSize(QSize(18, 18));
+        themeButton->setToolButtonStyle(Qt::ToolButtonIconOnly);
+        QObject::connect(themeButton, &QToolButton::clicked, q, [this]() { toggleTheme(); });
+        updateThemeButton();
+        trailingLayout->addWidget(themeButton);
+
+        assistantButton = addCommandButton(
+            trailingLayout,
+            QStringLiteral("SteveCAD_OpenAssistant"),
+            QStringLiteral("SteveCADRibbonAssistant")
+        );
+        updateButton = addCommandButton(
+            trailingLayout,
+            QStringLiteral("SteveCAD_CheckForUpdates"),
+            QStringLiteral("SteveCADRibbonCheckForUpdates")
+        );
+        settingsButton = addCommandButton(
+            trailingLayout,
+            QStringLiteral("SteveCAD_OpenPreferences"),
+            QStringLiteral("SteveCADRibbonSettings")
+        );
+        layout->addWidget(trailingTools);
+
+        searchShortcut = new QAction(QObject::tr("Search commands"), q);
+        searchShortcut->setShortcut(QKeySequence(QStringLiteral("Ctrl+K")));
+        searchShortcut->setShortcutContext(Qt::ApplicationShortcut);
+        mainWindow->addAction(searchShortcut);
+        QObject::connect(searchShortcut, &QAction::triggered, q, [this]() {
+            if (searchButton) {
+                searchButton->showMenu();
+            }
+        });
+
+        rootLayout->addWidget(strip);
+        attachDocumentTabs();
+    }
+
+    void scheduleDocumentTabsSync()
+    {
+        if (!documentTabsSyncTimer.isActive()) {
+            documentTabsSyncTimer.start(0);
+        }
+    }
+
+    void observeDocumentWindows()
+    {
+        QMdiArea* mdiArea = mainWindow->getMdiArea();
+        if (!mdiArea) {
+            return;
+        }
+        for (QMdiSubWindow* subWindow : mdiArea->subWindowList(QMdiArea::CreationOrder)) {
+            if (!subWindow || observedDocumentWindows.contains(subWindow)) {
+                continue;
+            }
+            observedDocumentWindows.insert(subWindow);
+            QObject::connect(subWindow, &QWidget::windowTitleChanged, q, [this]() {
+                scheduleDocumentTabsSync();
+            });
+            QObject::connect(subWindow, &QWidget::windowIconChanged, q, [this]() {
+                scheduleDocumentTabsSync();
+            });
+            QObject::connect(subWindow, &QObject::destroyed, q, [this, subWindow]() {
+                observedDocumentWindows.remove(subWindow);
+                scheduleDocumentTabsSync();
+            });
+        }
+    }
+
+    void syncDocumentTabs()
+    {
+        if (!documentTabs || !sourceDocumentTabs) {
+            return;
+        }
+
+        collapseSourceDocumentTabs();
+        observeDocumentWindows();
+        syncingDocumentTabs = true;
+
+        while (documentTabs->count() > sourceDocumentTabs->count()) {
+            documentTabs->removeTab(documentTabs->count() - 1);
+        }
+        while (documentTabs->count() < sourceDocumentTabs->count()) {
+            documentTabs->addTab(QString());
+        }
+
+        const QIcon fallbackIcon(QStringLiteral(":/icons/Document.svg"));
+        for (int index = 0; index < sourceDocumentTabs->count(); ++index) {
+            documentTabs->setTabText(index, sourceDocumentTabs->tabText(index));
+            const QIcon icon = sourceDocumentTabs->tabIcon(index);
+            documentTabs->setTabIcon(index, icon.isNull() ? fallbackIcon : icon);
+            documentTabs->setTabToolTip(index, sourceDocumentTabs->tabToolTip(index));
+            documentTabs->setTabEnabled(index, sourceDocumentTabs->isTabEnabled(index));
+            documentTabs->setTabData(index, sourceDocumentTabs->tabData(index));
+        }
+        documentTabs->setCurrentIndex(sourceDocumentTabs->currentIndex());
+        syncingDocumentTabs = false;
+    }
+
+    void collapseSourceDocumentTabs()
+    {
+        if (!sourceDocumentTabs) {
+            return;
+        }
+        if (!sourceDocumentTabsGeometryCaptured) {
+            sourceDocumentTabsMinimumHeight = sourceDocumentTabs->minimumHeight();
+            sourceDocumentTabsMaximumHeight = sourceDocumentTabs->maximumHeight();
+            sourceDocumentTabsStyleSheet = sourceDocumentTabs->styleSheet();
+            sourceDocumentTabsGeometryCaptured = true;
+
+            const QString separator = sourceDocumentTabsStyleSheet.isEmpty() ? QString()
+                                                                             : QStringLiteral("\n");
+            sourceDocumentTabs->setStyleSheet(
+                sourceDocumentTabsStyleSheet + separator
+                + QStringLiteral(
+                    "QTabBar#mdiAreaTabBar, QTabBar#mdiAreaTabBar::tab {"
+                    " min-width: 0px; max-width: 0px; width: 0px;"
+                    " min-height: 0px; max-height: 0px; height: 0px;"
+                    " padding: 0px; margin: 0px; border: 0px;"
+                    "}"
+                    "QTabBar#mdiAreaTabBar::close-button {"
+                    " width: 0px; height: 0px;"
+                    " padding: 0px; margin: 0px; border: 0px;"
+                    "}"
+                )
+            );
+
+            // QMdiArea derives its viewport margins directly from the tab
+            // bar's sizeHint(). Refresh its private layout after changing that
+            // hint so the reclaimed space is available immediately.
+            if (QMdiArea* mdiArea = mainWindow->getMdiArea()) {
+                const bool documentMode = mdiArea->documentMode();
+                mdiArea->setDocumentMode(!documentMode);
+                mdiArea->setDocumentMode(documentMode);
+            }
+        }
+
+        // Retain the source bar as the MDI controller for activation, close,
+        // and reorder operations while its ribbon mirror owns presentation.
+        sourceDocumentTabs->setFixedHeight(0);
+        sourceDocumentTabs->hide();
+        sourceDocumentTabs->updateGeometry();
+    }
+
+    void restoreSourceDocumentTabs()
+    {
+        if (!sourceDocumentTabs) {
+            return;
+        }
+        if (sourceDocumentTabsGeometryCaptured) {
+            sourceDocumentTabs->setStyleSheet(sourceDocumentTabsStyleSheet);
+            sourceDocumentTabs->setMinimumHeight(sourceDocumentTabsMinimumHeight);
+            sourceDocumentTabs->setMaximumHeight(sourceDocumentTabsMaximumHeight);
+            if (QMdiArea* mdiArea = mainWindow->getMdiArea()) {
+                const bool documentMode = mdiArea->documentMode();
+                mdiArea->setDocumentMode(!documentMode);
+                mdiArea->setDocumentMode(documentMode);
+            }
+        }
+        sourceDocumentTabs->show();
+        sourceDocumentTabs->updateGeometry();
+    }
+
+    void attachDocumentTabs()
+    {
+        QMdiArea* mdiArea = mainWindow->getMdiArea();
+        if (!mdiArea) {
+            return;
+        }
+        sourceDocumentTabs = mdiArea->findChild<QTabBar*>(QStringLiteral("mdiAreaTabBar"));
+        if (!sourceDocumentTabs) {
+            return;
+        }
+
+        sourceDocumentTabs->installEventFilter(q);
+        mdiArea->installEventFilter(q);
+        mdiArea->viewport()->installEventFilter(q);
+        QObject::connect(sourceDocumentTabs, &QTabBar::currentChanged, q, [this](int) {
+            scheduleDocumentTabsSync();
+        });
+        QObject::connect(sourceDocumentTabs, &QTabBar::tabMoved, q, [this](int, int) {
+            scheduleDocumentTabsSync();
+        });
+        QObject::connect(mdiArea, &QMdiArea::subWindowActivated, q, [this](QMdiSubWindow*) {
+            scheduleDocumentTabsSync();
+        });
+        collapseSourceDocumentTabs();
+        syncDocumentTabs();
+    }
+
+    void activateDocumentTab(int index)
+    {
+        if (syncingDocumentTabs || !sourceDocumentTabs || index < 0
+            || index >= sourceDocumentTabs->count()) {
+            return;
+        }
+        sourceDocumentTabs->setCurrentIndex(index);
+    }
+
+    void closeDocumentTab(int index)
+    {
+        if (!sourceDocumentTabs || index < 0 || index >= sourceDocumentTabs->count()) {
+            return;
+        }
+
+        const bool invoked = QMetaObject::invokeMethod(
+            sourceDocumentTabs,
+            "tabCloseRequested",
+            Qt::DirectConnection,
+            Q_ARG(int, index)
+        );
+        if (!invoked) {
+            sourceDocumentTabs->setCurrentIndex(index);
+            if (QMdiSubWindow* active = mainWindow->getMdiArea()->activeSubWindow()) {
+                active->close();
+            }
+        }
+        scheduleDocumentTabsSync();
+    }
+
+    void moveDocumentTab(int from, int to)
+    {
+        if (syncingDocumentTabs || !sourceDocumentTabs || from == to || from < 0 || to < 0
+            || from >= sourceDocumentTabs->count() || to >= sourceDocumentTabs->count()) {
+            return;
+        }
+        syncingDocumentTabs = true;
+        sourceDocumentTabs->moveTab(from, to);
+        syncingDocumentTabs = false;
+        scheduleDocumentTabsSync();
+    }
+
+    void buildDomainStrip(QVBoxLayout* rootLayout)
+    {
+        auto* strip = new QWidget(root);
+        strip->setObjectName(QStringLiteral("SteveCADDomainStrip"));
+        auto* layout = new QHBoxLayout(strip);
+        layout->setContentsMargins(2, 0, 2, 0);
+        layout->setSpacing(3);
+
+        tabs = new QTabBar(strip);
+        tabs->setObjectName(QStringLiteral("SteveCADRibbonTabs"));
+        tabs->setDocumentMode(true);
+        tabs->setDrawBase(false);
+        tabs->setExpanding(false);
+        tabs->setUsesScrollButtons(true);
+        tabs->setElideMode(Qt::ElideRight);
+        for (const DomainDefinition& domain : domains) {
+            const int index = tabs->addTab(QCoreApplication::translate("SteveCADRibbon", domain.label));
+            tabs->setTabData(index, QString::fromLatin1(domain.workbench));
+        }
+        QObject::connect(tabs, &QTabBar::currentChanged, q, [this](int index) {
+            activateDomain(index);
+        });
+        layout->addWidget(tabs);
+        layout->addStretch(1);
+        rootLayout->addWidget(strip);
+
+        page = new RibbonPage(root);
+        rootLayout->addWidget(page);
+
+    }
+
+    void build()
+    {
+        toolbar = new QToolBar(QObject::tr("SteveCAD Ribbon"), mainWindow);
+        toolbar->setObjectName(QStringLiteral("SteveCADRibbonToolBar"));
+        toolbar->setAllowedAreas(Qt::TopToolBarArea);
+        toolbar->setMovable(false);
+        toolbar->setFloatable(false);
+        toolbar->setContextMenuPolicy(Qt::PreventContextMenu);
+        toolbar->setIconSize(QSize(20, 20));
+        toolbar->toggleViewAction()->setVisible(false);
+
+        root = new QWidget(toolbar);
+        root->setObjectName(QStringLiteral("SteveCADRibbon"));
+        root->setMinimumWidth(0);
+        root->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
+        auto* rootLayout = new QVBoxLayout(root);
+        rootLayout->setContentsMargins(2, 1, 2, 1);
+        rootLayout->setSpacing(0);
+        buildApplicationStrip(rootLayout);
+        buildDomainStrip(rootLayout);
+
+        toolbar->addWidget(root);
+        mainWindow->addToolBar(Qt::TopToolBarArea, toolbar);
+
+        fullMenuAction = new QAction(QObject::tr("Show full menu bar"), q);
+        fullMenuAction->setObjectName(QStringLiteral("SteveCADShowFullMenuBarAction"));
+        fullMenuAction->setCheckable(true);
+        fullMenuAction->setChecked(legacyMenuVisible);
+        QObject::connect(fullMenuAction, &QAction::toggled, q, [this](bool visible) {
+            setLegacyMenuVisible(visible);
+        });
+
+        refreshSearch();
+        syncDomainToWorkbench(QString::fromStdString(WorkbenchManager::instance()->activeName()));
+        rebuildPage();
+        enforceChrome();
+    }
+
+    void populateAppMenu()
+    {
+        appMenu->clear();
+        for (QAction* action : mainWindow->menuBar()->actions()) {
+            if (action->menu()) {
+                appMenu->addAction(action);
+            }
+        }
+        appMenu->addSeparator();
+        fullMenuAction->setChecked(legacyMenuVisible);
+        appMenu->addAction(fullMenuAction);
+    }
+
+    void setLegacyMenuVisible(bool visible)
+    {
+        legacyMenuVisible = visible;
+        App::GetApplication()
+            .GetParameterGroupByPath(chromePreferencesPath)
+            ->SetBool(showFullMenuBarPreference, visible);
+        fullMenuAction->setChecked(visible);
+        QMenuBar* menu = mainWindow->menuBar();
+        menu->setVisible(visible);
+        if (visible) {
+            menu->setFocus(Qt::MenuBarFocusReason);
+            if (!menu->actions().isEmpty()) {
+                menu->setActiveAction(menu->actions().constFirst());
+            }
+        }
+        else {
+            if (QWidget* popup = QApplication::activePopupWidget()) {
+                popup->close();
+            }
+            mainWindow->setFocus(Qt::OtherFocusReason);
+        }
+    }
+
+    void enforceChrome()
+    {
+        for (QToolBar* candidate : mainWindow->findChildren<QToolBar*>()) {
+            if (candidate == toolbar) {
+                continue;
+            }
+            if (isMainWindowToolbar(candidate)) {
+                candidate->hide();
+                candidate->toggleViewAction()->setVisible(false);
+            }
+        }
+        toolbar->toggleViewAction()->setVisible(false);
+        toolbar->show();
+        collapseSourceDocumentTabs();
+        mainWindow->menuBar()->setVisible(legacyMenuVisible);
+    }
+
+    bool isMainWindowToolbar(QToolBar* candidate) const
+    {
+        return candidate
+            && (mainWindow->toolBarArea(candidate) != Qt::NoToolBarArea
+                || candidate->parentWidget() == mainWindow);
+    }
+
+    void scheduleRefresh()
+    {
+        if (!refreshTimer.isActive()) {
+            refreshTimer.start(0);
+        }
+    }
+
+    void observeSurfacePreferences()
+    {
+        camPreferences = App::GetApplication().GetParameterGroupByPath(
+            "User parameter:BaseApp/Preferences/Mod/CAM"
+        );
+        drawingPreferences = App::GetApplication().GetParameterGroupByPath(
+            "User parameter:BaseApp/Preferences/Mod/TechDraw/dimensioning"
+        );
+        preferencesChanged
+            = App::GetApplication().GetUserParameter().signalParamChanged.connect(
+                [this](
+                    ParameterGrp* group,
+                    ParameterGrp::ParamType,
+                    const char* name,
+                    const char*
+                ) {
+                    if (!group || !name) {
+                        return;
+                    }
+                    const QString key = QString::fromUtf8(name);
+                    const bool camChanged = group == camPreferences
+                        && (key == QStringLiteral("DefaultSimulatorLegacy")
+                            || key == QStringLiteral("EnableAdvancedOCLFeatures")
+                            || key == QStringLiteral("EnableExperimentalFeatures"));
+                    const bool drawingChanged = group == drawingPreferences
+                        && (key == QStringLiteral("SeparatedDimensioningTools")
+                            || key == QStringLiteral("SingleDimensioningTool"));
+                    if (camChanged || drawingChanged) {
+                        scheduleRefresh();
+                    }
+                }
+            );
+    }
+
+    void refresh()
+    {
+        refreshSearch();
+        rebuildPage();
+        updateThemeButton();
+        syncDocumentTabs();
+        enforceChrome();
+    }
+
+    void refreshSearch()
+    {
+        QStringList labels;
+        searchCommands.clear();
+        for (Command* command : Application::Instance->commandManager().getAllCommands()) {
+            const QString commandId = QString::fromLatin1(command->getName());
+            QString title = Action::commandMenuText(command).trimmed();
+            if (title.isEmpty()) {
+                title = commandId;
+            }
+            const QString label = QStringLiteral("%1  ·  %2").arg(title, commandId);
+            labels.push_back(label);
+            searchCommands.insert(label, commandId);
+        }
+        labels.sort(Qt::CaseInsensitive);
+        searchModel->setStringList(labels);
+    }
+
+    void runSearchCommand(const QString& text)
+    {
+        QString commandId = searchCommands.value(text.trimmed());
+        if (commandId.isEmpty()
+            && Application::Instance->commandManager().getCommandByName(
+                text.trimmed().toUtf8().constData()
+            )) {
+            commandId = text.trimmed();
+        }
+        if (commandId.isEmpty()) {
+            return;
+        }
+        commandSearch->clear();
+        if (searchMenu) {
+            searchMenu->close();
+        }
+        Application::Instance->commandManager().runCommandByName(commandId.toUtf8().constData());
+    }
+
+    int sketchTabIndex() const
+    {
+        for (int index = 0; index < tabs->count(); ++index) {
+            if (tabs->tabData(index).toString().isEmpty()) {
+                return index;
+            }
+        }
+        return -1;
+    }
+
+    void setDomainTabsEnabled(bool enabled)
+    {
+        const QSignalBlocker blocker(tabs);
+        for (int index = 0; index < tabs->count(); ++index) {
+            if (!tabs->tabData(index).toString().isEmpty()) {
+                tabs->setTabEnabled(index, enabled);
+            }
+        }
+    }
+
+    int showSketchTab()
+    {
+        int sketchIndex = sketchTabIndex();
+        const QSignalBlocker blocker(tabs);
+        syncingTabs = true;
+        if (sketchIndex < 0) {
+            if (tabs->currentIndex() >= 0) {
+                previousDomain = tabs->currentIndex();
+            }
+            sketchIndex = tabs->addTab(QObject::tr("Sketch"));
+            tabs->setTabData(sketchIndex, QString());
+            tabs->setTabTextColor(sketchIndex, QColor(QStringLiteral("#4dabf7")));
+        }
+        tabs->setCurrentIndex(sketchIndex);
+        syncingTabs = false;
+        return sketchIndex;
+    }
+
+    void removeSketchTabAndSelect(int targetIndex)
+    {
+        const QSignalBlocker blocker(tabs);
+        syncingTabs = true;
+        for (int index = tabs->count() - 1; index >= 0; --index) {
+            if (tabs->tabData(index).toString().isEmpty()) {
+                tabs->removeTab(index);
+            }
+        }
+        if (tabs->count() > 0) {
+            tabs->setCurrentIndex(std::clamp(targetIndex, 0, tabs->count() - 1));
+        }
+        syncingTabs = false;
+    }
+
+    void activateDomain(int index)
+    {
+        if (syncingTabs || index < 0 || index >= tabs->count()) {
+            return;
+        }
+        const QString workbench = tabs->tabData(index).toString();
+        if (workbench.isEmpty()) {
+            rebuildPage();
+            return;
+        }
+        if (sketchEditActive()) {
+            showSketchTab();
+            return;
+        }
+        Application::Instance->activateWorkbench(workbench.toUtf8().constData());
+        scheduleRefresh();
+    }
+
+    void syncDomainToWorkbench(const QString& workbench)
+    {
+        if (workbench == QStringLiteral("SketcherWorkbench")) {
+            showSketchTab();
+            setDomainTabsEnabled(!sketchEditActive());
+            return;
+        }
+        if (sketchEditActive()) {
+            return;
+        }
+        int targetIndex = previousDomain;
+        for (int index = 0; index < tabs->count(); ++index) {
+            if (tabs->tabData(index).toString() == workbench) {
+                targetIndex = index;
+                previousDomain = index;
+                break;
+            }
+        }
+        setDomainTabsEnabled(true);
+        removeSketchTabAndSelect(targetIndex);
+    }
+
+    void syncEditState()
+    {
+        if (sketchEditActive()) {
+            showSketchTab();
+            setDomainTabsEnabled(false);
+        }
+        else {
+            setDomainTabsEnabled(true);
+            syncDomainToWorkbench(
+                QString::fromStdString(WorkbenchManager::instance()->activeName())
+            );
+        }
+        rebuildPage();
+        QTimer::singleShot(0, q, [this]() { enforceChrome(); });
+    }
+
+    SteveCADRibbon* q;
+    MainWindow* mainWindow;
+    QToolBar* toolbar = nullptr;
+    QWidget* root = nullptr;
+    QToolButton* appButton = nullptr;
+    QMenu* appMenu = nullptr;
+    QAction* fullMenuAction = nullptr;
+    QTabBar* documentTabs = nullptr;
+    QPointer<QTabBar> sourceDocumentTabs;
+    int sourceDocumentTabsMinimumHeight = 0;
+    int sourceDocumentTabsMaximumHeight = QWIDGETSIZE_MAX;
+    QString sourceDocumentTabsStyleSheet;
+    bool sourceDocumentTabsGeometryCaptured = false;
+    QToolButton* newDocumentButton = nullptr;
+    QLineEdit* commandSearch = nullptr;
+    QStringListModel* searchModel = nullptr;
+    QCompleter* commandCompleter = nullptr;
+    QHash<QString, QString> searchCommands;
+    QToolButton* searchButton = nullptr;
+    QMenu* searchMenu = nullptr;
+    QAction* searchShortcut = nullptr;
+    QToolButton* themeButton = nullptr;
+    QToolButton* assistantButton = nullptr;
+    QToolButton* updateButton = nullptr;
+    QToolButton* settingsButton = nullptr;
+    QTabBar* tabs = nullptr;
+    RibbonPage* page = nullptr;
+    QTimer refreshTimer;
+    QTimer documentTabsSyncTimer;
+    QSet<QMdiSubWindow*> observedDocumentWindows;
+    bool syncingTabs = false;
+    bool syncingDocumentTabs = false;
+    bool legacyMenuVisible = false;
+    int previousDomain = 0;
+    qulonglong surfaceRevision = 0;
+    QVariantMap activeSurfaceManifest;
+    QVariantMap activeSurfaceEnvironment;
+    ParameterGrp::handle camPreferences;
+    ParameterGrp::handle drawingPreferences;
+    fastsignals::scoped_connection commandsChanged;
+    fastsignals::scoped_connection preferencesChanged;
+    fastsignals::scoped_connection enteredEdit;
+    fastsignals::scoped_connection leftEdit;
+};
+
+Gui::SteveCADRibbon* Gui::SteveCADRibbon::install(MainWindow* mainWindow)
+{
+    if (!mainWindow) {
+        return nullptr;
+    }
+    if (QObject* existing = mainWindow->findChild<QObject*>(
+            QStringLiteral("SteveCADRibbonController"),
+            Qt::FindDirectChildrenOnly
+        )) {
+        return dynamic_cast<SteveCADRibbon*>(existing);
+    }
+    return new SteveCADRibbon(mainWindow);
+}
+
+Gui::SteveCADRibbon::SteveCADRibbon(MainWindow* mainWindow)
+    : QObject(mainWindow)
+    , d(std::make_unique<Private>(this, mainWindow))
+{
+    setObjectName(QStringLiteral("SteveCADRibbonController"));
+    d->refreshTimer.setSingleShot(true);
+    d->refreshTimer.setParent(this);
+    connect(&d->refreshTimer, &QTimer::timeout, this, [this]() { d->refresh(); });
+    d->documentTabsSyncTimer.setSingleShot(true);
+    d->documentTabsSyncTimer.setParent(this);
+    connect(&d->documentTabsSyncTimer, &QTimer::timeout, this, [this]() { d->syncDocumentTabs(); });
+    connect(mainWindow, &MainWindow::workbenchActivated, this, [this](const QString& workbench) {
+        d->syncDomainToWorkbench(workbench);
+        d->scheduleRefresh();
+    });
+    connect(Application::Instance->themeManager(), &ThemeManager::modeChanged, this, [this]() {
+        d->updateThemeButton();
+    });
+
+    d->commandsChanged = Application::Instance->commandManager().signalChanged.connect([this]() {
+        d->scheduleRefresh();
+    });
+    d->enteredEdit = Application::Instance->signalInEdit.connect(
+        [this](const ViewProviderDocumentObject&) { d->syncEditState(); }
+    );
+    d->leftEdit = Application::Instance->signalResetEdit.connect(
+        [this](const ViewProviderDocumentObject&) { d->syncEditState(); }
+    );
+
+    d->observeSurfacePreferences();
+    qApp->installEventFilter(this);
+    d->build();
+}
+
+Gui::SteveCADRibbon::~SteveCADRibbon()
+{
+    if (qApp) {
+        qApp->removeEventFilter(this);
+    }
+    if (d->sourceDocumentTabs) {
+        d->sourceDocumentTabs->removeEventFilter(this);
+        d->restoreSourceDocumentTabs();
+    }
+}
+
+bool Gui::SteveCADRibbon::eventFilter(QObject* watched, QEvent* event)
+{
+    QMdiArea* mdiArea = d->mainWindow->getMdiArea();
+    const bool isDocumentChrome = watched == d->sourceDocumentTabs || watched == mdiArea
+        || (mdiArea && watched == mdiArea->viewport());
+    if (isDocumentChrome
+        && (event->type() == QEvent::ChildAdded || event->type() == QEvent::ChildRemoved
+            || event->type() == QEvent::LayoutRequest || event->type() == QEvent::UpdateRequest)) {
+        d->scheduleDocumentTabsSync();
+    }
+
+    if (event->type() == QEvent::Show) {
+        if (watched == d->sourceDocumentTabs) {
+            QTimer::singleShot(0, this, [this]() { d->collapseSourceDocumentTabs(); });
+        }
+        else if (auto* toolbar = qobject_cast<QToolBar*>(watched)) {
+            if (toolbar != d->toolbar && d->isMainWindowToolbar(toolbar)) {
+                QTimer::singleShot(0, this, [this]() { d->enforceChrome(); });
+            }
+        }
+        else if (watched == d->mainWindow->menuBar() && !d->legacyMenuVisible) {
+            QTimer::singleShot(0, this, [this]() { d->enforceChrome(); });
+        }
+    }
+    else if (event->type() == QEvent::LanguageChange && watched == qApp) {
+        d->scheduleRefresh();
+    }
+    return QObject::eventFilter(watched, event);
+}

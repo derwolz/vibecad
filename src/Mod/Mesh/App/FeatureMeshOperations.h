@@ -91,7 +91,7 @@ public:
     App::PropertyString OperationKind;
     App::PropertyEnumeration InputMode;
     App::PropertyStringList ExternalInputs;
-    App::PropertyString VibeCADTimelineRole;
+    App::PropertyString SteveCADTimelineRole;
 
     App::DocumentObjectExecReturn* execute() override;
     short mustExecute() const override;

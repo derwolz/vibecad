@@ -5,7 +5,7 @@
 Draft's public modeling functions intentionally keep their historic behavior.
 The GUI uses the helpers in this module when one human command replaces
 visible input geometry or produces several implementation objects which must
-appear as one semantic operation in VibeCAD's document-wide history.
+appear as one semantic operation in SteveCAD's document-wide history.
 """
 
 import FreeCAD as App
@@ -13,9 +13,9 @@ import FreeCAD as App
 from draftutils.transaction import object_is_usable_at_current_position
 
 
-_ROLE = "VibeCADTimelineRole"
-_OWNER = "VibeCADTimelineOwner"
-_REPLACED_INPUTS = "VibeCADTimelineReplacedInputs"
+_ROLE = "SteveCADTimelineRole"
+_OWNER = "SteveCADTimelineOwner"
+_REPLACED_INPUTS = "SteveCADTimelineReplacedInputs"
 
 
 class _SelectionReference:
@@ -183,7 +183,7 @@ def mark_operation(operation):
         _ROLE,
         "Document timeline classification",
     )
-    operation.VibeCADTimelineRole = "operation"
+    operation.SteveCADTimelineRole = "operation"
 
     if _OWNER in operation.PropertiesList:
         if operation.getTypeIdOfProperty(_OWNER) != "App::PropertyLinkHidden":
@@ -193,7 +193,7 @@ def mark_operation(operation):
                     name=_OWNER,
                 )
             )
-        operation.VibeCADTimelineOwner = None
+        operation.SteveCADTimelineOwner = None
     return operation
 
 
@@ -223,8 +223,8 @@ def mark_resource(resource, owner):
         _OWNER,
         "Draft operation which owns this generated result",
     )
-    resource.VibeCADTimelineOwner = owner
-    resource.VibeCADTimelineRole = "resource"
+    resource.SteveCADTimelineOwner = owner
+    resource.SteveCADTimelineRole = "resource"
     return resource
 
 
@@ -246,7 +246,7 @@ def set_replaced_inputs(operation, inputs):
         _REPLACED_INPUTS,
         "Visible input objects hidden by this operation",
     )
-    operation.VibeCADTimelineReplacedInputs = exact_inputs
+    operation.SteveCADTimelineReplacedInputs = exact_inputs
     return exact_inputs
 
 

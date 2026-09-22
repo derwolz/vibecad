@@ -1,0 +1,426 @@
+# SPDX-License-Identifier: LGPL-2.1-or-later
+
+"""Bounded read contract for FEM analyses, materials, elements, and cards."""
+
+from __future__ import annotations
+
+from SteveCADNativeCapabilityRegistry import (
+    NativeCapabilityDefinition,
+    NativeCapabilityRegistry,
+    NativeCapabilityVariant,
+)
+from SteveCADNativeAnalyzeModelSchema import _ANALYSIS_TARGET, _MATERIAL_TARGET
+from SteveCADNativeAnalyzeGeometrySchema import _ELEMENT_TARGET
+from SteveCADNativeAnalyzeElectromagneticSchema import _CONSTRAINT_TARGET
+from SteveCADNativeAnalyzeFluidSchema import _TARGET as _FLUID_TARGET
+from SteveCADNativeAnalyzeGeometricalSchema import _TARGET as _GEOMETRICAL_TARGET
+from SteveCADNativeAnalyzeSupportSchema import _TARGET as _SUPPORT_TARGET
+from SteveCADNativeAnalyzeConnectionSchema import _TARGET as _CONNECTION_TARGET
+from SteveCADNativeAnalyzeLoadSchema import _TARGET as _LOAD_TARGET
+from SteveCADNativeAnalyzeThermalSchema import _TARGET as _THERMAL_TARGET
+from SteveCADNativeAnalyzeMeshSchema import _TARGET as _MESH_TARGET
+from SteveCADNativeAnalyzeMeshRefinementSchema import _TARGET as _REFINEMENT_TARGET
+from SteveCADNativeAnalyzeMeshOutputSchema import FEM_MESH_OBJECT_TARGET
+from SteveCADNativeAnalyzeSolverSchema import SOLVER_TARGET
+from SteveCADNativeAnalyzeEquationSchema import EQUATION_TARGET
+from SteveCADNativeAnalyzeResultState import RESULT_TARGET
+from SteveCADNativeAnalyzeAssignments import ASSIGNMENT_CATEGORIES
+
+
+ANALYZE_INSPECT_CAPABILITY_NAME = "analyze.inspect"
+ANALYZE_MATERIAL_CATALOG = "analyze.material_catalog"
+
+_MATERIAL_CATALOG_PARAMETERS = {
+    "type": "object",
+    "properties": {
+        "query": {"type": "string", "maxLength": 160},
+        "category": {
+            "type": "string",
+            "enum": ["solid", "fluid", "any"],
+        },
+        "limit": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 25,
+            "default": 25,
+        },
+    },
+    "required": ["query", "category"],
+    "additionalProperties": False,
+}
+
+_EXACT_TARGET_BY_OPERATION = {
+    "studies": "BoundedFemStudyCatalog",
+    "study": "ExactFemStudyState",
+    "analysis": "ExactFemAnalysisState",
+    "assignments": "BoundedExactFemAssignmentPage",
+    "validate_assignments": "ExactFemAssignmentValidation",
+    "material": "ExactFemMaterialState",
+    "material_catalog": "BoundedMaterialCatalogQuery",
+    "element_definition": "ExactFemElementDefinitionState",
+    "electromagnetic_constraint": "ExactFemElectromagneticConstraintState",
+    "fluid_constraint": "ExactFemFluidConstraintState",
+    "geometrical_feature": "ExactFemGeometricalFeatureState",
+    "support_condition": "ExactFemSupportConditionState",
+    "connection": "ExactFemConnectionState",
+    "load": "ExactFemMechanicalLoadState",
+    "thermal_condition": "ExactFemThermalConditionState",
+    "fem_mesh_definition": "ExactFemMeshDefinitionState",
+    "mesh_refinement": "ExactFemMeshRefinementState",
+    "fem_mesh_elements": "ExactActiveFemMeshContentAndHistory",
+    "solver": "ExactFemSolverState",
+    "equation": "ExactElmerEquationState",
+    "result": "ExactFemResultOrPostState",
+}
+
+
+def _variant(
+    operation: str,
+    description: str,
+    action_id: str,
+    parameters: dict,
+    *,
+    provider_supplemental: bool = False,
+) -> NativeCapabilityVariant:
+    return NativeCapabilityVariant(
+        operation=operation,
+        description=description,
+        action_ids=frozenset({action_id}),
+        surface_ids=frozenset({"analyze"}),
+        exact_target_type=_EXACT_TARGET_BY_OPERATION.get(
+            operation,
+            "ExactFemAnalysisMaterialOrCatalogQuery",
+        ),
+        transaction_behavior="none",
+        background_required=False,
+        parameters=parameters,
+        provider_supplemental=provider_supplemental,
+    )
+
+
+def analyze_inspect_capability_definition() -> NativeCapabilityDefinition:
+    return NativeCapabilityDefinition(
+        name=ANALYZE_INSPECT_CAPABILITY_NAME,
+        description=(
+            "Read one exact FEM analysis, material, element definition, electromagnetic or "
+            "fluid constraint, geometrical feature, solver, equation, result or post object, "
+            "or a bounded FEM element page; or search the installed material catalog."
+        ),
+        primary_classification="read",
+        variants=(
+            _variant(
+                "studies",
+                "List a bounded page of studies with exact targets.",
+                "SteveCAD_AnalyzeReadAnalysis",
+                {
+                    "type": "object",
+                    "properties": {
+                        "offset": {
+                            "type": "integer",
+                            "minimum": 0,
+                            "default": 0,
+                        },
+                        "page_size": {
+                            "type": "integer",
+                            "minimum": 1,
+                            "maximum": 64,
+                            "default": 64,
+                        },
+                    },
+                    "additionalProperties": False,
+                },
+                provider_supplemental=True,
+            ),
+            _variant(
+                "study",
+                "Read intent, completeness, runtimes, and next requirements for one study.",
+                "SteveCAD_AnalyzeReadStudy",
+                {
+                    "type": "object",
+                    "properties": {"target": _ANALYSIS_TARGET},
+                    "required": ["target"],
+                    "additionalProperties": False,
+                },
+                provider_supplemental=True,
+            ),
+            _variant(
+                "analysis",
+                "Read exact membership and readiness counts for one current FEM analysis.",
+                "SteveCAD_AnalyzeReadAnalysis",
+                {
+                    "type": "object",
+                    "properties": {"target": _ANALYSIS_TARGET},
+                    "required": ["target"],
+                    "additionalProperties": False,
+                },
+            ),
+            _variant(
+                "assignments",
+                "List exact physical values and geometry targets for current study assignments.",
+                "SteveCAD_AnalyzeReadAssignments",
+                {
+                    "type": "object",
+                    "properties": {
+                        "target": _ANALYSIS_TARGET,
+                        "category": {
+                            "type": "string",
+                            "enum": ["all", *ASSIGNMENT_CATEGORIES],
+                        },
+                        "offset": {"type": "integer", "minimum": 0},
+                        "page_size": {
+                            "type": "integer",
+                            "minimum": 1,
+                            "maximum": 64,
+                        },
+                    },
+                    "required": ["target", "category", "offset", "page_size"],
+                    "additionalProperties": False,
+                },
+            ),
+            _variant(
+                "validate_assignments",
+                "Validate every current assignment object and referenced geometry target.",
+                "SteveCAD_AnalyzeValidateAssignments",
+                {
+                    "type": "object",
+                    "properties": {"target": _ANALYSIS_TARGET},
+                    "required": ["target"],
+                    "additionalProperties": False,
+                },
+            ),
+            _variant(
+                "material",
+                "Read normalized physical values and exact references for one FEM material.",
+                "SteveCAD_AnalyzeReadMaterial",
+                {
+                    "type": "object",
+                    "properties": {"target": _MATERIAL_TARGET},
+                    "required": ["target"],
+                    "additionalProperties": False,
+                },
+            ),
+            _variant(
+                "material_catalog",
+                "Search installed material cards by words and category; returns at most 25 exact UUIDs.",
+                "SteveCAD_AnalyzeSearchMaterialCatalog",
+                _MATERIAL_CATALOG_PARAMETERS,
+            ),
+            _variant(
+                "element_definition",
+                "Read one normalized beam, shell, or 1D fluid definition and its exact assignments.",
+                "SteveCAD_AnalyzeReadElementDefinition",
+                {
+                    "type": "object",
+                    "properties": {"target": _ELEMENT_TARGET},
+                    "required": ["target"],
+                    "additionalProperties": False,
+                },
+            ),
+            _variant(
+                "electromagnetic_constraint",
+                "Read one normalized electromagnetic constraint and its exact assignments.",
+                "SteveCAD_AnalyzeReadElectromagneticConstraint",
+                {
+                    "type": "object",
+                    "properties": {"target": _CONSTRAINT_TARGET},
+                    "required": ["target"],
+                    "additionalProperties": False,
+                },
+            ),
+            _variant(
+                "fluid_constraint",
+                "Read one normalized initial or boundary fluid constraint and its exact assignments.",
+                "SteveCAD_AnalyzeReadFluidConstraint",
+                {
+                    "type": "object",
+                    "properties": {"target": _FLUID_TARGET},
+                    "required": ["target"],
+                    "additionalProperties": False,
+                },
+            ),
+            _variant(
+                "geometrical_feature",
+                "Read one normalized plane rotation, section print, or local coordinate system.",
+                "SteveCAD_AnalyzeReadGeometricalFeature",
+                {
+                    "type": "object",
+                    "properties": {"target": _GEOMETRICAL_TARGET},
+                    "required": ["target"],
+                    "additionalProperties": False,
+                },
+            ),
+            _variant(
+                "support_condition",
+                "Read one normalized fixed, rigid-body, displacement, or spring support condition.",
+                "SteveCAD_AnalyzeReadSupportCondition",
+                {
+                    "type": "object",
+                    "properties": {"target": _SUPPORT_TARGET},
+                    "required": ["target"],
+                    "additionalProperties": False,
+                },
+            ),
+            _variant(
+                "connection",
+                "Read one normalized contact or tie connection with exact slave/master roles.",
+                "SteveCAD_AnalyzeReadConnection",
+                {
+                    "type": "object",
+                    "properties": {"target": _CONNECTION_TARGET},
+                    "required": ["target"],
+                    "additionalProperties": False,
+                },
+            ),
+            _variant(
+                "load",
+                "Read one normalized force, pressure, centrifugal, or gravity load.",
+                "SteveCAD_AnalyzeReadLoad",
+                {
+                    "type": "object",
+                    "properties": {"target": _LOAD_TARGET},
+                    "required": ["target"],
+                    "additionalProperties": False,
+                },
+            ),
+            _variant(
+                "thermal_condition",
+                "Read one normalized initial, surface, nodal, or body thermal condition.",
+                "SteveCAD_AnalyzeReadThermalCondition",
+                {
+                    "type": "object",
+                    "properties": {"target": _THERMAL_TARGET},
+                    "required": ["target"],
+                    "additionalProperties": False,
+                },
+            ),
+            _variant(
+                "fem_mesh_definition",
+                "Read one exact Gmsh or Netgen definition, settings, source, and generated topology.",
+                "SteveCAD_AnalyzeReadMeshDefinition",
+                {
+                    "type": "object",
+                    "properties": {"target": _MESH_TARGET},
+                    "required": ["target"],
+                    "additionalProperties": False,
+                },
+            ),
+            _variant(
+                "mesh_refinement",
+                "Read one exact mesh refinement, typed values, geometry, and owning mesh.",
+                "SteveCAD_AnalyzeReadMeshRefinement",
+                {
+                    "type": "object",
+                    "properties": {"target": _REFINEMENT_TARGET},
+                    "required": ["target"],
+                    "additionalProperties": False,
+                },
+            ),
+            _variant(
+                "fem_mesh_elements",
+                "Read one bounded page of FEM element IDs, connectivity, centroids, and bounds.",
+                "SteveCAD_AnalyzeReadFemMeshElements",
+                {
+                    "type": "object",
+                    "properties": {
+                        "target": FEM_MESH_OBJECT_TARGET,
+                        "element_kind": {
+                            "type": "string",
+                            "enum": ["primary", "volume", "face", "edge", "zero_d", "ball"],
+                        },
+                        "offset": {"type": "integer", "minimum": 0, "default": 0},
+                        "page_size": {
+                            "type": "integer",
+                            "minimum": 1,
+                            "maximum": 64,
+                            "default": 64,
+                        },
+                    },
+                    "required": ["target", "element_kind"],
+                    "additionalProperties": False,
+                },
+            ),
+            _variant(
+                "solver",
+                "Read one exact FEM solver, its backend implementation, owner, and settings.",
+                "SteveCAD_AnalyzeReadSolver",
+                {
+                    "type": "object",
+                    "properties": {"target": SOLVER_TARGET},
+                    "required": ["target"],
+                    "additionalProperties": False,
+                },
+            ),
+            _variant(
+                "equation",
+                "Read one exact Elmer equation, its owning solver, priority, and settings.",
+                "SteveCAD_AnalyzeReadEquation",
+                {
+                    "type": "object",
+                    "properties": {"target": EQUATION_TARGET},
+                    "required": ["target"],
+                    "additionalProperties": False,
+                },
+            ),
+            _variant(
+                "result",
+                (
+                    "Read one exact FEM result or post-processing object with bounded "
+                    "field ranges, ownership, frames, settings, and presentation state."
+                ),
+                "SteveCAD_AnalyzeReadResult",
+                {
+                    "type": "object",
+                    "properties": {"target": RESULT_TARGET},
+                    "required": ["target"],
+                    "additionalProperties": False,
+                },
+            ),
+            _variant(
+                "linearized_stress",
+                (
+                    "Read membrane, membrane-plus-bending, total, and peak-residual "
+                    "stress summaries from one exact stress line without returning arrays."
+                ),
+                "FEM_PostFilterLinearizedStresses",
+                {
+                    "type": "object",
+                    "properties": {"target": RESULT_TARGET},
+                    "required": ["target"],
+                    "additionalProperties": False,
+                },
+            ),
+        ),
+    )
+
+
+def analyze_material_catalog_capability_definition() -> NativeCapabilityDefinition:
+    description = "Find material_name values and properties."
+    return NativeCapabilityDefinition(
+        name=ANALYZE_MATERIAL_CATALOG,
+        description=description,
+        primary_classification="read",
+        variants=(
+            NativeCapabilityVariant(
+                operation="search",
+                description=description,
+                action_ids=frozenset(
+                    {"SteveCAD_AnalyzeSearchMaterialCatalogFocused"}
+                ),
+                surface_ids=frozenset({"analyze"}),
+                exact_target_type="BoundedMaterialCatalogQuery",
+                transaction_behavior="none",
+                background_required=False,
+                parameters=_MATERIAL_CATALOG_PARAMETERS,
+                provider_supplemental=True,
+            ),
+        ),
+    )
+
+
+def register_analyze_inspect_capability_definition(
+    registry: NativeCapabilityRegistry,
+) -> None:
+    if not isinstance(registry, NativeCapabilityRegistry):
+        raise TypeError("registry must be a NativeCapabilityRegistry")
+    registry.register_definition(analyze_inspect_capability_definition())
+    registry.register_definition(analyze_material_catalog_capability_definition())

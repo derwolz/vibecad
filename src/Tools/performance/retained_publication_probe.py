@@ -1,16 +1,16 @@
 # SPDX-License-Identifier: LGPL-2.1-or-later
 """Replay a retained Assembly result in an isolated disposable GUI document.
 
-Set VIBECAD_PUBLICATION_ATTEMPT to an ignored COPY of the worker attempt and
-VIBECAD_PUBLICATION_MANIFEST to a copied program.json. Launch with the packaged
+Set STEVECAD_PUBLICATION_ATTEMPT to an ignored COPY of the worker attempt and
+STEVECAD_PUBLICATION_MANIFEST to a copied program.json. Launch with the packaged
 edit-check runner and a disposable document. No solver, acceptance, or save runs.
 The production validator, publisher, observer batching and Qt dispatcher run
 unchanged. Profiles separate detached validation from GUI publication callbacks.
-Set VIBECAD_PUBLICATION_WORKING_CANDIDATE=1 to replay an unaccepted candidate
+Set STEVECAD_PUBLICATION_WORKING_CANDIDATE=1 to replay an unaccepted candidate
 against its accepted document revision; source, inputs and revisions are checked.
-Set VIBECAD_PUBLICATION_CANCEL_AFTER to an item count to cancel real publication,
+Set STEVECAD_PUBLICATION_CANCEL_AFTER to an item count to cancel real publication,
 check rollback in the disposable document, then retry the same candidate.
-Set VIBECAD_PUBLICATION_PROFILE=0 for timing without cProfile overhead; native
+Set STEVECAD_PUBLICATION_PROFILE=0 for timing without cProfile overhead; native
 callback timing, progress and independent Windows input measurements remain on.
 """
 import cProfile
@@ -27,10 +27,10 @@ import FreeCAD as App
 import FreeCADGui as Gui
 from PySide6 import QtCore, QtGui, QtWidgets
 
-output = Path(os.environ['VIBECAD_TRACE_PROBE_RESULT']).resolve()
-source = Path(os.environ['VIBECAD_ROUNDTRIP_COPY']).resolve()
-attempt = Path(os.environ['VIBECAD_PUBLICATION_ATTEMPT']).resolve()
-manifest_path = Path(os.environ['VIBECAD_PUBLICATION_MANIFEST']).resolve()
+output = Path(os.environ['STEVECAD_TRACE_PROBE_RESULT']).resolve()
+source = Path(os.environ['STEVECAD_ROUNDTRIP_COPY']).resolve()
+attempt = Path(os.environ['STEVECAD_PUBLICATION_ATTEMPT']).resolve()
+manifest_path = Path(os.environ['STEVECAD_PUBLICATION_MANIFEST']).resolve()
 if source.parent != output.parent or source.name != 'probe-document.FCStd' or App.listDocuments():
     raise RuntimeError('Use an isolated process and disposable probe-document.FCStd')
 if not attempt.is_relative_to(output.parent.parent) or not manifest_path.is_relative_to(output.parent.parent):
@@ -40,7 +40,7 @@ started = time.monotonic()
 stage = 'startup'
 quiet_since = None
 worker = None
-profiling = os.environ.get('VIBECAD_PUBLICATION_PROFILE', '1') != '0'
+profiling = os.environ.get('STEVECAD_PUBLICATION_PROFILE', '1') != '0'
 lock = threading.Lock()
 report = {'ok': False, 'events': [], 'gui_callbacks': [], 'native_events': [],
           'max_heartbeat_gap': 0.0, 'independent_input': [], 'profiling': profiling}
@@ -59,7 +59,7 @@ gui_profile = cProfile.Profile()
 last_heartbeat = time.monotonic()
 last_report_write = 0.0
 last_progress_phase = None
-cancel_after = int(os.environ.get('VIBECAD_PUBLICATION_CANCEL_AFTER', '0'))
+cancel_after = int(os.environ.get('STEVECAD_PUBLICATION_CANCEL_AFTER', '0'))
 cancel_requested = threading.Event()
 
 
@@ -98,7 +98,7 @@ def progress(value):
 
 def rollback_inventory(dispatch, service):
     """Capture logical identity, links and poses in owner-thread-sized steps."""
-    from VibeCADVibeScriptDomains import PROP_PROGRAM_REVISION
+    from SteveCADVibeScriptDomains import PROP_PROGRAM_REVISION
     names = dispatch(lambda: [obj.Name for obj in service._active_document().Objects])
     result = {}
     for name in names:
@@ -120,7 +120,7 @@ def rollback_inventory(dispatch, service):
 
 def run(prepared, execution, service, adapter, dispatch):
     try:
-        import VibeCADVibeScriptDomainRuntime as runtime
+        import SteveCADVibeScriptDomainRuntime as runtime
         before = time.monotonic()
         if profiling:
             validator = cProfile.Profile()
@@ -143,7 +143,7 @@ def run(prepared, execution, service, adapter, dispatch):
 
         before = time.monotonic()
         if cancel_after:
-            from VibeCADCooperativeExecution import CooperativeExecutionCancelled
+            from SteveCADCooperativeExecution import CooperativeExecutionCancelled
             original = rollback_inventory(invoke, service)
             event('cancellation_replay_started', after_items=cancel_after)
             try:
@@ -212,18 +212,18 @@ def tick():
                 return
             if time.monotonic() - quiet_since < 2:
                 return
-            import VibeCADGui
-            import VibeCADVibeScriptDomains as contracts
-            from VibeCADCore import get_service
-            from VibeCADModelingSurface import resolve_service_surface
-            from VibeCADVibeScriptDomainRuntime import AssemblyDomainAdapter
+            import SteveCADGui
+            import SteveCADVibeScriptDomains as contracts
+            from SteveCADCore import get_service
+            from SteveCADModelingSurface import resolve_service_surface
+            from SteveCADVibeScriptDomainRuntime import AssemblyDomainAdapter
             Gui.activateWorkbench('AssemblyWorkbench')
             service = get_service()
             manifest = json.loads(manifest_path.read_text(encoding='utf-8'))
             request = json.loads((attempt / 'request.json').read_text(encoding='utf-8'))
             execution = json.loads((attempt / 'result.json').read_text(encoding='utf-8'))
             assert request['domain'] == 'assembly' and execution['ok']
-            working_candidate = os.environ.get('VIBECAD_PUBLICATION_WORKING_CANDIDATE') == '1'
+            working_candidate = os.environ.get('STEVECAD_PUBLICATION_WORKING_CANDIDATE') == '1'
             assert request['revision'] == manifest[
                 'working_revision' if working_candidate else 'accepted_revision']
             assert request['program_id'] == manifest['program_id']
@@ -265,7 +265,7 @@ def tick():
                 document_revision=str(service.provider_document_revision()),
                 surface=dict(workbench=surface.workbench, engine=surface.engine, surface_id=surface.surface_id),
                 document_program_contract=portable_contract)
-            VibeCADGui._ensure_document_thread_invoker()
+            SteveCADGui._ensure_document_thread_invoker()
             report['max_heartbeat_gap'] = 0.0
             last_heartbeat = time.monotonic()
             event('replay_started', objects=len(doc.Objects))
@@ -276,7 +276,7 @@ def tick():
                 gui_profile.enable()
             worker = threading.Thread(target=run, args=(prepared, execution, service,
                 AssemblyDomainAdapter(pack=prepared['pack']),
-                VibeCADGui._dispatch_to_document_thread), daemon=True)
+                SteveCADGui._dispatch_to_document_thread), daemon=True)
             worker.start()
         elif stage == 'publishing' and not worker.is_alive():
             if not report.get('publication_ok'):

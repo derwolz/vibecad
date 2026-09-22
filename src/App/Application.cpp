@@ -558,7 +558,7 @@ Application::Application(std::map<std::string,std::string> &mConfig)
     mpcPramManager["System parameter"] = _pcSysParamMngr;
     mpcPramManager["User parameter"] = _pcUserParamMngr;
 
-    const bool isolationChild = getenvUTF8("VIBECAD_ISOLATION_CHILD") == "1";
+    const bool isolationChild = getenvUTF8("STEVECAD_ISOLATION_CHILD") == "1";
     _hostRuntime = std::make_unique<HostRuntime>(0, isolationChild);
 
     setupPythonTypes();

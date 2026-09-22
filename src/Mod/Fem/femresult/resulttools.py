@@ -92,11 +92,11 @@ def _is_result_artifact(obj):
 
 
 def _timeline_role(obj):
-    return str(getattr(obj, "VibeCADTimelineRole", "") or "")
+    return str(getattr(obj, "SteveCADTimelineRole", "") or "")
 
 
 def _timeline_owner(obj):
-    return getattr(obj, "VibeCADTimelineOwner", None)
+    return getattr(obj, "SteveCADTimelineOwner", None)
 
 
 def _timeline_root(obj, document):
@@ -212,7 +212,7 @@ def plan_result_graph_purge(analysis):
         analysis, "Fem::FemAnalysis"
     ):
         raise ValueError("A result purge requires one exact live FEM analysis")
-    timeline = getattr(document, "VibeCADTimeline", None)
+    timeline = getattr(document, "SteveCADTimeline", None)
     operations = tuple(getattr(timeline, "Operations", ()) or ())
     blockers = []
     targets = []

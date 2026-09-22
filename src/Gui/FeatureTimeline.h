@@ -41,7 +41,7 @@ class ViewProviderDocumentObject;
  * selecting or activating another Body never filters or replaces the timeline.
  *
  * The timeline is deliberately a permanent part of the central workspace,
- * rather than a dock panel. VibeCAD mirrors the MDI document tabs into its
+ * rather than a dock panel. SteveCAD mirrors the MDI document tabs into its
  * ribbon and collapses Qt's original bottom tab bar; this strip occupies that
  * reclaimed edge without participating in workbench or bottom-panel toggles.
  */

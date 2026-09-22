@@ -116,7 +116,7 @@ class TestCore(unittest.TestCase):
         )
 
     def _timeline(self):
-        timeline = self.doc.getObject("VibeCADTimeline")
+        timeline = self.doc.getObject("SteveCADTimeline")
         self.assertIsNotNone(timeline)
         self.assertEqual(timeline.TypeId, "App::DocumentTimeline")
         return timeline
@@ -496,11 +496,11 @@ class TestCore(unittest.TestCase):
         exploded_index = self._timeline_index(exploded)
         end_position = len(timeline.Operations)
         self.assertNotIn(view_group, timeline.Operations)
-        self.assertEqual(exploded.VibeCADTimelineRole, "operation")
-        self.assertEqual(move.VibeCADTimelineRole, "resource")
-        self.assertIs(move.VibeCADTimelineOwner, exploded)
+        self.assertEqual(exploded.SteveCADTimelineRole, "operation")
+        self.assertEqual(move.SteveCADTimelineRole, "resource")
+        self.assertIs(move.SteveCADTimelineOwner, exploded)
         self.assertEqual(
-            move.getTypeIdOfProperty("VibeCADTimelineOwner"),
+            move.getTypeIdOfProperty("SteveCADTimelineOwner"),
             "App::PropertyLinkHidden",
         )
         self.assertNotIn(exploded, move.OutList)
@@ -586,11 +586,11 @@ class TestCore(unittest.TestCase):
         timeline = self._timeline()
         simulation_index = self._timeline_index(simulation)
         self.assertNotIn(simulation_group, timeline.Operations)
-        self.assertEqual(simulation.VibeCADTimelineRole, "operation")
-        self.assertEqual(motion.VibeCADTimelineRole, "resource")
-        self.assertIs(motion.VibeCADTimelineOwner, simulation)
+        self.assertEqual(simulation.SteveCADTimelineRole, "operation")
+        self.assertEqual(motion.SteveCADTimelineRole, "resource")
+        self.assertIs(motion.SteveCADTimelineOwner, simulation)
         self.assertEqual(
-            motion.getTypeIdOfProperty("VibeCADTimelineOwner"),
+            motion.getTypeIdOfProperty("SteveCADTimelineOwner"),
             "App::PropertyLinkHidden",
         )
         self.assertNotIn(simulation, motion.OutList)
@@ -618,12 +618,12 @@ class TestCore(unittest.TestCase):
         restored_motion = self.doc.getObject(motion_name)
         restored_timeline = self._timeline()
         self.assertEqual(
-            restored_simulation.VibeCADTimelineRole,
+            restored_simulation.SteveCADTimelineRole,
             "operation",
         )
-        self.assertEqual(restored_motion.VibeCADTimelineRole, "resource")
+        self.assertEqual(restored_motion.SteveCADTimelineRole, "resource")
         self.assertIs(
-            restored_motion.VibeCADTimelineOwner,
+            restored_motion.SteveCADTimelineOwner,
             restored_simulation,
         )
         self.assertEqual(restored_timeline.Position, saved_position)
@@ -736,7 +736,7 @@ class TestCore(unittest.TestCase):
             )
             if getattr(
                 resource,
-                "VibeCADAssemblySourceObjectId",
+                "SteveCADAssemblySourceObjectId",
                 -1,
             )
             == int(added_source.ID)
@@ -782,7 +782,7 @@ class TestCore(unittest.TestCase):
             any(
                 getattr(
                     resource,
-                    "VibeCADAssemblySourceObjectId",
+                    "SteveCADAssemblySourceObjectId",
                     -1,
                 )
                 == int(added_source.ID)
@@ -975,7 +975,7 @@ class TestCore(unittest.TestCase):
                     )
                     if getattr(
                         resource,
-                        "VibeCADAssemblySourceObjectId",
+                        "SteveCADAssemblySourceObjectId",
                         -1,
                     )
                     == int(added_source.ID)
@@ -1068,7 +1068,7 @@ class TestCore(unittest.TestCase):
                     any(
                         getattr(
                             resource,
-                            "VibeCADAssemblySourceObjectId",
+                            "SteveCADAssemblySourceObjectId",
                             -1,
                         )
                         == int(restored_source.ID)
@@ -1182,14 +1182,14 @@ class TestCore(unittest.TestCase):
             )
             if getattr(
                 resource,
-                "VibeCADAssemblySourceObjectId",
+                "SteveCADAssemblySourceObjectId",
                 -1,
             )
             == int(source_joint.ID)
         )
         local_components = {
             int(
-                resource.VibeCADAssemblySourceObjectId
+                resource.SteveCADAssemblySourceObjectId
             ): resource
             for resource
             in UtilsAssembly._assemblyOccurrenceResources(

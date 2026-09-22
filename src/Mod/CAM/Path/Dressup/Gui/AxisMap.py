@@ -376,9 +376,9 @@ def _validate_result(
         or PathUtils.findParentJob(result) is not job
         or result not in job.Operations.Group
         or PathUtil.timelineParentJob(result) is not job
-        or "VibeCADTimelineReplacedInputs" not in result.PropertiesList
-        or list(result.VibeCADTimelineReplacedInputs) != replaced_inputs
-        or str(result.VibeCADTimelineRole) != "operation"
+        or "SteveCADTimelineReplacedInputs" not in result.PropertiesList
+        or list(result.SteveCADTimelineReplacedInputs) != replaced_inputs
+        or str(result.SteveCADTimelineRole) != "operation"
         or not result.isValid()
         or bool(base.ViewObject.Visibility)
         or not document.isProvisionallyEnrolledInTimelineByCurrentTransaction(

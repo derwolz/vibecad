@@ -212,7 +212,7 @@ void runNativeMeshBoolean(
         for (auto* source : sources) {
             pythonSources.append(Py::asObject(source->getPyObject()));
         }
-        PyObject* imported = PyImport_ImportModule("VibeCADMeshBooleanGui");
+        PyObject* imported = PyImport_ImportModule("SteveCADMeshBooleanGui");
         if (!imported) {
             throw Py::Exception();
         }
@@ -488,7 +488,7 @@ void CmdMeshImport::activated(int)
         for (const auto& path : fn) {
             pythonPaths.append(Py::String(path.toUtf8().constData()));
         }
-        PyObject* imported = PyImport_ImportModule("VibeCADMeshImportGui");
+        PyObject* imported = PyImport_ImportModule("SteveCADMeshImportGui");
         if (!imported) {
             throw Py::Exception();
         }
@@ -497,7 +497,7 @@ void CmdMeshImport::activated(int)
             Py::asObject(document->getPyObject()),
             pythonPaths
         ));
-        std::string recordedCommand = "VibeCADMeshImportGui.start_mesh_imports(App.getDocument(\""
+        std::string recordedCommand = "SteveCADMeshImportGui.start_mesh_imports(App.getDocument(\""
             + std::string(document->getName()) + "\"), [";
         for (qsizetype index = 0; index < fn.size(); ++index) {
             if (index > 0) {
@@ -511,7 +511,7 @@ void CmdMeshImport::activated(int)
         recordedCommand += "])";
         Gui::Application::Instance->macroManager()->addLine(
             Gui::MacroManager::App,
-            "import VibeCADMeshImportGui"
+            "import SteveCADMeshImportGui"
         );
         Gui::Application::Instance->macroManager()->addLine(
             Gui::MacroManager::App,
@@ -610,7 +610,7 @@ void CmdMeshExport::activated(int)
 
         try {
             Base::PyGILStateLocker lock;
-            PyObject* imported = PyImport_ImportModule("VibeCADMeshExportGui");
+            PyObject* imported = PyImport_ImportModule("SteveCADMeshExportGui");
             if (!imported) {
                 throw Py::Exception();
             }
@@ -624,13 +624,13 @@ void CmdMeshExport::activated(int)
                 = Base::Tools::escapedUnicodeFromUtf8(fn.toUtf8().constData());
             unicodePath = Base::Tools::escapeEncodeFilename(unicodePath);
             const std::string recordedCommand
-                = "VibeCADMeshExportGui.start_mesh_export(App.getDocument(\""
+                = "SteveCADMeshExportGui.start_mesh_export(App.getDocument(\""
                 + std::string(document->getName()) + "\").getObject(\""
                 + std::string(mesh->getNameInDocument()) + "\"), u\"" + unicodePath
                 + "\", \"" + extension.constData() + "\")";
             Gui::Application::Instance->macroManager()->addLine(
                 Gui::MacroManager::App,
-                "import VibeCADMeshExportGui"
+                "import SteveCADMeshExportGui"
             );
             Gui::Application::Instance->macroManager()->addLine(
                 Gui::MacroManager::App,

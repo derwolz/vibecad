@@ -239,7 +239,7 @@ void CmdMeshPartShapeFromMesh::activated(int)
     for (auto* mesh : meshes) {
         sources.append(Py::asObject(mesh->getPyObject()));
     }
-    PyObject* imported = PyImport_ImportModule("VibeCADMeshConversionGui");
+    PyObject* imported = PyImport_ImportModule("SteveCADMeshConversionGui");
     if (!imported) {
         throw Py::Exception();
     }
@@ -335,7 +335,7 @@ void CmdMeshPartMeshToBody::activated(int)
     for (auto* mesh : meshes) {
         sources.append(Py::asObject(mesh->getPyObject()));
     }
-    PyObject* imported = PyImport_ImportModule("VibeCADMeshConversionGui");
+    PyObject* imported = PyImport_ImportModule("SteveCADMeshConversionGui");
     if (!imported) {
         throw Py::Exception();
     }

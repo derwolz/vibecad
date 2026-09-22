@@ -20,7 +20,7 @@
 	<key>CFBundleExecutable</key>
 	<string>QuicklookFCStd</string>
 	<key>CFBundleIdentifier</key>
-	<string>org.vibecad.qlgenerator.QuicklookFCStd</string>
+	<string>org.stevecad.qlgenerator.QuicklookFCStd</string>
 	<key>CFBundleInfoDictionaryVersion</key>
 	<string>6.0</string>
 	<key>CFBundleName</key>

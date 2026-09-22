@@ -13,9 +13,9 @@ import SheetMetalEditable as Editable
 import SheetMetalOperations as Operations
 import SheetMetalSourceFeatures as Features
 from SheetMetalPresentation import _gui_thread
-from VibeCADNativeArguments import strict_variant_arguments
-from VibeCADNativeMutation import NativeMutationDraft, run_human_mutation
-from VibeCADNativeTargets import object_identity
+from SteveCADNativeArguments import strict_variant_arguments
+from SteveCADNativeMutation import NativeMutationDraft, run_human_mutation
+from SteveCADNativeTargets import object_identity
 
 
 PARAMETERS = {
@@ -307,9 +307,9 @@ def start(prepared, *, transaction_runner=run_human_mutation, recompute_queue=No
         if bend_sketch is not None:
             inputs.append(bend_sketch)
         replaced = PartGui.setModelingReplacedInputs(obj, inputs) if inputs else False
-        _ensure_timeline_property(obj, "App::PropertyString", "VibeCADTimelineEditCommand",
+        _ensure_timeline_property(obj, "App::PropertyString", "SteveCADTimelineEditCommand",
                                   "Edit this sheet source's exact parameters")
-        obj.VibeCADTimelineEditCommand = "SheetMetal_EditSource"
+        obj.SteveCADTimelineEditCommand = "SheetMetal_EditSource"
         if replaced or prepared.container is None or prepared.container.TypeId != "PartDesign::Body":
             finalize_new_timeline_operation(obj)
         else:

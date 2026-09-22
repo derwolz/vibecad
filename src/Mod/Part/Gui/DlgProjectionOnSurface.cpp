@@ -310,14 +310,14 @@ void recordAcceptedProjection(const Part::ProjectOnSurface& projection, bool cre
     manager->addLine(Gui::MacroManager::App, "import Part");
     manager->addLine(
         Gui::MacroManager::App,
-        ("__vibecad_projection_doc = App.getDocument("
+        ("__stevecad_projection_doc = App.getDocument("
          + pythonString(document->getName()) + ")")
             .c_str()
     );
     if (createFeature) {
         manager->addLine(
             Gui::MacroManager::App,
-            ("__vibecad_projection = __vibecad_projection_doc.addObject("
+            ("__stevecad_projection = __stevecad_projection_doc.addObject("
              "'Part::ProjectOnSurface'," + pythonString(projection.getNameInDocument()) + ")")
                 .c_str()
         );
@@ -325,12 +325,12 @@ void recordAcceptedProjection(const Part::ProjectOnSurface& projection, bool cre
     else {
         manager->addLine(
             Gui::MacroManager::App,
-            ("__vibecad_projection = " + pythonObjectReference(&projection)).c_str()
+            ("__stevecad_projection = " + pythonObjectReference(&projection)).c_str()
         );
     }
     manager->addLine(
         Gui::MacroManager::App,
-        ("__vibecad_projection.SupportFace = "
+        ("__stevecad_projection.SupportFace = "
          + pythonLinkSub(
              projection.SupportFace.getValue(),
              projection.SupportFace.getSubValues()
@@ -339,7 +339,7 @@ void recordAcceptedProjection(const Part::ProjectOnSurface& projection, bool cre
     );
     manager->addLine(
         Gui::MacroManager::App,
-        ("__vibecad_projection.Projection = "
+        ("__stevecad_projection.Projection = "
          + pythonLinkSubList(
              projection.Projection.getValues(),
              projection.Projection.getSubValues()
@@ -348,22 +348,22 @@ void recordAcceptedProjection(const Part::ProjectOnSurface& projection, bool cre
     );
     manager->addLine(
         Gui::MacroManager::App,
-        ("__vibecad_projection.Mode = "
+        ("__stevecad_projection.Mode = "
          + pythonString(projection.Mode.getValueAsString()))
             .c_str()
     );
     manager->addLine(
         Gui::MacroManager::App,
-        ("__vibecad_projection.Height = " + pythonFloat(projection.Height.getValue())).c_str()
+        ("__stevecad_projection.Height = " + pythonFloat(projection.Height.getValue())).c_str()
     );
     manager->addLine(
         Gui::MacroManager::App,
-        ("__vibecad_projection.Offset = " + pythonFloat(projection.Offset.getValue())).c_str()
+        ("__stevecad_projection.Offset = " + pythonFloat(projection.Offset.getValue())).c_str()
     );
     const auto direction = projection.Direction.getValue();
     manager->addLine(
         Gui::MacroManager::App,
-        ("__vibecad_projection.Direction = App.Vector("
+        ("__stevecad_projection.Direction = App.Vector("
          + pythonFloat(direction.x) + "," + pythonFloat(direction.y) + ","
          + pythonFloat(direction.z) + ")")
             .c_str()
@@ -372,25 +372,25 @@ void recordAcceptedProjection(const Part::ProjectOnSurface& projection, bool cre
     if (createFeature && parent) {
         manager->addLine(
             Gui::MacroManager::App,
-            ("__vibecad_projection_parent = " + pythonObjectReference(parent)).c_str()
+            ("__stevecad_projection_parent = " + pythonObjectReference(parent)).c_str()
         );
         manager->addLine(
             Gui::MacroManager::App,
-            "__vibecad_projection_parent.addObject(__vibecad_projection)"
+            "__stevecad_projection_parent.addObject(__stevecad_projection)"
         );
         manager->addLine(
             Gui::MacroManager::App,
-            "if hasattr(__vibecad_projection_parent, 'Tip'): "
-            "__vibecad_projection_parent.Tip = __vibecad_projection"
+            "if hasattr(__stevecad_projection_parent, 'Tip'): "
+            "__stevecad_projection_parent.Tip = __stevecad_projection"
         );
     }
-    manager->addLine(Gui::MacroManager::App, "__vibecad_projection_doc.recompute()");
+    manager->addLine(Gui::MacroManager::App, "__stevecad_projection_doc.recompute()");
     manager->addLine(
         Gui::MacroManager::App,
         createFeature && parent
-            ? "del __vibecad_projection_parent, __vibecad_projection, "
-              "__vibecad_projection_doc"
-            : "del __vibecad_projection, __vibecad_projection_doc"
+            ? "del __stevecad_projection_parent, __stevecad_projection, "
+              "__stevecad_projection_doc"
+            : "del __stevecad_projection, __stevecad_projection_doc"
     );
 }
 

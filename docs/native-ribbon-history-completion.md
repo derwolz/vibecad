@@ -1,7 +1,7 @@
 # Native Ribbon and History Completion Ledger
 
 Status: In Progress
-Scope owner: VibeCAD native human-tool experience
+Scope owner: SteveCAD native human-tool experience
 Last updated: 2026-07-31
 
 This is the completion ledger for the current effort. It is intentionally
@@ -11,7 +11,7 @@ remains.
 
 ## Fixed scope
 
-VibeCAD must provide:
+SteveCAD must provide:
 
 1. One Fusion-style global History timeline at the bottom of the application.
 2. A clear design model and tree: the Design owns reusable Sketches and global
@@ -26,7 +26,7 @@ VibeCAD must provide:
 6. Correct native lifecycle behavior: create, edit, accept, cancel, delete,
    suppress, unsuppress, undo, redo, save, reopen, and switch ribbons without
    crashes, abandoned geometry, duplicated rendering, or hidden state changes.
-7. Every remaining shipped native workbench has a deliberate VibeCAD ribbon
+7. Every remaining shipped native workbench has a deliberate SteveCAD ribbon
    home: Surface in Model, Points and Reverse Engineering in Mesh, Spreadsheet
    in a clear Parameters surface, and Robot in Assemble or Manufacture
    according to command purpose. Draft is deliberately excluded: Sketcher owns

@@ -338,7 +338,7 @@ def _validate_result(
         or result not in tuple(job.Operations.Group or ())
         or base in tuple(job.Operations.Group or ())
         or not document.isProvisionallyEnrolledInTimelineByCurrentTransaction(result)
-        or tuple(result.VibeCADTimelineReplacedInputs)
+        or tuple(result.SteveCADTimelineReplacedInputs)
         != ((base,) if base_was_visible else ())
         or bool(base.ViewObject.Visibility)
         or not bool(result.ViewObject.Visibility)

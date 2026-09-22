@@ -245,12 +245,12 @@ void ViewProviderGeometryObject::prepareBoundingBox()
         // Property copies preserve the geometry's transform and detach the
         // worker lifetime from document/property deletion. Never give a worker
         // a live document property or a Coin node.
-        const bool trace = qEnvironmentVariableIsSet("VIBECAD_RESTORE_DETAIL_TRACE");
+        const bool trace = qEnvironmentVariableIsSet("STEVECAD_RESTORE_DETAIL_TRACE");
         QElapsedTimer capture;
         if (trace) { capture.start(); }
         std::unique_ptr<App::Property> snapshot(geometry->Copy());
         if (trace) {
-            Base::Console().message("VIBECAD_PROJECTION bounds_capture elapsed_us=%lld\n",
+            Base::Console().message("STEVECAD_PROJECTION bounds_capture elapsed_us=%lld\n",
                                     static_cast<long long>(capture.nsecsElapsed() / 1000));
         }
         boundingBoxRequest->cancellation = std::stop_source {};

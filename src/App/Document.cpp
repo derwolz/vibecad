@@ -850,7 +850,7 @@ void Document::beginPresentationUpdate() const
 
 void Document::endPresentationUpdate() const
 {
-    const bool tracePresentation = std::getenv("VIBECAD_RESTORE_DETAIL_TRACE") != nullptr;
+    const bool tracePresentation = std::getenv("STEVECAD_RESTORE_DETAIL_TRACE") != nullptr;
     const auto presentationStarted = std::chrono::steady_clock::now();
     bool ready = false;
     bool mutationReady = false;
@@ -887,7 +887,7 @@ void Document::endPresentationUpdate() const
             std::chrono::steady_clock::now() - presentationStarted
         ).count();
         Base::Console().message(
-            "VIBECAD_RESTORE_DETAIL presentation_release signal_ms=%lld\n",
+            "STEVECAD_RESTORE_DETAIL presentation_release signal_ms=%lld\n",
             static_cast<long long>(elapsed)
         );
     }
@@ -2200,7 +2200,7 @@ static void loadDeps(
 
 std::vector<DocumentObject*> Document::readObjects(Base::XMLReader& reader)
 {
-    const bool traceRestore = std::getenv("VIBECAD_RESTORE_DETAIL_TRACE") != nullptr;
+    const bool traceRestore = std::getenv("STEVECAD_RESTORE_DETAIL_TRACE") != nullptr;
     const auto objectsStarted = std::chrono::steady_clock::now();
     d->touchedObjs.clear();
     bool keepDigits = testStatus(Document::KeepTrailingDigits);
@@ -2360,7 +2360,7 @@ std::vector<DocumentObject*> Document::readObjects(Base::XMLReader& reader)
             ).count();
             if (elapsed >= 20) {
                 Base::Console().message(
-                    "VIBECAD_RESTORE_DETAIL create_object index=%d count=%d type=%s name=%s "
+                    "STEVECAD_RESTORE_DETAIL create_object index=%d count=%d type=%s name=%s "
                     "elapsed_ms=%lld\n",
                     i + 1,
                     Cnt,
@@ -2422,7 +2422,7 @@ std::vector<DocumentObject*> Document::readObjects(Base::XMLReader& reader)
                 ).count();
                 if (elapsed >= 20) {
                     Base::Console().message(
-                        "VIBECAD_RESTORE_DETAIL restore_object index=%d count=%d type=%s name=%s "
+                        "STEVECAD_RESTORE_DETAIL restore_object index=%d count=%d type=%s name=%s "
                         "elapsed_ms=%lld\n",
                         i + 1,
                         Cnt,
@@ -2452,7 +2452,7 @@ std::vector<DocumentObject*> Document::readObjects(Base::XMLReader& reader)
             return std::chrono::duration_cast<std::chrono::milliseconds>(end - begin).count();
         };
         Base::Console().message(
-            "VIBECAD_RESTORE_DETAIL object_phases count=%d create_ms=%lld restore_ms=%lld "
+            "STEVECAD_RESTORE_DETAIL object_phases count=%d create_ms=%lld restore_ms=%lld "
             "total_ms=%lld\n",
             Cnt,
             static_cast<long long>(elapsed(objectsStarted, objectsCreated)),
@@ -2805,14 +2805,14 @@ bool Document::saveToFile(const char* inputFilename) const
     // Start-save observers may change FileName. Keep the requested target alive.
     const std::string requestedFilename(inputFilename);
     const char* filename = requestedFilename.c_str();
-    const bool traceSave = std::getenv("VIBECAD_RESTORE_DETAIL_TRACE") != nullptr;
+    const bool traceSave = std::getenv("STEVECAD_RESTORE_DETAIL_TRACE") != nullptr;
     auto phaseStarted = std::chrono::steady_clock::now();
     const auto tracePhase = [&](const char* phase) {
         if (!traceSave) { return; }
         const auto now = std::chrono::steady_clock::now();
         const auto elapsed = std::chrono::duration<double, std::milli>(now - phaseStarted).count();
         Base::Console().message(
-            "VIBECAD_SAVE_DETAIL phase=%s document=%s thread=%s elapsed_ms=%.3f\n",
+            "STEVECAD_SAVE_DETAIL phase=%s document=%s thread=%s elapsed_ms=%.3f\n",
             phase, getName(), MainThreadSignalConfig::isMainThread() ? "gui" : "worker", elapsed);
         phaseStarted = now;
     };
@@ -3018,7 +3018,7 @@ bool Document::isAnyRestoring()
 void Document::restore(const char* filename, bool delaySignal, const std::vector<std::string>& objNames)
 {
     Base::CancellationScope::check();
-    const bool traceRestore = std::getenv("VIBECAD_RESTORE_DETAIL_TRACE") != nullptr;
+    const bool traceRestore = std::getenv("STEVECAD_RESTORE_DETAIL_TRACE") != nullptr;
     const auto restoreStarted = std::chrono::steady_clock::now();
     RestorePresentationStartGuard restorePresentation(*this, d->restorePresentationDepth);
 
@@ -3125,7 +3125,7 @@ void Document::restore(const char* filename, bool delaySignal, const std::vector
             return std::chrono::duration_cast<std::chrono::milliseconds>(end - begin).count();
         };
         Base::Console().message(
-            "VIBECAD_RESTORE_DETAIL document_restore document_xml_ms=%lld embedded_files_ms=%lld "
+            "STEVECAD_RESTORE_DETAIL document_restore document_xml_ms=%lld embedded_files_ms=%lld "
             "after_restore_ms=%lld total_ms=%lld\n",
             static_cast<long long>(elapsed(restoreStarted, documentXmlRestored)),
             static_cast<long long>(elapsed(documentXmlRestored, embeddedFilesRestored)),
@@ -3147,7 +3147,7 @@ void Document::abandonRestore()
 
 bool Document::afterRestore(const bool checkPartial)
 {
-    const bool traceRestore = std::getenv("VIBECAD_RESTORE_DETAIL_TRACE") != nullptr;
+    const bool traceRestore = std::getenv("STEVECAD_RESTORE_DETAIL_TRACE") != nullptr;
     const auto restoreStarted = std::chrono::steady_clock::now();
     RestorePresentationFinishGuard restorePresentation(*this, d->restorePresentationDepth);
 
@@ -3169,7 +3169,7 @@ bool Document::afterRestore(const bool checkPartial)
             finishSignalComplete - restoreStarted
         ).count();
         Base::Console().message(
-            "VIBECAD_RESTORE_DETAIL after_restore finish_signal_ms=%lld\n",
+            "STEVECAD_RESTORE_DETAIL after_restore finish_signal_ms=%lld\n",
             static_cast<long long>(elapsed)
         );
     }
@@ -3178,7 +3178,7 @@ bool Document::afterRestore(const bool checkPartial)
 
 bool Document::afterRestore(const std::vector<DocumentObject*>& objArray, bool checkPartial)
 {
-    const bool traceRestore = std::getenv("VIBECAD_RESTORE_DETAIL_TRACE") != nullptr;
+    const bool traceRestore = std::getenv("STEVECAD_RESTORE_DETAIL_TRACE") != nullptr;
     const auto restoreStarted = std::chrono::steady_clock::now();
     Base::SequencerLauncher finalizeRestore(
         "Finalizing restored document...",
@@ -3223,7 +3223,7 @@ bool Document::afterRestore(const std::vector<DocumentObject*>& objArray, bool c
             ).count();
             if (elapsed >= 20) {
                 Base::Console().message(
-                    "VIBECAD_RESTORE_DETAIL property_after_restore type=%s name=%s elapsed_ms=%lld\n",
+                    "STEVECAD_RESTORE_DETAIL property_after_restore type=%s name=%s elapsed_ms=%lld\n",
                     obj->getTypeId().getName(),
                     obj->getNameInDocument(),
                     static_cast<long long>(elapsed)
@@ -3340,7 +3340,7 @@ bool Document::afterRestore(const std::vector<DocumentObject*>& objArray, bool c
             ).count();
             if (elapsed >= 20) {
                 Base::Console().message(
-                    "VIBECAD_RESTORE_DETAIL finalize_object type=%s name=%s elapsed_ms=%lld\n",
+                    "STEVECAD_RESTORE_DETAIL finalize_object type=%s name=%s elapsed_ms=%lld\n",
                     obj->getTypeId().getName(),
                     obj->getNameInDocument(),
                     static_cast<long long>(elapsed)
@@ -3356,7 +3356,7 @@ bool Document::afterRestore(const std::vector<DocumentObject*>& objArray, bool c
             return std::chrono::duration_cast<std::chrono::milliseconds>(end - begin).count();
         };
         Base::Console().message(
-            "VIBECAD_RESTORE_DETAIL after_restore_phases count=%llu property_ms=%lld "
+            "STEVECAD_RESTORE_DETAIL after_restore_phases count=%llu property_ms=%lld "
             "dependency_ms=%lld finalize_ms=%lld total_ms=%lld\n",
             static_cast<unsigned long long>(objArray.size()),
             static_cast<long long>(elapsed(restoreStarted, propertiesRestored)),
@@ -4669,7 +4669,7 @@ DocumentObject* Document::addObject(
 {
     checkArchiveMutation(*d);
     const bool traceRestore = testStatus(Status::Restoring)
-        && std::getenv("VIBECAD_RESTORE_DETAIL_TRACE") != nullptr;
+        && std::getenv("STEVECAD_RESTORE_DETAIL_TRACE") != nullptr;
     const auto traceStart = std::chrono::steady_clock::now();
     const Base::Type type
         = Base::Type::getTypeIfDerivedFrom(sType, DocumentObject::getClassTypeId(), true);
@@ -4707,7 +4707,7 @@ DocumentObject* Document::addObject(
         const auto total = elapsed(traceStart, objectAdded);
         if (total >= 20) {
             Base::Console().message(
-                "VIBECAD_RESTORE_DETAIL add_object type=%.*s name=%s type_lookup_ms=%lld "
+                "STEVECAD_RESTORE_DETAIL add_object type=%.*s name=%s type_lookup_ms=%lld "
                 "create_instance_ms=%lld register_and_signal_ms=%lld total_ms=%lld\n",
                 static_cast<int>(sType.size()),
                 sType.data(),

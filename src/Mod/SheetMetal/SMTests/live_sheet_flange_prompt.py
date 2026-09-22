@@ -85,8 +85,8 @@ class LiveSheetFlangePrompt(live.LiveSheetPrompt):
         self.assertEqual(float(flange.length), 20)
         self.assertEqual(float(flange.angle), 90)
         self.assertEqual(float(flange.radius), 2)
-        self.assertEqual(flange.VibeCADTimelineRole, "operation")
-        self.assertEqual(flange.VibeCADTimelineEditCommand, "SheetMetal_EditSource")
+        self.assertEqual(flange.SteveCADTimelineRole, "operation")
+        self.assertEqual(flange.SteveCADTimelineEditCommand, "SheetMetal_EditSource")
         bounds = cut.Shape.BoundBox
         for name in flange.baseObject[1]:
             boundary = cut.Shape.getElement(name).BoundBox

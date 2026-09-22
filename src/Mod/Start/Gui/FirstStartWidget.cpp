@@ -71,25 +71,25 @@ void FirstStartWidget::setupUi()
     headerLayout->setSpacing(18);
 
     auto mark = gsl::owner<QLabel*>(new QLabel);
-    mark->setObjectName(QLatin1String("VibeCADFirstStartMark"));
-    mark->setPixmap(QIcon(QLatin1String(":/icons/vibecad.svg")).pixmap(72, 72));
+    mark->setObjectName(QLatin1String("SteveCADFirstStartMark"));
+    mark->setPixmap(QIcon(QLatin1String(":/icons/stevecad.svg")).pixmap(72, 72));
     mark->setFixedSize(72, 72);
     headerLayout->addWidget(mark, 0, Qt::AlignTop);
 
     auto welcomeLayout = gsl::owner<QVBoxLayout*>(new QVBoxLayout);
     welcomeLayout->setSpacing(4);
     _welcomeLabel = gsl::owner<QLabel*>(new QLabel);
-    _welcomeLabel->setObjectName(QLatin1String("VibeCADFirstStartTitle"));
+    _welcomeLabel->setObjectName(QLatin1String("SteveCADFirstStartTitle"));
     welcomeLayout->addWidget(_welcomeLabel);
     _descriptionLabel = gsl::owner<QLabel*>(new QLabel);
-    _descriptionLabel->setObjectName(QLatin1String("VibeCADFirstStartDescription"));
+    _descriptionLabel->setObjectName(QLatin1String("SteveCADFirstStartDescription"));
     _descriptionLabel->setWordWrap(true);
     welcomeLayout->addWidget(_descriptionLabel);
     headerLayout->addLayout(welcomeLayout, 1);
     outerLayout->addLayout(headerLayout);
 
     auto aiCard = gsl::owner<QFrame*>(new QFrame);
-    aiCard->setObjectName(QLatin1String("VibeCADAISetupCard"));
+    aiCard->setObjectName(QLatin1String("SteveCADAISetupCard"));
     auto aiCardLayout = gsl::owner<QVBoxLayout*>(new QVBoxLayout(aiCard));
     aiCardLayout->setContentsMargins(20, 18, 20, 18);
     aiCardLayout->setSpacing(18);
@@ -97,10 +97,10 @@ void FirstStartWidget::setupUi()
     auto aiTextLayout = gsl::owner<QVBoxLayout*>(new QVBoxLayout);
     aiTextLayout->setSpacing(4);
     _aiTitleLabel = gsl::owner<QLabel*>(new QLabel);
-    _aiTitleLabel->setObjectName(QLatin1String("VibeCADAISetupTitle"));
+    _aiTitleLabel->setObjectName(QLatin1String("SteveCADAISetupTitle"));
     aiTextLayout->addWidget(_aiTitleLabel);
     _aiDescriptionLabel = gsl::owner<QLabel*>(new QLabel);
-    _aiDescriptionLabel->setObjectName(QLatin1String("VibeCADAISetupDescription"));
+    _aiDescriptionLabel->setObjectName(QLatin1String("SteveCADAISetupDescription"));
     _aiDescriptionLabel->setWordWrap(true);
     aiTextLayout->addWidget(_aiDescriptionLabel);
     aiCardLayout->addLayout(aiTextLayout, 1);
@@ -108,7 +108,7 @@ void FirstStartWidget::setupUi()
     auto aiButtonLayout = gsl::owner<QHBoxLayout*>(new QHBoxLayout);
     aiButtonLayout->addStretch();
     _configureAIButton = gsl::owner<QPushButton*>(new QPushButton);
-    _configureAIButton->setObjectName(QLatin1String("VibeCADFirstStartConfigureAI"));
+    _configureAIButton->setObjectName(QLatin1String("SteveCADFirstStartConfigureAI"));
     _configureAIButton->setProperty("vibeStartPrimary", true);
     _configureAIButton->setIcon(QIcon(QLatin1String(":/icons/preferences-general.svg")));
     connect(
@@ -120,8 +120,8 @@ void FirstStartWidget::setupUi()
     aiButtonLayout->addWidget(_configureAIButton);
 
     _openAssistantButton = gsl::owner<QPushButton*>(new QPushButton);
-    _openAssistantButton->setObjectName(QLatin1String("VibeCADFirstStartOpenAssistant"));
-    _openAssistantButton->setIcon(QIcon(QLatin1String(":/icons/vibecad.svg")));
+    _openAssistantButton->setObjectName(QLatin1String("SteveCADFirstStartOpenAssistant"));
+    _openAssistantButton->setIcon(QIcon(QLatin1String(":/icons/stevecad.svg")));
     connect(
         _openAssistantButton,
         &QPushButton::clicked,
@@ -133,7 +133,7 @@ void FirstStartWidget::setupUi()
     outerLayout->addWidget(aiCard);
 
     _personalizeLabel = gsl::owner<QLabel*>(new QLabel);
-    _personalizeLabel->setObjectName(QLatin1String("VibeCADFirstStartSectionTitle"));
+    _personalizeLabel->setObjectName(QLatin1String("SteveCADFirstStartSectionTitle"));
     outerLayout->addWidget(_personalizeLabel);
 
     _themeSelectorWidget = gsl::owner<ThemeSelectorWidget*>(new ThemeSelectorWidget(this));
@@ -143,7 +143,7 @@ void FirstStartWidget::setupUi()
     outerLayout->addWidget(_themeSelectorWidget);
 
     _doneButton = gsl::owner<QPushButton*>(new QPushButton);
-    _doneButton->setObjectName(QLatin1String("VibeCADFirstStartContinue"));
+    _doneButton->setObjectName(QLatin1String("SteveCADFirstStartContinue"));
     connect(_doneButton, &QPushButton::clicked, this, &FirstStartWidget::dismissed);
     auto buttonBar = gsl::owner<QHBoxLayout*>(new QHBoxLayout);
     buttonBar->setAlignment(Qt::AlignRight);
@@ -164,7 +164,7 @@ bool FirstStartWidget::eventFilter(QObject* object, QEvent* event)
 void FirstStartWidget::retranslateUi()
 {
     _doneButton->setText(tr("Continue to Start"));
-    _welcomeLabel->setText(tr("Welcome to VibeCAD"));
+    _welcomeLabel->setText(tr("Welcome to SteveCAD"));
     _descriptionLabel->setText(
         tr("Set up your AI collaborator and make the workspace yours. You can change every "
            "option later in Preferences.")
@@ -172,7 +172,7 @@ void FirstStartWidget::retranslateUi()
     _aiTitleLabel->setText(tr("1. Connect your AI"));
     _aiDescriptionLabel->setText(
         tr("Use a ChatGPT subscription, OpenAI or Anthropic API key, or an X / Grok account. "
-           "VibeCAD keeps sign-in and provider settings in its existing secure setup flow.")
+           "SteveCAD keeps sign-in and provider settings in its existing secure setup flow.")
     );
     _configureAIButton->setText(tr("Set up AI"));
     _openAssistantButton->setText(tr("Open Assistant"));

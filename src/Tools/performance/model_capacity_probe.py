@@ -23,12 +23,12 @@ def main():
     if args.components < 2:
         parser.error('--components must be at least 2 for the revolute joint')
     sys.path.insert(0, str(args.module_dir.resolve()))
-    import VibeCADVibeScriptDomainRuntime as runtime
-    from VibeCADAssemblyHierarchy import capture_assembly_hierarchy, hierarchy_context
-    from VibeCADVibeScriptDomains import get_vibescript_pack
+    import SteveCADVibeScriptDomainRuntime as runtime
+    from SteveCADAssemblyHierarchy import capture_assembly_hierarchy, hierarchy_context
+    from SteveCADVibeScriptDomains import get_vibescript_pack
     from vibescript_assembly_worker import _load_assembly_hierarchy
     import vibescript_domain_worker as worker
-    from vibecad_tests.assembly_vibescript_api_integration import (
+    from stevecad_tests.assembly_vibescript_api_integration import (
         _Service, _document_objects, _reference_schema, resolve_modeling_surface,
     )
 
@@ -39,7 +39,7 @@ def main():
         print(json.dumps(dict(event=event, seconds=round(time.perf_counter() - started, 3),
                               **values)), flush=True)
 
-    with tempfile.TemporaryDirectory(prefix='vibecad-model-capacity-') as directory:
+    with tempfile.TemporaryDirectory(prefix='stevecad-model-capacity-') as directory:
         root = Path(directory)
         document = App.newDocument('ModelCapacity')
         try:

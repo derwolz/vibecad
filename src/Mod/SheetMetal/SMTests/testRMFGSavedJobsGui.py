@@ -58,7 +58,7 @@ class TestRMFGSavedJobsGui(unittest.TestCase):
         self.client.create_quote.assert_not_called()
         self.assertEqual(before, (self.model.doc.UndoCount, self.model.sheet.PreparedInputHash))
         QtWidgets.QApplication.processEvents()
-        self.panel.grab().save(str(Path(os.environ["VIBECAD_TEST_OUTPUT"])/"rmfg-saved-jobs.png"))
+        self.panel.grab().save(str(Path(os.environ["STEVECAD_TEST_OUTPUT"])/"rmfg-saved-jobs.png"))
 
     def test_stale_job_can_be_inspected_but_cannot_replace_the_current_quote(self):
         self.model.sheet.Label = "New revision"

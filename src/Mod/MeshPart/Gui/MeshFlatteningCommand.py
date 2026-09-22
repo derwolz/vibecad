@@ -30,11 +30,11 @@ import PartGui
 import MeshPartGui  # noqa: F401 - registers MeshPart GUI types
 
 from PySide.QtCore import QT_TRANSLATE_NOOP  # for translations
-from VibeCADNativeTransaction import _OwnedDocumentTransaction
+from SteveCADNativeTransaction import _OwnedDocumentTransaction
 
 
-_TIMELINE_ROLE = "VibeCADTimelineRole"
-_TIMELINE_OWNER = "VibeCADTimelineOwner"
+_TIMELINE_ROLE = "SteveCADTimelineRole"
+_TIMELINE_OWNER = "SteveCADTimelineOwner"
 
 
 def _ensure_hidden_property(obj, type_id, name, description):

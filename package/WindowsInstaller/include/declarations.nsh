@@ -30,10 +30,10 @@ Configuration and variables of FreeCAD installer
 !define APP_WEBPAGE_INFO "${APP_NAME} Website"
 !define APP_WIKI "https://github.com/10-X-eng/vibecad"
 !define APP_WIKI_INFO "${APP_NAME} Project"
-!define APP_COPYRIGHT "Copyright © 2001-${COPYRIGHT_YEAR} FreeCAD and VibeCAD contributors"
+!define APP_COPYRIGHT "Copyright © 2001-${COPYRIGHT_YEAR} FreeCAD and SteveCAD contributors"
 
-!define APP_RUN "bin\VibeCAD.exe"
-!define BIN_FREECAD "VibeCAD.exe"
+!define APP_RUN "bin\SteveCAD.exe"
+!define BIN_FREECAD "SteveCAD.exe"
 
 !define APP_REGKEY "SOFTWARE\${APP_NAME}${APP_SERIES_KEY}" # like "FreeCAD0180"
 !define APP_REGKEY_SETUP "${APP_REGKEY}\Setup"
@@ -57,9 +57,9 @@ Configuration and variables of FreeCAD installer
 
 !define SETUP_EXE ${ExeFile}
 
-!define SETUP_ICON "icons\VibeCAD.ico"
-!define SETUP_HEADERIMAGE "graphics\vibecad-header.bmp"
-!define SETUP_WIZARDIMAGE "graphics\vibecad-banner.bmp"
+!define SETUP_ICON "icons\SteveCAD.ico"
+!define SETUP_HEADERIMAGE "graphics\stevecad-header.bmp"
+!define SETUP_WIZARDIMAGE "graphics\stevecad-banner.bmp"
 !define SETUP_UNINSTALLER "Uninstall-${APP_NAME}.exe"
 !define SETUP_UNINSTALLER_KEY "${APP_NAME}${APP_SERIES_KEY}"
 
@@ -77,17 +77,17 @@ Var Pointer
 Var Search
 Var StartmenuFolder
 Var String
-Var VibeCADUpdateBackupDir
-Var VibeCADUpdateFailedDir
-Var VibeCADUpdateInstallRoot
-Var VibeCADUpdateMode
-Var VibeCADInstalledBuild
-Var VibeCADInstalledDisplayVersion
-Var VibeCADInstalledDisposition
-Var VibeCADInstalledInstallRoot
-Var VibeCADInstalledPatch
-Var VibeCADInstalledReleaseVersion
-Var VibeCADInstalledUninstallString
-Var VibeCADInstalledUpdateVersion
+Var SteveCADUpdateBackupDir
+Var SteveCADUpdateFailedDir
+Var SteveCADUpdateInstallRoot
+Var SteveCADUpdateMode
+Var SteveCADInstalledBuild
+Var SteveCADInstalledDisplayVersion
+Var SteveCADInstalledDisposition
+Var SteveCADInstalledInstallRoot
+Var SteveCADInstalledPatch
+Var SteveCADInstalledReleaseVersion
+Var SteveCADInstalledUninstallString
+Var SteveCADInstalledUpdateVersion
 Var UserList
 Var LangName

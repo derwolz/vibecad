@@ -46,14 +46,14 @@ def mark_operation(obj):
     _ensure_property(
         obj,
         "App::PropertyString",
-        "VibeCADTimelineRole",
+        "SteveCADTimelineRole",
         "Document timeline classification",
     )
-    if "VibeCADTimelineOwner" in obj.PropertiesList:
+    if "SteveCADTimelineOwner" in obj.PropertiesList:
         if (
-            obj.getTypeIdOfProperty("VibeCADTimelineOwner")
+            obj.getTypeIdOfProperty("SteveCADTimelineOwner")
             != "App::PropertyLinkHidden"
-            or obj.VibeCADTimelineOwner is not None
+            or obj.SteveCADTimelineOwner is not None
         ):
             raise TypeError(
                 "A Part Design operation cannot retain resource-owner metadata"
@@ -61,10 +61,10 @@ def mark_operation(obj):
         _ensure_property(
             obj,
             "App::PropertyLinkHidden",
-            "VibeCADTimelineOwner",
+            "SteveCADTimelineOwner",
             "Semantic history operation which owns this implementation object",
         )
-    obj.VibeCADTimelineRole = "operation"
+    obj.SteveCADTimelineRole = "operation"
     return obj
 
 
@@ -81,7 +81,7 @@ def mark_resource(obj, owner):
         raise ValueError(
             "A Part Design resource and distinct owner must share a document"
         )
-    if "VibeCADTimelineReplacedInputs" in obj.PropertiesList:
+    if "SteveCADTimelineReplacedInputs" in obj.PropertiesList:
         raise TypeError(
             "A Part Design resource cannot carry replaced-input metadata"
         )
@@ -90,22 +90,22 @@ def mark_resource(obj, owner):
     _ensure_property(
         obj,
         "App::PropertyString",
-        "VibeCADTimelineRole",
+        "SteveCADTimelineRole",
         "Document timeline classification",
     )
     _ensure_property(
         obj,
         "App::PropertyLinkHidden",
-        "VibeCADTimelineOwner",
+        "SteveCADTimelineOwner",
         "Semantic history operation which owns this implementation object",
     )
-    current_owner = obj.VibeCADTimelineOwner
+    current_owner = obj.SteveCADTimelineOwner
     if current_owner is not None and current_owner is not owner:
         raise ValueError(
             f"{obj.Name} is already owned by {current_owner.Name}"
         )
-    obj.VibeCADTimelineOwner = owner
-    obj.VibeCADTimelineRole = "resource"
+    obj.SteveCADTimelineOwner = owner
+    obj.SteveCADTimelineRole = "resource"
     return obj
 
 

@@ -20,7 +20,7 @@ def update(monkeypatch):
             events.append("commit")
         def abort(self):
             events.append("abort")
-    monkeypatch.setitem(sys.modules, "VibeCADNativeTransaction", SimpleNamespace(
+    monkeypatch.setitem(sys.modules, "SteveCADNativeTransaction", SimpleNamespace(
         _OwnedDocumentTransaction=Owned
     ))
     spec = importlib.util.spec_from_file_location("scs_update_test",
@@ -70,7 +70,7 @@ def test_busy_document_is_not_mutated(update, flag):
 
 def test_commit_failure_does_not_change_a_retained_commit_into_abort(update, monkeypatch):
     module, doc, events = update
-    owner = sys.modules["VibeCADNativeTransaction"]._OwnedDocumentTransaction
+    owner = sys.modules["SteveCADNativeTransaction"]._OwnedDocumentTransaction
     def commit(self):
         events.append("commit")
         raise RuntimeError("close retained")

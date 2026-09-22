@@ -99,7 +99,7 @@ Gui::ToolBarItem* Workbench::setupToolBars() const
 
     Gui::ToolBarItem* model = new Gui::ToolBarItem(root);
     model->setCommand("Model");
-    *model << "VibeCAD_AnalyzeStudySetup"
+    *model << "SteveCAD_AnalyzeStudySetup"
            << "Separator"
            << "FEM_MaterialSolid"
            << "FEM_MaterialFluid"

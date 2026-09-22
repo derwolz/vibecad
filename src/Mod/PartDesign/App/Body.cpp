@@ -51,9 +51,9 @@ Body::Body()
     ADD_PROPERTY_TYPE(AllowCompound, (true), "Base", App::Prop_None, "Allow multiple solids in Body");
     Base::Uuid bodyId;
     ADD_PROPERTY_TYPE(
-        VibeCADBodyId,
+        SteveCADBodyId,
         (bodyId),
-        "VibeCAD Design",
+        "SteveCAD Design",
         static_cast<App::PropertyType>(App::Prop_ReadOnly),
         "Persistent identity of this physical Body"
     );
@@ -61,14 +61,14 @@ Body::Body()
     ADD_PROPERTY_TYPE(
         DesignId,
         (designId),
-        "VibeCAD Design",
+        "SteveCAD Design",
         static_cast<App::PropertyType>(App::Prop_ReadOnly | App::Prop_Hidden),
         "Persistent identity of the Design which owns this Body"
     );
     ADD_PROPERTY_TYPE(
         ComponentId,
         (""),
-        "VibeCAD Design",
+        "SteveCAD Design",
         static_cast<App::PropertyType>(App::Prop_ReadOnly | App::Prop_Hidden),
         "Persistent identity of the Component containing this Body"
     );
@@ -101,7 +101,7 @@ bool Body::containsModelingState(const App::DocumentObject* object) const
     }
     const auto* state = freecad_cast<const DesignBodyState*>(object);
     return state && state->getDocument() == getDocument()
-        && state->BodyId.getValueStr() == VibeCADBodyId.getValueStr();
+        && state->BodyId.getValueStr() == SteveCADBodyId.getValueStr();
 }
 
 /*

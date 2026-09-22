@@ -151,7 +151,7 @@ bool isConsumedDesignBody(const App::DocumentObject* body)
 
 std::string vibeScriptOutputType(const App::DocumentObject* object)
 {
-    return stringProperty(object, "VibeCADVibeScriptOutputType");
+    return stringProperty(object, "SteveCADVibeScriptOutputType");
 }
 
 std::string scriptedOutputIdentity(
@@ -159,15 +159,15 @@ std::string scriptedOutputIdentity(
     std::string_view role
 )
 {
-    if (stringProperty(object, "VibeCADScriptedRole") != role
-        || stringProperty(object, "VibeCADScriptedEngine")
+    if (stringProperty(object, "SteveCADScriptedRole") != role
+        || stringProperty(object, "SteveCADScriptedEngine")
             != "vibescript:partdesign") {
         return {};
     }
     const std::string modelId =
-        stringProperty(object, "VibeCADScriptedModelId");
+        stringProperty(object, "SteveCADScriptedModelId");
     const std::string outputKey =
-        stringProperty(object, "VibeCADScriptedOutputKey");
+        stringProperty(object, "SteveCADScriptedOutputKey");
     if (modelId.empty() || outputKey.empty()) {
         return {};
     }
@@ -185,8 +185,8 @@ App::DocumentObject* exactVibeScriptProgramFor(
 )
 {
     if (!document || !isDerivedFrom(operation, "PartDesign::DesignScriptOperation")
-        || stringProperty(operation, "VibeCADScriptedRole") != "implementation"
-        || stringProperty(operation, "VibeCADScriptedEngine") != "vibescript:partdesign") {
+        || stringProperty(operation, "SteveCADScriptedRole") != "implementation"
+        || stringProperty(operation, "SteveCADScriptedEngine") != "vibescript:partdesign") {
         return nullptr;
     }
 
@@ -198,7 +198,7 @@ App::DocumentObject* exactVibeScriptProgramFor(
 
     auto* program = document->getObject(programObjectName.c_str());
     if (!ModelTreeBrowserProjection::isVibeScriptProgram(program)
-        || stringProperty(program, "VibeCADScriptedModelId") != programId) {
+        || stringProperty(program, "SteveCADScriptedModelId") != programId) {
         // Incomplete or conflicting metadata remains at document root so the
         // browser never guesses a semantic owner from labels or link shape.
         return nullptr;
@@ -377,7 +377,7 @@ struct ModelTreeBrowserProjection::Preparation::Data
             return *node.assemblyRole;
         }
         if (published) {
-            return Role::VibeCADOutput;
+            return Role::SteveCADOutput;
         }
         if (owner.body && (node.baseRole == Role::Other || node.baseRole == Role::Geometry)) {
             return Role::Feature;
@@ -498,7 +498,7 @@ bool ModelTreeBrowserProjection::Preparation::captureNext()
         }
         if (node.component) {
             if (auto* names = dynamic_cast<const App::PropertyStringList*>(
-                    object->getPropertyByName("VibeCADPartDesignComponentOccurrenceNames"))) {
+                    object->getPropertyByName("SteveCADPartDesignComponentOccurrenceNames"))) {
                 if (data->occurrenceCursor < names->getValues().size()) {
                     auto* owner = object->getDocument();
                     const auto& name = names->getValues()[data->occurrenceCursor++];
@@ -507,7 +507,7 @@ bool ModelTreeBrowserProjection::Preparation::captureNext()
                 }
             }
             else if (auto* legacy = dynamic_cast<const App::PropertyLinkList*>(
-                         object->getPropertyByName("VibeCADPartDesignComponentOccurrences"))) {
+                         object->getPropertyByName("SteveCADPartDesignComponentOccurrences"))) {
                 if (data->occurrenceCursor < legacy->getValues().size()) {
                     node.occurrences.push_back(legacy->getValues()[data->occurrenceCursor++]);
                     return false;
@@ -1045,9 +1045,9 @@ bool ModelTreeBrowserProjection::isComponent(const App::DocumentObject* object)
 bool ModelTreeBrowserProjection::isVibeScriptProgram(const App::DocumentObject* object)
 {
     return isComponent(object)
-        && stringProperty(object, "VibeCADScriptedRole") == "model"
-        && stringProperty(object, "VibeCADScriptedEngine") == "vibescript:partdesign"
-        && !stringProperty(object, "VibeCADScriptedModelId").empty();
+        && stringProperty(object, "SteveCADScriptedRole") == "model"
+        && stringProperty(object, "SteveCADScriptedEngine") == "vibescript:partdesign"
+        && !stringProperty(object, "SteveCADScriptedModelId").empty();
 }
 
 ModelTreeBrowserProjection::Ownership
@@ -1143,7 +1143,7 @@ ModelTreeBrowserProjection::Role ModelTreeBrowserProjection::classify(
         }
     }
     if (publishedOutput) {
-        return Role::VibeCADOutput;
+        return Role::SteveCADOutput;
     }
     if (isReference(object)) {
         return Role::Reference;

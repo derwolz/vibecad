@@ -168,18 +168,18 @@ def markTimelineOperation(obj):
     _ensure_timeline_property(
         obj,
         "App::PropertyString",
-        "VibeCADTimelineRole",
+        "SteveCADTimelineRole",
         "Document timeline classification",
     )
-    if "VibeCADTimelineOwner" in obj.PropertiesList:
+    if "SteveCADTimelineOwner" in obj.PropertiesList:
         _ensure_timeline_property(
             obj,
             "App::PropertyLinkHidden",
-            "VibeCADTimelineOwner",
+            "SteveCADTimelineOwner",
             "Assembly operation which owns this implementation object",
         )
-        obj.VibeCADTimelineOwner = None
-    obj.VibeCADTimelineRole = "operation"
+        obj.SteveCADTimelineOwner = None
+    obj.SteveCADTimelineRole = "operation"
     return obj
 
 
@@ -192,10 +192,10 @@ def markTimelineOperationEditor(obj, command_name):
     _ensure_timeline_property(
         obj,
         "App::PropertyString",
-        "VibeCADTimelineEditCommand",
+        "SteveCADTimelineEditCommand",
         "Command which edits this document timeline operation",
     )
-    obj.VibeCADTimelineEditCommand = command_name
+    obj.SteveCADTimelineEditCommand = command_name
     return obj
 
 
@@ -213,17 +213,17 @@ def markTimelineResource(obj, owner):
     _ensure_timeline_property(
         obj,
         "App::PropertyString",
-        "VibeCADTimelineRole",
+        "SteveCADTimelineRole",
         "Document timeline classification",
     )
     _ensure_timeline_property(
         obj,
         "App::PropertyLinkHidden",
-        "VibeCADTimelineOwner",
+        "SteveCADTimelineOwner",
         "Assembly operation which owns this implementation object",
     )
-    obj.VibeCADTimelineOwner = owner
-    obj.VibeCADTimelineRole = "resource"
+    obj.SteveCADTimelineOwner = owner
+    obj.SteveCADTimelineRole = "resource"
     return obj
 
 
@@ -277,9 +277,9 @@ def _isAssemblyLinkManagedResource(obj):
     if obj is None:
         return False
     expected = {
-        "VibeCADAssemblySourceDocument": "App::PropertyString",
-        "VibeCADAssemblySourceObjectId": "App::PropertyInteger",
-        "VibeCADAssemblySourceObjectName": "App::PropertyString",
+        "SteveCADAssemblySourceDocument": "App::PropertyString",
+        "SteveCADAssemblySourceObjectId": "App::PropertyInteger",
+        "SteveCADAssemblySourceObjectName": "App::PropertyString",
     }
     present = [
         name in obj.PropertiesList
@@ -297,9 +297,9 @@ def _isAssemblyLinkManagedResource(obj):
                 f"{obj.Name}.{name} must be {type_id}"
             )
     return (
-        bool(obj.VibeCADAssemblySourceDocument)
-        and int(obj.VibeCADAssemblySourceObjectId) >= 0
-        and bool(obj.VibeCADAssemblySourceObjectName)
+        bool(obj.SteveCADAssemblySourceDocument)
+        and int(obj.SteveCADAssemblySourceObjectId) >= 0
+        and bool(obj.SteveCADAssemblySourceObjectName)
     )
 
 
@@ -312,19 +312,19 @@ def _resolveAssemblyLinkManagedSource(obj):
         document
         for document in App.listDocuments().values()
         if str(getattr(document, "Uid", "") or "")
-        == str(obj.VibeCADAssemblySourceDocument)
+        == str(obj.SteveCADAssemblySourceDocument)
     ]
     if len(source_documents) != 1:
         return None
     source_document = source_documents[0]
     source = source_document.getObject(
-        int(obj.VibeCADAssemblySourceObjectId)
+        int(obj.SteveCADAssemblySourceObjectId)
     )
     if (
         source is None
         or source.Document is not source_document
         or source_document.getObject(source.Name) is not source
-        or source.Name != obj.VibeCADAssemblySourceObjectName
+        or source.Name != obj.SteveCADAssemblySourceObjectName
     ):
         return None
     return source
@@ -356,9 +356,9 @@ def _assemblyObjectIsTimelineActive(obj, visiting):
             getattr(obj, "PropertiesList", ())
         )
         managed_names = {
-            "VibeCADAssemblySourceDocument",
-            "VibeCADAssemblySourceObjectId",
-            "VibeCADAssemblySourceObjectName",
+            "SteveCADAssemblySourceDocument",
+            "SteveCADAssemblySourceObjectId",
+            "SteveCADAssemblySourceObjectName",
         }
         if property_names & managed_names:
             source = _resolveAssemblyLinkManagedSource(obj)
@@ -449,7 +449,7 @@ def finalizeInsertedComponentTimeline(occurrence, following_operation=None):
         structural_resources,
     )
 
-    timeline = document.getObject("VibeCADTimeline")
+    timeline = document.getObject("SteveCADTimeline")
     if timeline is None or timeline.TypeId != "App::DocumentTimeline":
         raise RuntimeError(
             "The inserted Assembly occurrence has no native document timeline"
@@ -513,7 +513,7 @@ def finalizeNewPartTimeline(
         [body, occurrence],
     )
 
-    timeline = document.getObject("VibeCADTimeline")
+    timeline = document.getObject("SteveCADTimeline")
     if timeline is None or timeline.TypeId != "App::DocumentTimeline":
         raise RuntimeError(
             "The new Assembly part has no native document timeline"
@@ -542,14 +542,14 @@ def finalizeNewPartTimeline(
 def _timeline_owner(obj):
     if (
         obj is None
-        or getattr(obj, "VibeCADTimelineRole", None) != "resource"
-        or "VibeCADTimelineOwner" not in obj.PropertiesList
-        or obj.getTypeIdOfProperty("VibeCADTimelineOwner")
+        or getattr(obj, "SteveCADTimelineRole", None) != "resource"
+        or "SteveCADTimelineOwner" not in obj.PropertiesList
+        or obj.getTypeIdOfProperty("SteveCADTimelineOwner")
         != "App::PropertyLinkHidden"
     ):
         return None
 
-    owner = obj.VibeCADTimelineOwner
+    owner = obj.SteveCADTimelineOwner
     document = obj.Document
     if (
         owner is None
@@ -566,7 +566,7 @@ def _timeline_root(obj):
 
     current = obj
     visited = set()
-    while getattr(current, "VibeCADTimelineRole", None) == "resource":
+    while getattr(current, "SteveCADTimelineRole", None) == "resource":
         if current in visited:
             return None
         visited.add(current)
@@ -584,7 +584,7 @@ def _isPublishedTimelineOwnerUsable(obj):
         document is not None
         and _document_is_open(document)
         and document.getObject(obj.Name) is obj
-        and getattr(obj, "VibeCADTimelineRole", None)
+        and getattr(obj, "SteveCADTimelineRole", None)
         == "operation"
         and _timeline_root(obj) is obj
         and document.isObjectUsableAtCurrentTimelinePosition(obj)
@@ -617,13 +617,13 @@ def stageTimelineResourceGroupEdit(owner):
     if (
         document is None
         or document.getObject(owner.Name) is not owner
-        or getattr(owner, "VibeCADTimelineRole", None) != "operation"
+        or getattr(owner, "SteveCADTimelineRole", None) != "operation"
         or _timeline_root(owner) is not owner
     ):
         raise ValueError(
             "An Assembly resource edit requires one live tracked operation"
         )
-    timeline = document.getObject("VibeCADTimeline")
+    timeline = document.getObject("SteveCADTimeline")
     if timeline is None or timeline.TypeId != "App::DocumentTimeline":
         raise RuntimeError(
             "The Assembly operation has no native document timeline"
@@ -754,7 +754,7 @@ def synchronizeAssemblyLinkTimelineResources(occurrence):
             "AssemblyLink synchronization requires one live published "
             "occurrence operation"
         )
-    timeline = document.getObject("VibeCADTimeline")
+    timeline = document.getObject("SteveCADTimeline")
     if timeline is None or timeline.TypeId != "App::DocumentTimeline":
         raise RuntimeError(
             "The AssemblyLink occurrence has no native document timeline"

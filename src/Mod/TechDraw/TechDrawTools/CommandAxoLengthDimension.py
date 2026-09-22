@@ -40,7 +40,7 @@ from TechDrawTools.AxoLengthDimension import (
     ParallelAxonometricDirectionsError,
     create_axonometric_length,
 )
-from VibeCADNativeTransaction import _OwnedDocumentTransaction
+from SteveCADNativeTransaction import _OwnedDocumentTransaction
     
 
 class CommandAxoLengthDimension:

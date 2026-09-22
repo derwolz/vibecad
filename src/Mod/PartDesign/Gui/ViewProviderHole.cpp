@@ -135,7 +135,7 @@ PartDesign::Body* bodyWithIdentity(
 {
     PartDesign::Body* result = nullptr;
     for (auto* body : document.getObjectsOfType<PartDesign::Body>()) {
-        if (!body || body->VibeCADBodyId.getValueStr() != bodyId) {
+        if (!body || body->SteveCADBodyId.getValueStr() != bodyId) {
             continue;
         }
         if (result) {

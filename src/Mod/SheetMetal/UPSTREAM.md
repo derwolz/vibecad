@@ -6,7 +6,7 @@ Original authorship, license, module names, and command IDs are retained.
 Repository hosting/editor configuration is not imported. See LICENSE and the
 copyright notices in each source file for attribution.
 
-VibeCAD additions:
+SteveCAD additions:
 
 - CMake build/install integration with runtime icons, panels, and translations.
 - Optional document-owner arguments for material lookup and generated sketches;
@@ -35,8 +35,8 @@ VibeCAD additions:
 
 These compatibility changes were first tested in local SheetMetal commits
 `118247e` and `d5e1efe`; they are not represented as changes already accepted by
-upstream. This directory is the development copy for the VibeCAD integration,
+upstream. This directory is the development copy for the SteveCAD integration,
 not an externally published fork. Subsequent SheetMetal feature changes must
 retain these compatibility paths and attribution.
 
-The V2 unfolder requires NetworkX, included in VibeCAD's Python requirements.
+The V2 unfolder requires NetworkX, included in SteveCAD's Python requirements.

@@ -40,7 +40,7 @@ using namespace App;
 namespace
 {
 
-constexpr auto isolationProtocol = "VIBECAD-ISOLATION/1";
+constexpr auto isolationProtocol = "STEVECAD-ISOLATION/1";
 constexpr qsizetype isolationOutputTailBytes = 64 * 1024;
 
 using App::detail::CpuBudget;

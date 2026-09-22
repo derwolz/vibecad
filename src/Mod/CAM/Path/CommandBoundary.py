@@ -1,9 +1,9 @@
 # SPDX-License-Identifier: LGPL-2.1-or-later
 
-"""Shared native-command boundary for the VibeCAD Manufacture ribbon."""
+"""Shared native-command boundary for the SteveCAD Manufacture ribbon."""
 
 import FreeCAD
-from VibeCADNativeTransaction import _OwnedDocumentTransaction
+from SteveCADNativeTransaction import _OwnedDocumentTransaction
 
 if FreeCAD.GuiUp:
     import FreeCADGui

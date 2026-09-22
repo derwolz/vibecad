@@ -12,7 +12,7 @@ moving it to another machine.
 
    `Make me a realistic parametric two-spool high-bypass jet engine. Create all sketches and parts, assemble the static structure and both spools, verify it, and produce a drawing and BOM.`
 
-3. VibeCAD completes and verifies durable design phases. When another kind of CAD
+3. SteveCAD completes and verifies durable design phases. When another kind of CAD
    work is required, it changes the active work between provider turns and resumes
    with that exact tool surface. The visible ribbon always shows what is active,
    and the customer can stop or redirect the run.
@@ -20,7 +20,7 @@ moving it to another machine.
 
    `Continue the jet-engine design from the current document.`
 
-5. Repeat until VibeCAD reports the final document checks, drawing, and BOM.
+5. Repeat until SteveCAD reports the final document checks, drawing, and BOM.
    Opening or leaving a Sketch and moving between product domains both continue
    with a newly frozen tool surface; a surface never changes inside one provider
    turn.

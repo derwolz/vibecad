@@ -369,7 +369,7 @@ App::DocumentObject* resolveModelingReference(
         return selected;
     }
 
-    if (consumer->getPropertyByName("VibeCADDefinitionId")) {
+    if (consumer->getPropertyByName("SteveCADDefinitionId")) {
         try {
             return PartDesign::DesignModel::resolveDefinitionReference(
                 *const_cast<App::DocumentObject*>(consumer),

@@ -128,7 +128,7 @@ class TestContextMenuSurfaceContract(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         if cls.ROOT is None:
-            raise unittest.SkipTest("VibeCAD source checkout is unavailable")
+            raise unittest.SkipTest("SteveCAD source checkout is unavailable")
 
     @classmethod
     def _source(cls, relative):
@@ -433,7 +433,7 @@ class TestContextMenuTracking(unittest.TestCase):
 
     @staticmethod
     def _operation_names(document):
-        return tuple(obj.Name for obj in document.VibeCADTimeline.Operations)
+        return tuple(obj.Name for obj in document.SteveCADTimeline.Operations)
 
     def _preexisting_timeline_pair(self, prefix):
         owner = self.document.addObject(
@@ -445,24 +445,24 @@ class TestContextMenuTracking(unittest.TestCase):
         for obj in (owner, resource):
             obj.addProperty(
                 "App::PropertyString",
-                "VibeCADTimelineRole",
+                "SteveCADTimelineRole",
             )
-            obj.setEditorMode("VibeCADTimelineRole", 0)
+            obj.setEditorMode("SteveCADTimelineRole", 0)
         owner.addProperty(
             "App::PropertyLinkHidden",
-            "VibeCADTimelineOwner",
+            "SteveCADTimelineOwner",
         )
-        owner.setEditorMode("VibeCADTimelineOwner", 0)
+        owner.setEditorMode("SteveCADTimelineOwner", 0)
         resource.addProperty(
             "App::PropertyLinkHidden",
-            "VibeCADTimelineOwner",
+            "SteveCADTimelineOwner",
         )
-        resource.setEditorMode("VibeCADTimelineOwner", 0)
+        resource.setEditorMode("SteveCADTimelineOwner", 0)
         return owner, resource
 
     def _save_and_reopen(self, filename):
         with tempfile.TemporaryDirectory(
-            prefix="vibecad-context-menu-tracking-"
+            prefix="stevecad-context-menu-tracking-"
         ) as directory:
             path = str(Path(directory) / filename)
             self.document.saveAs(path)
@@ -471,7 +471,7 @@ class TestContextMenuTracking(unittest.TestCase):
 
     def test_set_tip_is_one_owned_in_place_transaction(self):
         body, first, second = self._body_history()
-        timeline = self.document.getObject("VibeCADTimeline")
+        timeline = self.document.getObject("SteveCADTimeline")
         self.assertIsNotNone(timeline)
         operations = tuple(obj.Name for obj in timeline.Operations)
         end_position = timeline.Position
@@ -526,10 +526,10 @@ class TestContextMenuTracking(unittest.TestCase):
         self._select(first)
         Gui.runCommand("PartDesign_MoveTip", 0)
         self.assertIs(body.Tip, first)
-        expected_position = self.document.VibeCADTimeline.Position
+        expected_position = self.document.SteveCADTimeline.Position
 
         with tempfile.TemporaryDirectory(
-            prefix="vibecad-context-menu-tracking-"
+            prefix="stevecad-context-menu-tracking-"
         ) as directory:
             path = str(Path(directory) / "set-tip.FCStd")
             self.document.saveAs(path)
@@ -541,7 +541,7 @@ class TestContextMenuTracking(unittest.TestCase):
             self.assertIsNotNone(reopened_first)
             self.assertIs(reopened_body.Tip, reopened_first)
             self.assertEqual(
-                self.document.VibeCADTimeline.Position,
+                self.document.SteveCADTimeline.Position,
                 expected_position,
             )
             self.assertFalse(self.document.HasPendingTransaction)
@@ -562,15 +562,15 @@ class TestContextMenuTracking(unittest.TestCase):
         for obj in (resource, nested):
             obj.addProperty(
                 "App::PropertyString",
-                "VibeCADTimelineRole",
+                "SteveCADTimelineRole",
             )
-            obj.VibeCADTimelineRole = "resource"
+            obj.SteveCADTimelineRole = "resource"
             obj.addProperty(
                 "App::PropertyLinkHidden",
-                "VibeCADTimelineOwner",
+                "SteveCADTimelineOwner",
             )
-        resource.VibeCADTimelineOwner = owner
-        nested.VibeCADTimelineOwner = resource
+        resource.SteveCADTimelineOwner = owner
+        nested.SteveCADTimelineOwner = resource
         self.document.recompute()
         before = self._operation_names(self.document)
         self.assertEqual(
@@ -637,11 +637,11 @@ class TestContextMenuTracking(unittest.TestCase):
             for obj, properties in (
                 (
                     owner,
-                    ("VibeCADTimelineRole", "VibeCADTimelineOwner"),
+                    ("SteveCADTimelineRole", "SteveCADTimelineOwner"),
                 ),
                 (
                     resource,
-                    ("VibeCADTimelineRole", "VibeCADTimelineOwner"),
+                    ("SteveCADTimelineRole", "SteveCADTimelineOwner"),
                 ),
             ):
                 for property_name in properties:
@@ -666,12 +666,12 @@ class TestContextMenuTracking(unittest.TestCase):
             "PartDesign::Feature", "FemImportedInput"
         )
         for type_id, property_name in (
-            ("App::PropertyString", "VibeCADTimelineRole"),
+            ("App::PropertyString", "SteveCADTimelineRole"),
             (
                 "App::PropertyLinkListHidden",
-                "VibeCADTimelineReplacedInputs",
+                "SteveCADTimelineReplacedInputs",
             ),
-            ("App::PropertyLinkHidden", "VibeCADTimelineOwner"),
+            ("App::PropertyLinkHidden", "SteveCADTimelineOwner"),
         ):
             fem_operation.addProperty(type_id, property_name)
             fem_operation.setEditorMode(property_name, 0)
@@ -680,9 +680,9 @@ class TestContextMenuTracking(unittest.TestCase):
             [fem_input],
         )
         for property_name in (
-            "VibeCADTimelineRole",
-            "VibeCADTimelineReplacedInputs",
-            "VibeCADTimelineOwner",
+            "SteveCADTimelineRole",
+            "SteveCADTimelineReplacedInputs",
+            "SteveCADTimelineOwner",
         ):
             self.assertTrue(
                 {
@@ -925,14 +925,14 @@ class TestContextMenuTracking(unittest.TestCase):
         resource.Shape = Part.makeBox(1, 1, 1)
         resource.addProperty(
             "App::PropertyString",
-            "VibeCADTimelineRole",
+            "SteveCADTimelineRole",
         )
-        resource.VibeCADTimelineRole = "resource"
+        resource.SteveCADTimelineRole = "resource"
         resource.addProperty(
             "App::PropertyLinkHidden",
-            "VibeCADTimelineOwner",
+            "SteveCADTimelineOwner",
         )
-        resource.VibeCADTimelineOwner = second
+        resource.SteveCADTimelineOwner = second
         body.Tip = first
         self.document.recompute()
         before = self._operation_names(self.document)

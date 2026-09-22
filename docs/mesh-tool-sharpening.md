@@ -83,7 +83,7 @@ Mesh export supports binary or ASCII STL, binary mesh, OBJ, OFF, PLY, Nastran, a
 3MF. Point-cloud export supports ASC, PCD, and PLY.
 
 STL carries no authoritative unit metadata. Placement and current document units
-remain explicit VibeCAD state; import does not guess scale from shape size.
+remain explicit SteveCAD state; import does not guess scale from shape size.
 
 Current 3MF import uses the Mesh kernel's flattened mesh result. Multiple build
 items, repeated instances, names, and declared model units are not yet retained as
@@ -117,9 +117,9 @@ geometry properties rather than filenames. Thingi10K's tooling is Apache-2.0, wh
 each model keeps its own license.
 
 The local holdout set is stored outside the repository under
-`~/Documents/VibeCAD-Mesh-Benchmarks/thingi10k`:
+`~/Documents/SteveCAD-Mesh-Benchmarks/thingi10k`:
 
-| Case | File and attribution | Published license | VibeCAD strict evaluation |
+| Case | File and attribution | Published license | SteveCAD strict evaluation |
 |---|---|---|---|
 | Clean solid | [110173, Double Sided Maze](https://thingiverse-production-new.s3.amazonaws.com/assets/2b/cf/74/15/be/lid.stl), totaldorkist | CC BY-SA | 100 facets, one component, watertight, no repair defects |
 | Open/mixed defects | [73335, Durga Puppet](https://thingiverse-production-new.s3.amazonaws.com/assets/fb/c4/87/2c/4a/durgaarmleft.stl), anneyfresh | CC BY | 150 facets, open topology, orientation/non-manifold/degenerate defects |
@@ -130,8 +130,8 @@ The local holdout set is stored outside the repository under
 | Self-intersection | [59849, Truchet Tiles](https://thingiverse-production-new.s3.amazonaws.com/assets/12/4e/89/8a/e3/simple_frame.stl), DigitalBytes | CC BY | 28 facets with self-intersections and open topology |
 | Dense clean solid | [472034, Big Boy Locomotive](https://thingiverse-production-new.s3.amazonaws.com/assets/20/a1/48/c3/78/Stoker_Pipe_1.STL), MakerBot | CC BY | 50,508 facets, one watertight component |
 
-The published dataset metadata and VibeCAD's post-import evaluation are both kept
-because readers can weld or reinterpret input topology. The VibeCAD result is the
+The published dataset metadata and SteveCAD's post-import evaluation are both kept
+because readers can weld or reinterpret input topology. The SteveCAD result is the
 acceptance authority for platform behavior.
 
 ## Validation evidence
@@ -153,8 +153,8 @@ mutation or failed calls.
 
 ### Model tuning record
 
-The saved conversations and result documents remain in VibeCAD's local project
-store and `~/Documents/VibeCAD-Mesh-Benchmarks`. Ordinary prompts were repeated on
+The saved conversations and result documents remain in SteveCAD's local project
+store and `~/Documents/SteveCAD-Mesh-Benchmarks`. Ordinary prompts were repeated on
 fresh fixtures; no tool-use directions were added to the prompts.
 
 | Prompt family | Observed failure | Production or fixture correction | Final evidence |

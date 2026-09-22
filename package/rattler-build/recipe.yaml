@@ -2,7 +2,7 @@ context:
   version: "26.3.1RC6"
 
 package:
-  name: vibecad
+  name: stevecad
   version: "${{ version }}"
 
 source:
@@ -42,7 +42,7 @@ build:
       CCACHE_COMPILERCHECK: ${{ env.get("CCACHE_COMPILERCHECK", default="content") }}
       # Compiler activation does not consistently define HOST. Forward the
       # rattler target explicitly so build.sh always selects the right preset.
-      VIBECAD_TARGET_PLATFORM: ${{ target_platform }}
+      STEVECAD_TARGET_PLATFORM: ${{ target_platform }}
 
 requirements:
   build:

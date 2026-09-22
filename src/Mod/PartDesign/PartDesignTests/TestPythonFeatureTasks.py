@@ -122,7 +122,7 @@ class TestPythonFeatureTasks(unittest.TestCase):
     def _timeline_item(self, object_name):
         timeline = Gui.getMainWindow().findChild(
             QtGui.QListWidget,
-            "VibeCADFeatureTimelineItems",
+            "SteveCADFeatureTimelineItems",
         )
         self.assertIsNotNone(timeline)
 
@@ -138,26 +138,26 @@ class TestPythonFeatureTasks(unittest.TestCase):
         return timeline, item
 
     def _assert_operation(self, operation):
-        self.assertEqual(operation.VibeCADTimelineRole, "operation")
+        self.assertEqual(operation.SteveCADTimelineRole, "operation")
         self.assertEqual(
-            operation.getTypeIdOfProperty("VibeCADTimelineRole"),
+            operation.getTypeIdOfProperty("SteveCADTimelineRole"),
             "App::PropertyString",
         )
         self.assertTrue(
             {"Hidden", "LockDynamic", "NoRecompute"}.issubset(
-                operation.getPropertyStatus("VibeCADTimelineRole")
+                operation.getPropertyStatus("SteveCADTimelineRole")
             )
         )
         self.assertIn(
             "Hidden",
-            operation.getEditorMode("VibeCADTimelineRole"),
+            operation.getEditorMode("SteveCADTimelineRole"),
         )
         self.assertNotIn(
-            "VibeCADTimelineReplacedInputs",
+            "SteveCADTimelineReplacedInputs",
             operation.PropertiesList,
         )
-        if "VibeCADTimelineOwner" in operation.PropertiesList:
-            self.assertIsNone(operation.VibeCADTimelineOwner)
+        if "SteveCADTimelineOwner" in operation.PropertiesList:
+            self.assertIsNone(operation.SteveCADTimelineOwner)
 
     def _save_reopen(self, operation, resources=()):
         operation_name = operation.Name
@@ -183,15 +183,15 @@ class TestPythonFeatureTasks(unittest.TestCase):
                     )
                     self.assertIsNotNone(restored_resource)
                     self.assertEqual(
-                        restored_resource.VibeCADTimelineRole,
+                        restored_resource.SteveCADTimelineRole,
                         "resource",
                     )
                     self.assertIs(
-                        restored_resource.VibeCADTimelineOwner,
+                        restored_resource.SteveCADTimelineOwner,
                         restored_operation,
                     )
                     self.assertNotIn(
-                        "VibeCADTimelineReplacedInputs",
+                        "SteveCADTimelineReplacedInputs",
                         restored_resource.PropertiesList,
                     )
             finally:
@@ -443,10 +443,10 @@ class TestPythonFeatureTasks(unittest.TestCase):
         self.assertEqual(operation.TypeId, "PartDesign::DesignRevolve")
         self.assertIsNone(operation.getParentGeoFeatureGroup())
         self.assertIsNone(profile.getParentGeoFeatureGroup())
-        self.assertIn("VibeCADDefinitionId", profile.PropertiesList)
+        self.assertIn("SteveCADDefinitionId", profile.PropertiesList)
         self.assertEqual(str(profile.DesignId), str(operation.DesignId))
         self.assertNotIn(
-            "VibeCADTimelineOwner",
+            "SteveCADTimelineOwner",
             profile.PropertiesList,
         )
         linked_profile, profile_subelements = operation.Profile
@@ -458,7 +458,7 @@ class TestPythonFeatureTasks(unittest.TestCase):
         self.assertEqual(operation.InputStates, [])
         self.assertEqual(operation.OutputPreviousInputIndices, [-1])
         self.assertEqual(operation.OutputPresence, (True,))
-        self.assertEqual(operation.OutputBodyIds, [body.VibeCADBodyId])
+        self.assertEqual(operation.OutputBodyIds, [body.SteveCADBodyId])
         self.assertIsNotNone(body.Tip)
         self.assertIsNotNone(body.Tip.CurrentState)
         self.assertIs(body.Tip.CurrentState.Operation, operation)

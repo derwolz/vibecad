@@ -2,8 +2,8 @@
 
 ## Objective
 
-VibeCAD's Native tools should make the correct CAD operation the obvious choice
-without tool hints, corrective steering, or knowledge of VibeCAD internals. The
+SteveCAD's Native tools should make the correct CAD operation the obvious choice
+without tool hints, corrective steering, or knowledge of SteveCAD internals. The
 public surface is judged by first-call selection, schema accuracy, geometric
 accuracy, and the amount of provider context required to achieve those results.
 
@@ -295,9 +295,9 @@ Focused Python contract, registry, provider, dispatch, and runtime suite:
 Real GUI/provider lifecycle gates:
 
 ```text
-VIBECAD_NATIVE_MODEL_PROFILES_GUI_OK
-VIBECAD_NATIVE_MODEL_BRACKET_WORKFLOW_GUI_OK
-VIBECAD_NATIVE_CODEX_CROSS_RIBBON_GUI_OK
+STEVECAD_NATIVE_MODEL_PROFILES_GUI_OK
+STEVECAD_NATIVE_MODEL_BRACKET_WORKFLOW_GUI_OK
+STEVECAD_NATIVE_CODEX_CROSS_RIBBON_GUI_OK
 ```
 
 Assembly, Robot, shared Native context, dispatch, registry, session, and surface
@@ -305,7 +305,7 @@ guardrails:
 
 ```text
 516 passed
-VIBECAD_NATIVE_RIBBON_SURFACE_GUI_OK
+STEVECAD_NATIVE_RIBBON_SURFACE_GUI_OK
 ```
 
 The live ribbon gate resolves the exact provider surface for every human ribbon.

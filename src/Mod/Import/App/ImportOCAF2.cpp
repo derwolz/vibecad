@@ -477,7 +477,7 @@ App::DocumentObject* ImportOCAF2::adoptSolidFeature(Part::Feature* feature)
         && App::GetApplication().transactionIsActive(transactionId)
         && doc->isProvisionallyEnrolledInTimelineByCurrentTransaction(body)) {
         // The imported B-rep is the user-visible History operation; its Body
-        // is the stable output resource, matching other Body-creating VibeCAD
+        // is the stable output resource, matching other Body-creating SteveCAD
         // operations.
         doc->classifyProvisionalTimelineInternalObject(body);
     }

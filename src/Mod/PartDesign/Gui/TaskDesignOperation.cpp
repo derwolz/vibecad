@@ -1015,7 +1015,7 @@ void TaskDesignOperationTargets::populatePatternSources()
             }
             patternSourceObject->addItem(
                 bodyDisplayName(*body),
-                QString::fromStdString(body->VibeCADBodyId.getValueStr())
+                QString::fromStdString(body->SteveCADBodyId.getValueStr())
             );
         }
     }
@@ -1132,7 +1132,7 @@ void TaskDesignOperationTargets::populate()
     }
     else {
         for (auto* body : bodies) {
-            const std::string bodyId = body->VibeCADBodyId.getValueStr();
+            const std::string bodyId = body->SteveCADBodyId.getValueStr();
             if ((combineMode || splitMode)
                 && PartDesign::designBodyStateBefore(
                     body,
@@ -1315,7 +1315,7 @@ PartDesign::Body* TaskDesignOperationTargets::selectedResultBody() const
 {
     const std::string bodyId = resultBody->currentData().toString().toStdString();
     const auto found = std::ranges::find(bodies, bodyId, [](const PartDesign::Body* body) {
-        return body ? body->VibeCADBodyId.getValueStr() : std::string();
+        return body ? body->SteveCADBodyId.getValueStr() : std::string();
     });
     return found != bodies.end() ? *found : nullptr;
 }
@@ -1327,7 +1327,7 @@ PartDesign::Body* TaskDesignOperationTargets::selectedPatternSourceBody() const
     }
     const std::string bodyId = patternSourceObject->currentData().toString().toStdString();
     const auto found = std::ranges::find(bodies, bodyId, [](const PartDesign::Body* body) {
-        return body ? body->VibeCADBodyId.getValueStr() : std::string();
+        return body ? body->SteveCADBodyId.getValueStr() : std::string();
     });
     return found != bodies.end() ? *found : nullptr;
 }
@@ -1847,7 +1847,7 @@ void TaskDesignOperationTargets::finalize()
     }
     for (std::size_t index = 0; index < outputs.size(); ++index) {
         auto* output = outputs[index];
-        if (output && !originalBodyIds.contains(output->VibeCADBodyId.getValueStr())) {
+        if (output && !originalBodyIds.contains(output->SteveCADBodyId.getValueStr())) {
             output->Label.setValue(
                 (std::string(source->Label.getValue()) + " " + std::to_string(index + 1)).c_str()
             );

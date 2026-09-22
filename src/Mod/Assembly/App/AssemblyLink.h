@@ -61,11 +61,11 @@ class AssemblyExport AssemblyLink: public App::Part
 
 public:
     static constexpr const char* SourceDocumentPropertyName =
-        "VibeCADAssemblySourceDocument";
+        "SteveCADAssemblySourceDocument";
     static constexpr const char* SourceObjectIdPropertyName =
-        "VibeCADAssemblySourceObjectId";
+        "SteveCADAssemblySourceObjectId";
     static constexpr const char* SourceObjectNamePropertyName =
-        "VibeCADAssemblySourceObjectName";
+        "SteveCADAssemblySourceObjectName";
 
     AssemblyLink();
     ~AssemblyLink() override;

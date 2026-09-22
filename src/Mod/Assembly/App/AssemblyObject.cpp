@@ -783,7 +783,7 @@ std::uint64_t AssemblyObject::startSimulationJob(App::DocumentObject* sim, bool 
     }
     auto invalidate = [invalidated, cancellation](const App::DocumentObject& object, const char* reason) {
         if (!invalidated->exchange(true)) {
-            FC_LOG("VIBECAD_SIMULATION invalidated object=" << object.getNameInDocument()
+            FC_LOG("STEVECAD_SIMULATION invalidated object=" << object.getNameInDocument()
                    << " reason=" << (reason ? reason : "unnamed property"));
         }
         cancellation->request_stop();
@@ -851,13 +851,13 @@ std::uint64_t AssemblyObject::startSimulationJob(App::DocumentObject* sim, bool 
                 for (const auto& input : inputs) { offsets.push_back(input.offsetPlc); }
                 if (auto saved = cache.load(key, offsets)) {
                     Base::CancellationScope::check();
-                    FC_LOG("VIBECAD_SIMULATION playback_source=persisted components=" << saved->size()
+                    FC_LOG("STEVECAD_SIMULATION playback_source=persisted components=" << saved->size()
                            << " frames=" << saved->front().frameCount());
                     return SimulationJob::Result {nullptr,
                         std::make_shared<SimulationJob::Tracks>(std::move(*saved))};
                 }
             }
-            FC_LOG("VIBECAD_SIMULATION playback_source=generated components=" << inputs.size());
+            FC_LOG("STEVECAD_SIMULATION playback_source=generated components=" << inputs.size());
             detached->runKINEMATIC();
             Base::CancellationScope::check();
             if (detached->numberOfFrames() < 2) {
@@ -1553,7 +1553,7 @@ std::shared_ptr<ASMTAssembly> AssemblyObject::makeMbdAssembly()
     assembly->setDebug(hPgr->GetBool("LogSolverDebug", false));
     auto& runtime = App::GetApplication().hostRuntime();
     std::size_t concurrency = runtime.workerCount();
-    if (const char* configured = std::getenv("VIBECAD_HOST_CPU_SLOTS")) {
+    if (const char* configured = std::getenv("STEVECAD_HOST_CPU_SLOTS")) {
         std::size_t requested = 0;
         const char* end = configured + std::char_traits<char>::length(configured);
         const auto parsed = std::from_chars(configured, end, requested);
@@ -2557,12 +2557,12 @@ std::string AssemblyObject::handleOneSideOfJoint(
     App::DocumentObject* obj = getObjFromJointRef(joint, propRefName);
 
     if (!part || !obj) {
-        if (std::getenv("VIBECAD_RESTORE_DETAIL_TRACE")) {
+        if (std::getenv("STEVECAD_RESTORE_DETAIL_TRACE")) {
             const auto* property = joint->getPropertyByName<App::PropertyXLinkSub>(propRefName);
             const auto* target = property ? property->getValue() : nullptr;
             const auto* document = joint->getDocument();
             Base::Console().log(
-                "VIBECAD_ASSEMBLY_REFERENCE joint=%s property=%s part_resolved=%d "
+                "STEVECAD_ASSEMBLY_REFERENCE joint=%s property=%s part_resolved=%d "
                 "object_resolved=%d target=%s sub_count=%zu joint_active=%d "
                 "target_active=%d restoring=%d recomputing=%d owner_thread=%d\n",
                 joint->getFullName(), propRefName, part != nullptr, obj != nullptr,

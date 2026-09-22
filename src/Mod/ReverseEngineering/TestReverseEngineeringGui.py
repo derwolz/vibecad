@@ -2,8 +2,8 @@
 
 """GUI tests for Reverse Engineering tools shipped on the Mesh ribbon."""
 
-from ReverseEngineeringTests.TestVibeCADRibbonTools import (
-    TestVibeCADReverseEngineeringRibbonTools,
+from ReverseEngineeringTests.TestSteveCADRibbonTools import (
+    TestSteveCADReverseEngineeringRibbonTools,
 )
 
-True if TestVibeCADReverseEngineeringRibbonTools else False
+True if TestSteveCADReverseEngineeringRibbonTools else False

@@ -429,19 +429,19 @@ class _Analysis(CommandManager):
                     "The new default FEM solver",
                 )
                 if (
-                    str(solver.VibeCADTimelineRole) != "resource"
-                    or solver.VibeCADTimelineOwner is not analysis
+                    str(solver.SteveCADTimelineRole) != "resource"
+                    or solver.SteveCADTimelineOwner is not analysis
                 ):
                     raise RuntimeError(
                         "The default solver was not published as an exact "
                         "resource of its analysis"
                     )
-            if str(analysis.VibeCADTimelineRole) != "operation":
+            if str(analysis.SteveCADTimelineRole) != "operation":
                 raise RuntimeError(
                     "The new FEM analysis was not published as one operation"
                 )
 
-            timeline = document.getObject("VibeCADTimeline")
+            timeline = document.getObject("SteveCADTimeline")
             operations = list(
                 getattr(timeline, "Operations", ()) or ()
             )

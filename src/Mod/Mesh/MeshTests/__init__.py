@@ -1,1 +1,1 @@
-"""Current VibeCAD Mesh workbench behavior contracts."""
+"""Current SteveCAD Mesh workbench behavior contracts."""

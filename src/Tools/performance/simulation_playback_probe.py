@@ -4,23 +4,23 @@
 Use run-packaged-edit-check.ps1 with a disposable document. Never inject this
 probe into a user's session. It opens the largest authenticated simulation,
 profiles generation and representative frame changes, and never saves.
-Set VIBECAD_SIMULATION_PLAYBACK_ASYNC=1 to measure the nonblocking player;
+Set STEVECAD_SIMULATION_PLAYBACK_ASYNC=1 to measure the nonblocking player;
 leave it unset when collecting a comparable legacy baseline.
-Set VIBECAD_SIMULATION_EXPORT=1 with the async player to exercise its real
+Set STEVECAD_SIMULATION_EXPORT=1 with the async player to exercise its real
 animation-export entry point, native capture and persistent encoding worker.
-Set VIBECAD_SIMULATION_AI_PLAYBACK=1 with the async player to use the actual
+Set STEVECAD_SIMULATION_AI_PLAYBACK=1 with the async player to use the actual
 AI service entry, show its assembly, and exercise Play after exact seeks.
-VIBECAD_SIMULATION_READ_NAMES optionally supplies comma-separated object names
+STEVECAD_SIMULATION_READ_NAMES optionally supplies comma-separated object names
 for geometry-capture calls between generation and playback, without saving.
-VIBECAD_SIMULATION_LIFECYCLE=1 checks hidden joint markers, restored marker
+STEVECAD_SIMULATION_LIFECYCLE=1 checks hidden joint markers, restored marker
 poses, and closing with a pending frame on the same real model.
-VIBECAD_SIMULATION_EXPORT_CANCEL=1 with export enabled cancels at frame
+STEVECAD_SIMULATION_EXPORT_CANCEL=1 with export enabled cancels at frame
 preparation, native PNG capture and encoding, then retries a complete export.
-VIBECAD_SIMULATION_EXPORT_CLOSE=task or document closes that owner while native
+STEVECAD_SIMULATION_EXPORT_CLOSE=task or document closes that owner while native
 PNG capture is pending, verifying cancellation and cleanup after teardown.
-VIBECAD_SIMULATION_REFERENCE_AUDIT optionally supplies a joint-name prefix:
+STEVECAD_SIMULATION_REFERENCE_AUDIT optionally supplies a joint-name prefix:
 audit those references after opening and exit without generating or playing.
-VIBECAD_SIMULATION_PERSISTED_REOPEN=1 closes/reopens the disposable document
+STEVECAD_SIMULATION_PERSISTED_REOPEN=1 closes/reopens the disposable document
 after sampling generated poses, then compares all sampled component poses from
 persisted playback. Native logs distinguish a cache hit from another solve.
 """
@@ -40,8 +40,8 @@ import FreeCAD as App
 import FreeCADGui as Gui
 from PySide6 import QtCore, QtGui, QtWidgets
 
-output = Path(os.environ['VIBECAD_TRACE_PROBE_RESULT'])
-source = Path(os.environ['VIBECAD_ROUNDTRIP_COPY'])
+output = Path(os.environ['STEVECAD_TRACE_PROBE_RESULT'])
+source = Path(os.environ['STEVECAD_ROUNDTRIP_COPY'])
 if source.parent != output.parent or source.name != 'probe-document.FCStd' or App.listDocuments():
     raise RuntimeError('Use an isolated process and disposable probe-document.FCStd')
 App.setLogLevel('Assembly', 'Log')
@@ -52,16 +52,16 @@ state = 'startup'
 quiet_since = None
 panel = None
 frames = []
-asynchronous = os.environ.get('VIBECAD_SIMULATION_PLAYBACK_ASYNC') == '1'
-export_animation = os.environ.get('VIBECAD_SIMULATION_EXPORT') == '1'
+asynchronous = os.environ.get('STEVECAD_SIMULATION_PLAYBACK_ASYNC') == '1'
+export_animation = os.environ.get('STEVECAD_SIMULATION_EXPORT') == '1'
 if export_animation:
     # Reject an incomplete diagnostic runtime before opening the large model.
     # Export admission uses psutil; verification decodes the resulting GIF.
     importlib.import_module('psutil')
     importlib.import_module('PIL.Image')
 export_cancel_cases = (['frame', 'png', 'encoding']
-    if os.environ.get('VIBECAD_SIMULATION_EXPORT_CANCEL') == '1' else [])
-export_close = os.environ.get('VIBECAD_SIMULATION_EXPORT_CLOSE', '')
+    if os.environ.get('STEVECAD_SIMULATION_EXPORT_CANCEL') == '1' else [])
+export_close = os.environ.get('STEVECAD_SIMULATION_EXPORT_CLOSE', '')
 if export_close not in {'', 'task', 'document'}:
     raise RuntimeError('Export close must select task or document')
 if export_close:
@@ -70,10 +70,10 @@ if export_cancel_cases and not export_animation:
     raise RuntimeError('Export cancellation checks require animation export')
 export_case = None
 export_controller = None
-ai_playback = os.environ.get('VIBECAD_SIMULATION_AI_PLAYBACK') == '1'
-ai_reseek = os.environ.get('VIBECAD_SIMULATION_AI_RESEEK') == '1'
-lifecycle = os.environ.get('VIBECAD_SIMULATION_LIFECYCLE') == '1'
-persisted_reopen = os.environ.get('VIBECAD_SIMULATION_PERSISTED_REOPEN') == '1'
+ai_playback = os.environ.get('STEVECAD_SIMULATION_AI_PLAYBACK') == '1'
+ai_reseek = os.environ.get('STEVECAD_SIMULATION_AI_RESEEK') == '1'
+lifecycle = os.environ.get('STEVECAD_SIMULATION_LIFECYCLE') == '1'
+persisted_reopen = os.environ.get('STEVECAD_SIMULATION_PERSISTED_REOPEN') == '1'
 reopened = False
 expected_reopen_poses = {}
 requested_frame = None
@@ -91,7 +91,7 @@ last_pulse = time.monotonic()
 report = {'pid': os.getpid(), 'events': [], 'ok': False,
           'asynchronous': asynchronous, 'heartbeat_count': 0, 'max_heartbeat_gap_seconds': 0.0}
 report['native_build'] = App.ConfigGet('BuildRevisionHash')
-report['reference_audit_only'] = os.environ.get('VIBECAD_SIMULATION_REFERENCE_AUDIT', '')
+report['reference_audit_only'] = os.environ.get('STEVECAD_SIMULATION_REFERENCE_AUDIT', '')
 report['independent_input'] = []
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from window_input_probe import WindowInputProbe
@@ -121,7 +121,7 @@ App.addDocumentObserver(changes)
 
 def open_ai_player(simulation):
     import CommandCreateSimulation
-    from VibeCADCore import get_service
+    from SteveCADCore import get_service
     from tool_impl.service import assembly_play_simulation
     original = CommandCreateSimulation.openSimulationAsync
 
@@ -203,7 +203,7 @@ def tick():
         if state == 'startup':
             # Explicit Python-only candidate injection in this disposable process.
             # Native verification must still use a complete matching package.
-            candidate = os.environ.get('VIBECAD_SIMULATION_SOURCE')
+            candidate = os.environ.get('STEVECAD_SIMULATION_SOURCE')
             if candidate:
                 import sys
                 root = Path(candidate).resolve()
@@ -211,7 +211,7 @@ def tick():
                     ('SoSwitchMarker', 'Assembly/SoSwitchMarker.py'),
                     ('CommandCreateSimulation', 'Assembly/CommandCreateSimulation.py'),
                     ('tool_impl.service.assembly_play_simulation',
-                     'VibeCAD/tool_impl/service/assembly_play_simulation.py'),
+                     'SteveCAD/tool_impl/service/assembly_play_simulation.py'),
                 ):
                     spec = importlib.util.spec_from_file_location(name, root / relative)
                     module = importlib.util.module_from_spec(spec)
@@ -263,12 +263,12 @@ def tick():
                 return
             import CommandCreateSimulation
             candidates = [obj for obj in doc.Objects
-                          if int(getattr(obj, 'VibeCADPoseCount', 0)) > 0]
+                          if int(getattr(obj, 'SteveCADPoseCount', 0)) > 0]
             if not candidates:
                 raise RuntimeError('No authenticated native simulation in test document')
-            simulation = max(candidates, key=lambda obj: int(obj.VibeCADPoseCount))
+            simulation = max(candidates, key=lambda obj: int(obj.SteveCADPoseCount))
             event('opened', objects=len(doc.Objects), simulation=simulation.Name,
-                  poses=int(simulation.VibeCADPoseCount))
+                  poses=int(simulation.SteveCADPoseCount))
             if ai_playback or export_animation:
                 profile('setup_assembly_visibility', lambda: setattr(
                     simulation.Proxy.getAssembly(simulation).ViewObject, 'Visibility', True))
@@ -301,10 +301,10 @@ def tick():
                 def unexpected_generation():
                     raise AssertionError('Seeking the live player regenerated the simulation')
                 panel.runKinematicsAsync = unexpected_generation
-            read_names = os.environ.get('VIBECAD_SIMULATION_READ_NAMES', '').split(',')
+            read_names = os.environ.get('STEVECAD_SIMULATION_READ_NAMES', '').split(',')
             if any(read_names):
-                from VibeCADCore import get_service
-                from VibeCADGeometryInspection import capture_geometry_read, discard_geometry_read
+                from SteveCADCore import get_service
+                from SteveCADGeometryInspection import capture_geometry_read, discard_geometry_read
                 for name in filter(None, read_names):
                     captured = capture_geometry_read(get_service(), {
                         'reference': {'document_uid': str(panel.doc.Uid), 'object_name': name},
@@ -367,7 +367,7 @@ def tick():
                 requested_frame = frame
                 if asynchronous:
                     if ai_reseek:
-                        from VibeCADCore import get_service
+                        from SteveCADCore import get_service
                         from tool_impl.service import assembly_play_simulation
                         from CommandCreateSimulation import _simulationFrameTime
                         pending = assembly_play_simulation.run_async(

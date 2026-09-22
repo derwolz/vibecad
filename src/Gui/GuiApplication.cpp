@@ -77,7 +77,7 @@ GUIApplication::GUIApplication(int& argc, char** argv)
     setFallbackSessionManagementEnabled(false);
 #endif
     traceClock.start();
-    traceEvents = qEnvironmentVariableIsSet("VIBECAD_RESTORE_DETAIL_TRACE");
+    traceEvents = qEnvironmentVariableIsSet("STEVECAD_RESTORE_DETAIL_TRACE");
 }
 
 GUIApplication::~GUIApplication() = default;

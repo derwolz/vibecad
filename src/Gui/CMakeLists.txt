@@ -1,6 +1,6 @@
 add_library(FreeCADGui SHARED)
 
-set(VIBECAD_RIBBON_BUILD_FEATURES
+set(STEVECAD_RIBBON_BUILD_FEATURES
     ASSEMBLY
     CAM
     FASTENERS
@@ -23,12 +23,12 @@ set(VIBECAD_RIBBON_BUILD_FEATURES
     SURFACE
     TECHDRAW
 )
-foreach(feature IN LISTS VIBECAD_RIBBON_BUILD_FEATURES)
-    set(VIBECAD_BUILD_${feature} ${BUILD_${feature}})
+foreach(feature IN LISTS STEVECAD_RIBBON_BUILD_FEATURES)
+    set(STEVECAD_BUILD_${feature} ${BUILD_${feature}})
 endforeach()
 configure_file(
-    VibeCADRibbonBuildFeatures.h.in
-    ${CMAKE_CURRENT_BINARY_DIR}/VibeCADRibbonBuildFeatures.h
+    SteveCADRibbonBuildFeatures.h.in
+    ${CMAKE_CURRENT_BINARY_DIR}/SteveCADRibbonBuildFeatures.h
 )
 
 if ( EXISTS "${CMAKE_SOURCE_DIR}/src/3rdParty/GSL/include" )
@@ -1385,7 +1385,7 @@ SET(FreeCADGui_CPP_SRCS
     StatusBarLabel.cpp
     PreferencePackManager.cpp
     ThemeManager.cpp
-    VibeCADRibbon.cpp
+    SteveCADRibbon.cpp
     ProgramInformation.cpp
     Thumbnail.cpp
     Utilities.cpp
@@ -1435,7 +1435,7 @@ SET(FreeCADGui_SRCS
     SpaceballEvent.h
     PreferencePackManager.h
     ThemeManager.h
-    VibeCADRibbon.h
+    SteveCADRibbon.h
     ProgramInformation.h
     Thumbnail.h
     Tools.h

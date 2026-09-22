@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: LGPL-2.1-or-later
-// SPDX-FileCopyrightText: 2026 VibeCAD contributors
+// SPDX-FileCopyrightText: 2026 SteveCAD contributors
 
 #include "InspectionSource.h"
 

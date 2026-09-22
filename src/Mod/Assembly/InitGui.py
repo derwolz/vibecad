@@ -68,12 +68,12 @@ class AssemblyWorkbench(Workbench):
         import Preferences
         cmdListStandardComponents = []
         try:
-            import VibeCADFastenersGui
+            import SteveCADFastenersGui
 
-            VibeCADFastenersGui.ensure_commands_registered()
+            SteveCADFastenersGui.ensure_commands_registered()
             cmdListStandardComponents = [
-                "VibeCAD_InsertStandardFastener",
-                "VibeCAD_EditStandardFastener",
+                "SteveCAD_InsertStandardFastener",
+                "SteveCAD_EditStandardFastener",
             ]
         except Exception as exc:
             FreeCAD.Console.PrintWarning(

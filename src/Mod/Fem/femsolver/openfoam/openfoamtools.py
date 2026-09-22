@@ -80,7 +80,7 @@ class OpenFOAMTools:
             self.summary_context["density_kg_m3"],
         )
         pipeline.read(str(result_files[0]))
-        property_name = "VibeCADOpenFOAMSummary"
+        property_name = "SteveCADOpenFOAMSummary"
         if property_name in pipeline.PropertiesList:
             if pipeline.getTypeIdOfProperty(property_name) != "App::PropertyString":
                 raise RuntimeError(
@@ -96,13 +96,13 @@ class OpenFOAMTools:
                 hidden=True,
                 locked=True,
             )
-        pipeline.VibeCADOpenFOAMSummary = json.dumps(
+        pipeline.SteveCADOpenFOAMSummary = json.dumps(
             summary,
             ensure_ascii=True,
             sort_keys=True,
             separators=(",", ":"),
         )
-        length_unit_property = "VibeCADDataLengthUnit"
+        length_unit_property = "SteveCADDataLengthUnit"
         if length_unit_property in pipeline.PropertiesList:
             if pipeline.getTypeIdOfProperty(length_unit_property) != "App::PropertyString":
                 raise RuntimeError(
@@ -118,14 +118,14 @@ class OpenFOAMTools:
                 hidden=True,
                 locked=True,
             )
-        pipeline.VibeCADDataLengthUnit = "m"
+        pipeline.SteveCADDataLengthUnit = "m"
 
         output = next(
             (
                 candidate
                 for candidate in tuple(analysis.Group or ())
                 if candidate.isDerivedFrom("App::TextDocument")
-                and getattr(candidate, "VibeCADTimelineOwner", None) is pipeline
+                and getattr(candidate, "SteveCADTimelineOwner", None) is pipeline
             ),
             None,
         )

@@ -2,7 +2,7 @@
 
 """Run in a disposable GUI: real 50-output create/patch/input-edit/rollback probe.
 
-Set VIBECAD_TRACE_PROBE_RESULT to an ignored JSON output path. Uses the running
+Set STEVECAD_TRACE_PROBE_RESULT to an ignored JSON output path. Uses the running
 build's modules and worker runtime. Creates and closes only its own document.
 """
 
@@ -18,22 +18,22 @@ from pathlib import Path
 from PySide import QtCore
 
 # Reuse the native integration fixture; import production modules from the running build.
-fixture_root = Path(__file__).resolve().parents[2] / 'Mod/VibeCAD'
+fixture_root = Path(__file__).resolve().parents[2] / 'Mod/SteveCAD'
 # The integration fixture supports source-only tests by adding MODULE_ROOT.
 # Append it first so that helper does not put sources ahead of the packaged runtime.
 sys.path.append(str(fixture_root))
-sys.path.append(str(fixture_root / 'vibecad_tests'))
+sys.path.append(str(fixture_root / 'stevecad_tests'))
 from partdesign_vibescript_api_integration import _Service
-import VibeCADGui as gui
-from VibeCADSession import _run_domain_vibescript_tool
+import SteveCADGui as gui
+from SteveCADSession import _run_domain_vibescript_tool
 
 class Probe:
     def __init__(self):
-        self.root = Path(os.environ['VIBECAD_TRACE_PROBE_RESULT']).parent
+        self.root = Path(os.environ['STEVECAD_TRACE_PROBE_RESULT']).parent
         home = Path(App.getHomePath()).resolve()
         self.modules = {name: str(Path(sys.modules[name].__file__).resolve()) for name in
-                        ('VibeCADGui', 'VibeCADSession', 'VibeCADVibeScriptDomainRuntime',
-                         'VibeCADVibeScriptDomainPublication')}
+                        ('SteveCADGui', 'SteveCADSession', 'SteveCADVibeScriptDomainRuntime',
+                         'SteveCADVibeScriptDomainPublication')}
         if any(not Path(path).is_relative_to(home) for path in self.modules.values()):
             raise RuntimeError('The probe must use the running build, not checkout modules: ' + str(self.modules))
         self.doc = App.newDocument('ParallelPatchProbe')
@@ -138,7 +138,7 @@ class Probe:
         self.result['events'] = self.events
         self.result['gaps'] = self.gaps
         self.result['runtime_modules'] = self.modules
-        Path(os.environ['VIBECAD_TRACE_PROBE_RESULT']).write_text(json.dumps(self.result, indent=2, default=str))
+        Path(os.environ['STEVECAD_TRACE_PROBE_RESULT']).write_text(json.dumps(self.result, indent=2, default=str))
         print('PATCH_DONE', self.result['ok'], self.result.get('error',''), flush=True)
         Gui.getDocument(self.doc.Name).Modified = False
         App.closeDocument(self.doc.Name)

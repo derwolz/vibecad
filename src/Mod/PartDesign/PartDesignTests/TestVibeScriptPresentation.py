@@ -10,10 +10,10 @@ import unittest
 import FreeCAD as App
 import Materials
 
-from VibeCADModelingSurface import resolve_modeling_surface
-from VibeCADScriptedPublication import publication_target
-from VibeCADVibeScriptDomains import get_vibescript_pack
-from VibeCADVibeScriptDomainPublication import (
+from SteveCADModelingSurface import resolve_modeling_surface
+from SteveCADScriptedPublication import publication_target
+from SteveCADVibeScriptDomains import get_vibescript_pack
+from SteveCADVibeScriptDomainPublication import (
     PROP_PARTDESIGN_APPEARANCE_BASELINE,
     PROP_PARTDESIGN_MATERIAL_BASELINE,
     PROP_PARTDESIGN_PRESENTATION_STATE,
@@ -21,7 +21,7 @@ from VibeCADVibeScriptDomainPublication import (
     _shape_appearance_sha256,
     publish_candidate,
 )
-from VibeCADVibeScriptDomainRuntime import (
+from SteveCADVibeScriptDomainRuntime import (
     accept_candidate,
     execute_candidate,
     prepare_candidate,
@@ -57,7 +57,7 @@ class _Service:
         publications = [
             obj
             for obj in self.document.Objects
-            if "VibeCADScriptedOutputKey" in list(obj.PropertiesList)
+            if "SteveCADScriptedOutputKey" in list(obj.PropertiesList)
         ]
         return {
             "target_count": len(publications),
@@ -187,7 +187,7 @@ class TestVibeScriptPresentation(unittest.TestCase):
         )
         self.assertTrue(cards)
         card = cards[0]
-        root = Path(tempfile.mkdtemp(prefix="vibecad-partdesign-presentation-"))
+        root = Path(tempfile.mkdtemp(prefix="stevecad-partdesign-presentation-"))
         document = App.newDocument("PartDesignVibeScriptPresentation")
         service = _Service(document, root)
         pack = get_vibescript_pack("PartDesignWorkbench")

@@ -15,7 +15,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[3]
 BUNDLE = ROOT / "package/rattler-build/linux/create_bundle.sh"
 DEB = ROOT / "package/linux/build_deb_from_appdir.sh"
-ICON = ROOT / "src/Gui/Icons/vibecad.svg"
+ICON = ROOT / "src/Gui/Icons/stevecad.svg"
 
 
 class TestLinuxDesktopBranding(unittest.TestCase):
@@ -23,14 +23,14 @@ class TestLinuxDesktopBranding(unittest.TestCase):
         parser = configparser.ConfigParser(interpolation=None)
         parser.read(path)
         desktop = parser["Desktop Entry"]
-        self.assertEqual(desktop["Name"], "VibeCAD")
-        self.assertEqual(desktop["Icon"], "vibecad")
-        self.assertEqual(desktop["StartupWMClass"], "VibeCAD")
+        self.assertEqual(desktop["Name"], "SteveCAD")
+        self.assertEqual(desktop["Icon"], "stevecad")
+        self.assertEqual(desktop["StartupWMClass"], "SteveCAD")
         self.assertEqual(desktop["Exec"], executable + " %F")
         self.assertIn("application/x-extension-fcstd;", desktop["MimeType"])
 
     @unittest.skipUnless(sys.platform.startswith("linux"), "Linux AppDir packaging")
-    def test_appdir_uses_vibecad_assets(self):
+    def test_appdir_uses_stevecad_assets(self):
         text = BUNDLE.read_text(encoding="utf-8")
         block = text.split('echo -e "\\nCopying Icon and Desktop file"', 1)[1]
         block = block.split("# Remove __pycache__", 1)[0]
@@ -49,9 +49,9 @@ class TestLinuxDesktopBranding(unittest.TestCase):
                 ["bash", "-e", "-c", 'repo_root="$1"; conda_env=AppDir/usr\n' + block, "branding", str(ROOT)],
                 cwd=root, check=True,
             )
-            self.assert_desktop(root / "AppDir/vibecad.desktop", "AppRun - --single-instance")
-            self.assertEqual((root / "AppDir/vibecad.svg").read_bytes(), ICON.read_bytes())
-            self.assertEqual(list((root / "AppDir").glob("*.desktop")), [root / "AppDir/vibecad.desktop"])
+            self.assert_desktop(root / "AppDir/stevecad.desktop", "AppRun - --single-instance")
+            self.assertEqual((root / "AppDir/stevecad.svg").read_bytes(), ICON.read_bytes())
+            self.assertEqual(list((root / "AppDir").glob("*.desktop")), [root / "AppDir/stevecad.desktop"])
 
     @unittest.skipUnless(sys.platform.startswith("linux") and shutil.which("dpkg-deb"), "Requires Linux dpkg-deb")
     def test_debian_package_has_correct_icon_even_with_an_older_appdir(self):
@@ -70,16 +70,16 @@ class TestLinuxDesktopBranding(unittest.TestCase):
             ], check=True, capture_output=True, text=True)
             extracted = root / "extracted"
             subprocess.run(["dpkg-deb", "-x", str(next(output.glob("*.deb"))), str(extracted)], check=True)
-            self.assert_desktop(extracted / "usr/share/applications/vibecad.desktop", "vibecad")
+            self.assert_desktop(extracted / "usr/share/applications/stevecad.desktop", "stevecad")
             self.assertEqual(
-                (extracted / "usr/share/icons/hicolor/scalable/apps/vibecad.svg").read_bytes(),
+                (extracted / "usr/share/icons/hicolor/scalable/apps/stevecad.svg").read_bytes(),
                 ICON.read_bytes(),
             )
 
     def test_application_desktop_id_matches_the_installed_entry(self):
         source = (ROOT / "src/Main/MainGui.cpp").read_text(encoding="utf-8")
         identifier = re.search(r'Config\(\)\["DesktopFileName"\] = "([^"]+)"', source).group(1)
-        self.assertEqual(identifier, "vibecad")
+        self.assertEqual(identifier, "stevecad")
 
     @unittest.skipUnless(shutil.which("cmake") and shutil.which("ninja"), "Requires CMake and Ninja")
     def test_native_install_provides_the_same_desktop_id_and_icon(self):
@@ -98,13 +98,13 @@ class TestLinuxDesktopBranding(unittest.TestCase):
             subprocess.run(["cmake", "-G", "Ninja", "-S", str(root), "-B", str(build),
                             f"-DCMAKE_INSTALL_PREFIX={installed}"], check=True)
             subprocess.run(["cmake", "--install", str(build)], check=True)
-            self.assert_desktop(installed / "share/applications/vibecad.desktop", "FreeCAD - --single-instance")
+            self.assert_desktop(installed / "share/applications/stevecad.desktop", "FreeCAD - --single-instance")
             legacy = configparser.ConfigParser(interpolation=None)
             legacy.read(installed / "share/applications/org.freecad.FreeCAD.desktop")
             self.assertEqual(legacy["Desktop Entry"]["NoDisplay"], "true")
-            self.assertEqual(legacy["Desktop Entry"]["Name"], "VibeCAD")
+            self.assertEqual(legacy["Desktop Entry"]["Name"], "SteveCAD")
             self.assertEqual(
-                (installed / "share/icons/hicolor/scalable/apps/vibecad.svg").read_bytes(),
+                (installed / "share/icons/hicolor/scalable/apps/stevecad.svg").read_bytes(),
                 ICON.read_bytes(),
             )
 

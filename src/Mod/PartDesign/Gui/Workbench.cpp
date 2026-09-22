@@ -90,7 +90,7 @@ Workbench::~Workbench()
 
 void Workbench::setupContextMenu(const char* recipient, Gui::MenuItem* item) const
 {
-    // VibeCAD's Design graph has one global operation order.  Moving a
+    // SteveCAD's Design graph has one global operation order.  Moving a
     // feature between Body groups or changing a Body Tip rewrites the legacy
     // ownership graph and can create dependencies which the Design graph
     // cannot represent.  Keep the compatibility commands registered for old
@@ -352,10 +352,10 @@ Gui::MenuItem* Workbench::setupMenuBar() const
 
     Gui::MenuItem* standardComponents = new Gui::MenuItem;
     standardComponents->setCommand("Standard Components");
-    *standardComponents << "VibeCAD_InsertStandardFastener"
-                        << "VibeCAD_EditStandardFastener"
-                        << "VibeCAD_CreateMatchingFastenerHole"
-                        << "VibeCAD_AttachStandardFastener";
+    *standardComponents << "SteveCAD_InsertStandardFastener"
+                        << "SteveCAD_EditStandardFastener"
+                        << "SteveCAD_CreateMatchingFastenerHole"
+                        << "SteveCAD_AttachStandardFastener";
 
     // Part Design owns solid-feature construction and transforms.  General
     // Part commands remain here only for construction and surface capabilities
@@ -479,10 +479,10 @@ Gui::ToolBarItem* Workbench::setupToolBars() const
 
     part = new Gui::ToolBarItem(root);
     part->setCommand("Standard Components");
-    *part << "VibeCAD_InsertStandardFastener"
-          << "VibeCAD_EditStandardFastener"
-          << "VibeCAD_CreateMatchingFastenerHole"
-          << "VibeCAD_AttachStandardFastener";
+    *part << "SteveCAD_InsertStandardFastener"
+          << "SteveCAD_EditStandardFastener"
+          << "SteveCAD_CreateMatchingFastenerHole"
+          << "SteveCAD_AttachStandardFastener";
 
     return root;
 }

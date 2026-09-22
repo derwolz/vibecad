@@ -60,7 +60,7 @@ class MystranTools:
             tuple(
                 result
                 for result in tuple(self.obj.Results or ())
-                if getattr(result, "VibeCADTimelineOwner", None) is self.obj
+                if getattr(result, "SteveCADTimelineOwner", None) is self.obj
             )
             if not keep_results
             else ()

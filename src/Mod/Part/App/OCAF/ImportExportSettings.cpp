@@ -279,7 +279,7 @@ void ImportExportSettings::setImportSolidBodies(bool on)
 
 bool ImportExportSettings::getImportSolidBodies() const
 {
-    // VibeCAD models connected solids as Bodies. The exact imported B-rep is
+    // SteveCAD models connected solids as Bodies. The exact imported B-rep is
     // retained as the Body's first feature; STEP does not contain the native
     // sketch/feature history needed to reconstruct anything further.
     return pGroup->GetBool("ImportSolidBodies", true);

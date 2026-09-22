@@ -369,17 +369,17 @@ class TestSheetPreparation(unittest.TestCase):
     def native_dispatcher(self):
         import json
         import FreeCADGui as Gui
-        from VibeCADCore import get_service
-        from VibeCADNativeCapabilityRegistry import resolve_native_provider_surface
-        from VibeCADNativeProviderContext import provider_authorized_native_surface
-        from VibeCADNativeDispatch import NativeTurnDispatcher
-        from VibeCADNativeRegistry import build_native_capability_registry
-        from VibeCADNativeRuntimeRegistry import build_native_runtime_bindings
-        from VibeCADNativeRuntimeContext import NativeRuntimeContext
-        from VibeCADNativeSurface import NativeSurfaceSnapshot, require_frozen_native_surface
-        from VibeCADNativeTurn import NativeTurnSnapshot
-        from VibeCADNativeUndo import NativeAssistantUndoLedger
-        from VibeCADRibbonSurface import read_active_ribbon_surface
+        from SteveCADCore import get_service
+        from SteveCADNativeCapabilityRegistry import resolve_native_provider_surface
+        from SteveCADNativeProviderContext import provider_authorized_native_surface
+        from SteveCADNativeDispatch import NativeTurnDispatcher
+        from SteveCADNativeRegistry import build_native_capability_registry
+        from SteveCADNativeRuntimeRegistry import build_native_runtime_bindings
+        from SteveCADNativeRuntimeContext import NativeRuntimeContext
+        from SteveCADNativeSurface import NativeSurfaceSnapshot, require_frozen_native_surface
+        from SteveCADNativeTurn import NativeTurnSnapshot
+        from SteveCADNativeUndo import NativeAssistantUndoLedger
+        from SteveCADRibbonSurface import read_active_ribbon_surface
         previous = Gui.activeWorkbench().name()
         self.addCleanup(lambda: Gui.activateWorkbench(previous))
         Gui.activateWorkbench("SMWorkbench")

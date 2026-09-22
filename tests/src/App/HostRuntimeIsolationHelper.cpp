@@ -16,7 +16,7 @@
 namespace
 {
 
-constexpr auto protocol = "VIBECAD-ISOLATION/1";
+constexpr auto protocol = "STEVECAD-ISOLATION/1";
 
 long processId()
 {

@@ -24,7 +24,7 @@ class TestDesignHoleGui(unittest.TestCase):
         self.document.UndoMode = True
         Gui.activateView("Gui::View3DInventor", True)
         self.temporary_directory = tempfile.TemporaryDirectory(
-            prefix="vibecad-design-hole-gui-"
+            prefix="stevecad-design-hole-gui-"
         )
         self._process_events()
 
@@ -164,7 +164,7 @@ class TestDesignHoleGui(unittest.TestCase):
         self.assertEqual(hole.ResultOperation, "Cut")
         self.assertEqual(
             set(hole.InputBodyIds),
-            {body.VibeCADBodyId for body in bodies},
+            {body.SteveCADBodyId for body in bodies},
         )
         return hole
 
@@ -201,8 +201,8 @@ class TestDesignHoleGui(unittest.TestCase):
         self.assertEqual(
             set(hole.OutputBodyIds),
             {
-                first_body.VibeCADBodyId,
-                second_body.VibeCADBodyId,
+                first_body.SteveCADBodyId,
+                second_body.SteveCADBodyId,
             },
         )
         self.assertIsNotNone(first_body.Tip)

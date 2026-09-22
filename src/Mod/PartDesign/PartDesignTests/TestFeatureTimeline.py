@@ -304,7 +304,7 @@ class _TimelineExecutionProxy:
 class _HandledWithoutEditViewProxy:
     """Legacy handled callback that deliberately does not enter edit mode."""
 
-    TRACE_PROBE = "vibecad_rejected_timeline_edit_trace_probe = True"
+    TRACE_PROBE = "stevecad_rejected_timeline_edit_trace_probe = True"
 
     def supportsDocumentTimelineEdit(self):
         return True
@@ -504,12 +504,12 @@ class TestFeatureTimeline(unittest.TestCase):
         main_window = Gui.getMainWindow()
         self.timeline_widget = _wait_until(
             lambda: main_window.findChild(
-                QtGui.QWidget, "VibeCADFeatureTimeline"
+                QtGui.QWidget, "SteveCADFeatureTimeline"
             )
         )
         self.assertIsNotNone(self.timeline_widget)
         self.timeline = self.timeline_widget.findChild(
-            QtGui.QListWidget, "VibeCADFeatureTimelineItems"
+            QtGui.QListWidget, "SteveCADFeatureTimelineItems"
         )
         self.assertIsNotNone(self.timeline)
         expected = {
@@ -566,10 +566,10 @@ class TestFeatureTimeline(unittest.TestCase):
 
     def test_fixed_document_history_strip_order_state_and_selection(self):
         main_window = Gui.getMainWindow()
-        workspace = main_window.findChild(QtGui.QWidget, "VibeCADWorkspace")
+        workspace = main_window.findChild(QtGui.QWidget, "SteveCADWorkspace")
         viewport_canvas = main_window.findChild(
             QtGui.QWidget,
-            "VibeCADViewportCanvas",
+            "SteveCADViewportCanvas",
         )
         mdi_area = main_window.findChild(QtGui.QMdiArea)
 
@@ -627,22 +627,22 @@ class TestFeatureTimeline(unittest.TestCase):
         self.assertIsNone(
             self.timeline_widget.findChild(
                 QtGui.QComboBox,
-                "VibeCADFeatureTimelineBody",
+                "SteveCADFeatureTimelineBody",
             ),
             "A document-wide history must never be filtered by a Body selector",
         )
         self.assertIsNone(
             self.timeline_widget.findChild(
-                QtGui.QLabel, "VibeCADFeatureTimelineCurrent"
+                QtGui.QLabel, "SteveCADFeatureTimelineCurrent"
             ),
             "The reclaimed workspace edge must contain operations, not a "
             "redundant History label",
         )
         for object_name in (
-            "VibeCADFeatureTimelineRecompute",
-            "VibeCADFeatureTimelinePrevious",
-            "VibeCADFeatureTimelineNext",
-            "VibeCADFeatureTimelineEnd",
+            "SteveCADFeatureTimelineRecompute",
+            "SteveCADFeatureTimelinePrevious",
+            "SteveCADFeatureTimelineNext",
+            "SteveCADFeatureTimelineEnd",
         ):
             button = self.timeline_widget.findChild(
                 QtGui.QToolButton, object_name
@@ -737,7 +737,7 @@ class TestFeatureTimeline(unittest.TestCase):
         _event_step(50)
         self.assertIs(
             main_window.findChild(
-                QtGui.QWidget, "VibeCADFeatureTimeline"
+                QtGui.QWidget, "SteveCADFeatureTimeline"
             ),
             self.timeline_widget,
         )
@@ -747,7 +747,7 @@ class TestFeatureTimeline(unittest.TestCase):
         Gui.Selection.clearSelection()
         end_button = self.timeline_widget.findChild(
             QtGui.QToolButton,
-            "VibeCADFeatureTimelineEnd",
+            "SteveCADFeatureTimelineEnd",
         )
         end_button.click()
         self.assertTrue(
@@ -862,7 +862,7 @@ class TestFeatureTimeline(unittest.TestCase):
                     if action.objectName()
                 }
                 action_names.update(actions)
-                current_action = actions.get("VibeCADTimelineSetCurrent")
+                current_action = actions.get("SteveCADTimelineSetCurrent")
                 if current_action is None:
                     action_state["error"] = (
                         "Timeline context menu omitted Set Current"
@@ -893,14 +893,14 @@ class TestFeatureTimeline(unittest.TestCase):
 
         self.assertNotIn("error", action_state, action_state)
         self.assertTrue(action_state.get("triggered"), action_state)
-        self.assertIn("VibeCADTimelineSetCurrent", action_names)
+        self.assertIn("SteveCADTimelineSetCurrent", action_names)
         self.assertNotIn(
-            "VibeCADTimelineEdit",
+            "SteveCADTimelineEdit",
             action_names,
             "A plain result with no parameter editor must not advertise an "
             "Edit action which cannot do anything",
         )
-        self.assertIn("VibeCADTimelineDelete", action_names)
+        self.assertIn("SteveCADTimelineDelete", action_names)
         self.assertIs(self.body.Tip, self.second)
         self.assertFalse(self.first.Visibility)
         self.assertTrue(self.second.Visibility)
@@ -1003,16 +1003,16 @@ class TestFeatureTimeline(unittest.TestCase):
         )
 
         previous_button = self.timeline_widget.findChild(
-            QtGui.QToolButton, "VibeCADFeatureTimelinePrevious"
+            QtGui.QToolButton, "SteveCADFeatureTimelinePrevious"
         )
         next_button = self.timeline_widget.findChild(
-            QtGui.QToolButton, "VibeCADFeatureTimelineNext"
+            QtGui.QToolButton, "SteveCADFeatureTimelineNext"
         )
         recompute_button = self.timeline_widget.findChild(
-            QtGui.QToolButton, "VibeCADFeatureTimelineRecompute"
+            QtGui.QToolButton, "SteveCADFeatureTimelineRecompute"
         )
         end_button = self.timeline_widget.findChild(
-            QtGui.QToolButton, "VibeCADFeatureTimelineEnd"
+            QtGui.QToolButton, "SteveCADFeatureTimelineEnd"
         )
         previous_button.click()
         self.assertTrue(
@@ -1098,7 +1098,7 @@ class TestFeatureTimeline(unittest.TestCase):
     def test_marker_stops_after_sketch_and_datum_and_coordinates_body_tips(self):
         end_button = self.timeline_widget.findChild(
             QtGui.QToolButton,
-            "VibeCADFeatureTimelineEnd",
+            "SteveCADFeatureTimelineEnd",
         )
         end_button.click()
         self.assertTrue(
@@ -1171,7 +1171,7 @@ class TestFeatureTimeline(unittest.TestCase):
             _trigger_timeline_action(
                 self.timeline,
                 item,
-                "VibeCADTimelineSetCurrent",
+                "SteveCADTimelineSetCurrent",
             )
             self.assertTrue(
                 _wait_until(
@@ -1222,15 +1222,15 @@ class TestFeatureTimeline(unittest.TestCase):
     def test_marker_suppresses_non_body_operation_and_restores_baseline(self):
         end_button = self.timeline_widget.findChild(
             QtGui.QToolButton,
-            "VibeCADFeatureTimelineEnd",
+            "SteveCADFeatureTimelineEnd",
         )
         previous_button = self.timeline_widget.findChild(
             QtGui.QToolButton,
-            "VibeCADFeatureTimelinePrevious",
+            "SteveCADFeatureTimelinePrevious",
         )
         next_button = self.timeline_widget.findChild(
             QtGui.QToolButton,
-            "VibeCADFeatureTimelineNext",
+            "SteveCADFeatureTimelineNext",
         )
         end_button.click()
         self.assertTrue(
@@ -1325,11 +1325,11 @@ class TestFeatureTimeline(unittest.TestCase):
     def test_future_native_operation_defers_recompute_until_marker_advances(self):
         end_button = self.timeline_widget.findChild(
             QtGui.QToolButton,
-            "VibeCADFeatureTimelineEnd",
+            "SteveCADFeatureTimelineEnd",
         )
         previous_button = self.timeline_widget.findChild(
             QtGui.QToolButton,
-            "VibeCADFeatureTimelinePrevious",
+            "SteveCADFeatureTimelinePrevious",
         )
         end_button.click()
         self.assertTrue(
@@ -1390,7 +1390,7 @@ class TestFeatureTimeline(unittest.TestCase):
     def test_organizational_groups_are_not_history_operations(self):
         end_button = self.timeline_widget.findChild(
             QtGui.QToolButton,
-            "VibeCADFeatureTimelineEnd",
+            "SteveCADFeatureTimelineEnd",
         )
         end_button.click()
         controller = _document_timeline(self.document)
@@ -1441,10 +1441,10 @@ class TestFeatureTimeline(unittest.TestCase):
 
         operation.addProperty(
             "App::PropertyString",
-            "VibeCADTimelineRole",
+            "SteveCADTimelineRole",
             "Timeline",
         )
-        operation.VibeCADTimelineRole = "operation"
+        operation.SteveCADTimelineRole = "operation"
 
         self.assertTrue(
             _wait_until(
@@ -1469,16 +1469,16 @@ class TestFeatureTimeline(unittest.TestCase):
         )
         resource.addProperty(
             "App::PropertyLinkHidden",
-            "VibeCADTimelineOwner",
+            "SteveCADTimelineOwner",
             "Timeline",
         )
         resource.addProperty(
             "App::PropertyString",
-            "VibeCADTimelineRole",
+            "SteveCADTimelineRole",
             "Timeline",
         )
-        resource.VibeCADTimelineOwner = operation
-        resource.VibeCADTimelineRole = "resource"
+        resource.SteveCADTimelineOwner = operation
+        resource.SteveCADTimelineRole = "resource"
 
         self.assertTrue(
             _wait_until(
@@ -1505,16 +1505,16 @@ class TestFeatureTimeline(unittest.TestCase):
         operation.Shape = Part.makeCylinder(3, 5)
         operation.addProperty(
             "App::PropertyString",
-            "VibeCADTimelineRole",
+            "SteveCADTimelineRole",
             "Timeline",
         )
         operation.addProperty(
             "App::PropertyLinkListHidden",
-            "VibeCADTimelineReplacedInputs",
+            "SteveCADTimelineReplacedInputs",
             "Timeline",
         )
-        operation.VibeCADTimelineRole = "operation"
-        operation.VibeCADTimelineReplacedInputs = [source]
+        operation.SteveCADTimelineRole = "operation"
+        operation.SteveCADTimelineReplacedInputs = [source]
         operation.Visibility = True
 
         parent_resource = self.document.addObject(
@@ -1533,16 +1533,16 @@ class TestFeatureTimeline(unittest.TestCase):
             resource.Shape = Part.makeSphere(2)
             resource.addProperty(
                 "App::PropertyString",
-                "VibeCADTimelineRole",
+                "SteveCADTimelineRole",
                 "Timeline",
             )
             resource.addProperty(
                 "App::PropertyLinkHidden",
-                "VibeCADTimelineOwner",
+                "SteveCADTimelineOwner",
                 "Timeline",
             )
-            resource.VibeCADTimelineRole = "resource"
-            resource.VibeCADTimelineOwner = owner
+            resource.SteveCADTimelineRole = "resource"
+            resource.SteveCADTimelineOwner = owner
             resource.ViewObject.Proxy = _OwnerRequiredDeleteViewProxy(
                 owner.Name,
                 call_log,
@@ -1580,8 +1580,8 @@ class TestFeatureTimeline(unittest.TestCase):
         self.assertIsNotNone(restored_operation)
         self.assertIsNotNone(restored_parent)
         self.assertIsNotNone(restored_child)
-        self.assertIs(restored_parent.VibeCADTimelineOwner, restored_operation)
-        self.assertIs(restored_child.VibeCADTimelineOwner, restored_parent)
+        self.assertIs(restored_parent.SteveCADTimelineOwner, restored_operation)
+        self.assertIs(restored_child.SteveCADTimelineOwner, restored_parent)
         self.assertTrue(
             restored_operation.Visibility,
             "Undo must restore the visible operation presentation recorded "
@@ -1612,16 +1612,16 @@ class TestFeatureTimeline(unittest.TestCase):
         operation.Shape = Part.makeCylinder(3, 5)
         operation.addProperty(
             "App::PropertyString",
-            "VibeCADTimelineRole",
+            "SteveCADTimelineRole",
             "Timeline",
         )
         operation.addProperty(
             "App::PropertyLinkListHidden",
-            "VibeCADTimelineReplacedInputs",
+            "SteveCADTimelineReplacedInputs",
             "Timeline",
         )
-        operation.VibeCADTimelineRole = "operation"
-        operation.VibeCADTimelineReplacedInputs = [source]
+        operation.SteveCADTimelineRole = "operation"
+        operation.SteveCADTimelineReplacedInputs = [source]
         operation.Visibility = True
 
         resource = self.document.addObject(
@@ -1631,16 +1631,16 @@ class TestFeatureTimeline(unittest.TestCase):
         resource.Shape = Part.makeSphere(2)
         resource.addProperty(
             "App::PropertyString",
-            "VibeCADTimelineRole",
+            "SteveCADTimelineRole",
             "Timeline",
         )
         resource.addProperty(
             "App::PropertyLinkHidden",
-            "VibeCADTimelineOwner",
+            "SteveCADTimelineOwner",
             "Timeline",
         )
-        resource.VibeCADTimelineRole = "resource"
-        resource.VibeCADTimelineOwner = operation
+        resource.SteveCADTimelineRole = "resource"
+        resource.SteveCADTimelineOwner = operation
         delete_proxy = _OwnerRequiredDeleteViewProxy(operation.Name)
         resource.ViewObject.Proxy = delete_proxy
         resource.Visibility = False
@@ -1701,7 +1701,7 @@ class TestFeatureTimeline(unittest.TestCase):
         body_name = body.Name
         publication_name = publication.Name
         state_name = state.Name
-        body_id = str(body.VibeCADBodyId)
+        body_id = str(body.SteveCADBodyId)
         operation_id = str(operation.OperationId)
         self.assertAlmostEqual(body.Shape.Volume, 480.0)
         PartDesign.validateDesign(operation)
@@ -1733,7 +1733,7 @@ class TestFeatureTimeline(unittest.TestCase):
         self.assertIsNotNone(restored_publication)
         self.assertIsNotNone(restored_state)
         self.assertEqual(str(restored_operation.OperationId), operation_id)
-        self.assertEqual(str(restored_body.VibeCADBodyId), body_id)
+        self.assertEqual(str(restored_body.SteveCADBodyId), body_id)
         self.assertIs(restored_body.Tip, restored_publication)
         self.assertIs(restored_publication.CurrentState, restored_state)
         self.assertAlmostEqual(restored_body.Shape.Volume, 480.0)
@@ -1771,7 +1771,7 @@ class TestFeatureTimeline(unittest.TestCase):
         body_name = body.Name
         publication_name = publication.Name
         state_name = state.Name
-        body_id = str(body.VibeCADBodyId)
+        body_id = str(body.SteveCADBodyId)
         operation_id = str(operation.OperationId)
         self.assertAlmostEqual(body.Shape.Volume, 480.0)
         PartDesign.validateDesign(operation)
@@ -1803,7 +1803,7 @@ class TestFeatureTimeline(unittest.TestCase):
         self.assertIsNotNone(restored_publication)
         self.assertIsNotNone(restored_state)
         self.assertEqual(str(restored_operation.OperationId), operation_id)
-        self.assertEqual(str(restored_body.VibeCADBodyId), body_id)
+        self.assertEqual(str(restored_body.SteveCADBodyId), body_id)
         self.assertIs(restored_body.Tip, restored_publication)
         self.assertIs(restored_publication.CurrentState, restored_state)
         self.assertAlmostEqual(restored_body.Shape.Volume, 480.0)
@@ -1823,15 +1823,15 @@ class TestFeatureTimeline(unittest.TestCase):
     def test_design_body_keeps_one_publication_tip_across_history_navigation(self):
         end = self.timeline_widget.findChild(
             QtGui.QToolButton,
-            "VibeCADFeatureTimelineEnd",
+            "SteveCADFeatureTimelineEnd",
         )
         previous = self.timeline_widget.findChild(
             QtGui.QToolButton,
-            "VibeCADFeatureTimelinePrevious",
+            "SteveCADFeatureTimelinePrevious",
         )
         next_button = self.timeline_widget.findChild(
             QtGui.QToolButton,
-            "VibeCADFeatureTimelineNext",
+            "SteveCADFeatureTimelineNext",
         )
         self.assertIsNotNone(end)
         self.assertIsNotNone(previous)
@@ -1962,10 +1962,10 @@ class TestFeatureTimeline(unittest.TestCase):
         operation.Shape = Part.makeBox(4, 4, 4)
         operation.addProperty(
             "App::PropertyString",
-            "VibeCADTimelineRole",
+            "SteveCADTimelineRole",
             "Timeline",
         )
-        operation.VibeCADTimelineRole = "operation"
+        operation.SteveCADTimelineRole = "operation"
         operation.Visibility = True
 
         resource = self.document.addObject(
@@ -1975,16 +1975,16 @@ class TestFeatureTimeline(unittest.TestCase):
         resource.Shape = Part.makeSphere(2)
         resource.addProperty(
             "App::PropertyString",
-            "VibeCADTimelineRole",
+            "SteveCADTimelineRole",
             "Timeline",
         )
         resource.addProperty(
             "App::PropertyLinkHidden",
-            "VibeCADTimelineOwner",
+            "SteveCADTimelineOwner",
             "Timeline",
         )
-        resource.VibeCADTimelineRole = "resource"
-        resource.VibeCADTimelineOwner = operation
+        resource.SteveCADTimelineRole = "resource"
+        resource.SteveCADTimelineOwner = operation
         resource.Visibility = False
         self.document.recompute()
 
@@ -2024,15 +2024,15 @@ class TestFeatureTimeline(unittest.TestCase):
         orphan.Shape = Part.makeBox(2, 2, 2)
         orphan.addProperty(
             "App::PropertyString",
-            "VibeCADTimelineRole",
+            "SteveCADTimelineRole",
             "Timeline",
         )
         orphan.addProperty(
             "App::PropertyLinkHidden",
-            "VibeCADTimelineOwner",
+            "SteveCADTimelineOwner",
             "Timeline",
         )
-        orphan.VibeCADTimelineRole = "resource"
+        orphan.SteveCADTimelineRole = "resource"
         orphan.Visibility = False
 
         malformed = self.document.addObject(
@@ -2042,16 +2042,16 @@ class TestFeatureTimeline(unittest.TestCase):
         malformed.Shape = Part.makeCone(2, 1, 3)
         malformed.addProperty(
             "App::PropertyString",
-            "VibeCADTimelineRole",
+            "SteveCADTimelineRole",
             "Timeline",
         )
         malformed.addProperty(
             "App::PropertyString",
-            "VibeCADTimelineOwner",
+            "SteveCADTimelineOwner",
             "Timeline",
         )
-        malformed.VibeCADTimelineRole = "resource"
-        malformed.VibeCADTimelineOwner = "not a hidden object link"
+        malformed.SteveCADTimelineRole = "resource"
+        malformed.SteveCADTimelineOwner = "not a hidden object link"
 
         first = self.document.addObject(
             "Part::Feature",
@@ -2065,17 +2065,17 @@ class TestFeatureTimeline(unittest.TestCase):
             resource.Shape = Part.makeCylinder(1, 3)
             resource.addProperty(
                 "App::PropertyString",
-                "VibeCADTimelineRole",
+                "SteveCADTimelineRole",
                 "Timeline",
             )
             resource.addProperty(
                 "App::PropertyLinkHidden",
-                "VibeCADTimelineOwner",
+                "SteveCADTimelineOwner",
                 "Timeline",
             )
-            resource.VibeCADTimelineRole = "resource"
-        first.VibeCADTimelineOwner = second
-        second.VibeCADTimelineOwner = first
+            resource.SteveCADTimelineRole = "resource"
+        first.SteveCADTimelineOwner = second
+        second.SteveCADTimelineOwner = first
         first.Visibility = True
         second.Visibility = False
         self.document.recompute()
@@ -2117,10 +2117,10 @@ class TestFeatureTimeline(unittest.TestCase):
         )
         operation.addProperty(
             "App::PropertyString",
-            "VibeCADTimelineRole",
+            "SteveCADTimelineRole",
             "Timeline",
         )
-        operation.VibeCADTimelineRole = "operation"
+        operation.SteveCADTimelineRole = "operation"
 
         editor = self.document.addObject(
             "App::FeaturePython",
@@ -2129,22 +2129,22 @@ class TestFeatureTimeline(unittest.TestCase):
         editor.ViewObject.Proxy = _NoPanelEditViewProxy()
         editor.addProperty(
             "App::PropertyString",
-            "VibeCADTimelineRole",
+            "SteveCADTimelineRole",
             "Timeline",
         )
         editor.addProperty(
             "App::PropertyLinkHidden",
-            "VibeCADTimelineOwner",
+            "SteveCADTimelineOwner",
             "Timeline",
         )
-        editor.VibeCADTimelineOwner = operation
-        editor.VibeCADTimelineRole = "resource"
+        editor.SteveCADTimelineOwner = operation
+        editor.SteveCADTimelineRole = "resource"
         operation.addProperty(
             "App::PropertyLinkHidden",
-            "VibeCADTimelineEditor",
+            "SteveCADTimelineEditor",
             "Timeline",
         )
-        operation.VibeCADTimelineEditor = editor
+        operation.SteveCADTimelineEditor = editor
 
         item = _wait_until(
             lambda: _object_items(self.timeline).get(operation.Name)
@@ -2152,7 +2152,7 @@ class TestFeatureTimeline(unittest.TestCase):
         self.assertIsNotNone(item)
         self.assertNotIn(editor.Name, _object_items(self.timeline))
         self.assertEqual(
-            operation.getTypeIdOfProperty("VibeCADTimelineEditor"),
+            operation.getTypeIdOfProperty("SteveCADTimelineEditor"),
             "App::PropertyLinkHidden",
         )
 
@@ -2177,7 +2177,7 @@ class TestFeatureTimeline(unittest.TestCase):
         _trigger_timeline_action(
             self.timeline,
             item,
-            "VibeCADTimelineEdit",
+            "SteveCADTimelineEdit",
         )
         self.assertTrue(
             _wait_until(
@@ -2195,7 +2195,7 @@ class TestFeatureTimeline(unittest.TestCase):
 
         # A stale or absent target must safely fall back to the semantic
         # operation; it must never edit a formerly linked resource.
-        operation.VibeCADTimelineEditor = None
+        operation.SteveCADTimelineEditor = None
         Gui.Selection.clearSelection()
         Gui.Selection.addSelection(operation)
         item = _wait_until(
@@ -2217,18 +2217,18 @@ class TestFeatureTimeline(unittest.TestCase):
         for resource in (first, second):
             resource.addProperty(
                 "App::PropertyString",
-                "VibeCADTimelineRole",
+                "SteveCADTimelineRole",
                 "Timeline",
             )
             resource.addProperty(
                 "App::PropertyLinkHidden",
-                "VibeCADTimelineOwner",
+                "SteveCADTimelineOwner",
                 "Timeline",
             )
-            resource.VibeCADTimelineRole = "resource"
-        first.VibeCADTimelineOwner = second
-        second.VibeCADTimelineOwner = first
-        operation.VibeCADTimelineEditor = first
+            resource.SteveCADTimelineRole = "resource"
+        first.SteveCADTimelineOwner = second
+        second.SteveCADTimelineOwner = first
+        operation.SteveCADTimelineEditor = first
 
         Gui.Selection.clearSelection()
         Gui.Selection.addSelection(operation)
@@ -2245,11 +2245,11 @@ class TestFeatureTimeline(unittest.TestCase):
         controller = _document_timeline(self.document)
         end_button = self.timeline_widget.findChild(
             QtGui.QToolButton,
-            "VibeCADFeatureTimelineEnd",
+            "SteveCADFeatureTimelineEnd",
         )
         previous_button = self.timeline_widget.findChild(
             QtGui.QToolButton,
-            "VibeCADFeatureTimelinePrevious",
+            "SteveCADFeatureTimelinePrevious",
         )
         end_button.click()
         self.assertTrue(
@@ -2284,16 +2284,16 @@ class TestFeatureTimeline(unittest.TestCase):
         )
         operation.addProperty(
             "App::PropertyString",
-            "VibeCADTimelineRole",
+            "SteveCADTimelineRole",
             "Timeline",
         )
-        operation.VibeCADTimelineRole = "operation"
+        operation.SteveCADTimelineRole = "operation"
         operation.addProperty(
             "App::PropertyLinkListHidden",
-            "VibeCADTimelineReplacedInputs",
+            "SteveCADTimelineReplacedInputs",
             "Timeline",
         )
-        operation.VibeCADTimelineReplacedInputs = [source]
+        operation.SteveCADTimelineReplacedInputs = [source]
         source.Visibility = False
         operation_visibility_at_end = operation.Visibility
         source_index = list(controller.Operations).index(source)
@@ -2327,16 +2327,16 @@ class TestFeatureTimeline(unittest.TestCase):
         )
         malformed.addProperty(
             "App::PropertyString",
-            "VibeCADTimelineRole",
+            "SteveCADTimelineRole",
             "Timeline",
         )
-        malformed.VibeCADTimelineRole = "operation"
+        malformed.SteveCADTimelineRole = "operation"
         malformed.addProperty(
             "App::PropertyLinkList",
-            "VibeCADTimelineReplacedInputs",
+            "SteveCADTimelineReplacedInputs",
             "Timeline",
         )
-        malformed.VibeCADTimelineReplacedInputs = [malformed_source]
+        malformed.SteveCADTimelineReplacedInputs = [malformed_source]
         malformed_source.Visibility = False
 
         roll_before(malformed)
@@ -2368,17 +2368,17 @@ class TestFeatureTimeline(unittest.TestCase):
         for candidate in (first, second):
             candidate.addProperty(
                 "App::PropertyString",
-                "VibeCADTimelineRole",
+                "SteveCADTimelineRole",
                 "Timeline",
             )
-            candidate.VibeCADTimelineRole = "operation"
+            candidate.SteveCADTimelineRole = "operation"
             candidate.addProperty(
                 "App::PropertyLinkListHidden",
-                "VibeCADTimelineReplacedInputs",
+                "SteveCADTimelineReplacedInputs",
                 "Timeline",
             )
-        first.VibeCADTimelineReplacedInputs = [cyclic_source, second]
-        second.VibeCADTimelineReplacedInputs = [first]
+        first.SteveCADTimelineReplacedInputs = [cyclic_source, second]
+        second.SteveCADTimelineReplacedInputs = [first]
         cyclic_source.Visibility = False
 
         roll_before(first)
@@ -2405,13 +2405,13 @@ class TestFeatureTimeline(unittest.TestCase):
         )
         owner_operation.addProperty(
             "App::PropertyString",
-            "VibeCADTimelineRole",
+            "SteveCADTimelineRole",
             "Timeline",
         )
-        owner_operation.VibeCADTimelineRole = "operation"
+        owner_operation.SteveCADTimelineRole = "operation"
         owner_operation.addProperty(
             "App::PropertyLinkListHidden",
-            "VibeCADTimelineReplacedInputs",
+            "SteveCADTimelineReplacedInputs",
             "Timeline",
         )
         first_resource = self.document.addObject(
@@ -2425,18 +2425,18 @@ class TestFeatureTimeline(unittest.TestCase):
         for resource in (first_resource, second_resource):
             resource.addProperty(
                 "App::PropertyString",
-                "VibeCADTimelineRole",
+                "SteveCADTimelineRole",
                 "Timeline",
             )
             resource.addProperty(
                 "App::PropertyLinkHidden",
-                "VibeCADTimelineOwner",
+                "SteveCADTimelineOwner",
                 "Timeline",
             )
-            resource.VibeCADTimelineRole = "resource"
-        first_resource.VibeCADTimelineOwner = second_resource
-        second_resource.VibeCADTimelineOwner = first_resource
-        owner_operation.VibeCADTimelineReplacedInputs = [
+            resource.SteveCADTimelineRole = "resource"
+        first_resource.SteveCADTimelineOwner = second_resource
+        second_resource.SteveCADTimelineOwner = first_resource
+        owner_operation.SteveCADTimelineReplacedInputs = [
             owned_source,
             first_resource,
         ]
@@ -2461,11 +2461,11 @@ class TestFeatureTimeline(unittest.TestCase):
         controller = _document_timeline(self.document)
         end_button = self.timeline_widget.findChild(
             QtGui.QToolButton,
-            "VibeCADFeatureTimelineEnd",
+            "SteveCADFeatureTimelineEnd",
         )
         previous_button = self.timeline_widget.findChild(
             QtGui.QToolButton,
-            "VibeCADFeatureTimelinePrevious",
+            "SteveCADFeatureTimelinePrevious",
         )
         end_button.click()
         self.assertTrue(
@@ -2497,17 +2497,17 @@ class TestFeatureTimeline(unittest.TestCase):
         )
         operation.addProperty(
             "App::PropertyString",
-            "VibeCADTimelineRole",
+            "SteveCADTimelineRole",
             "Timeline",
         )
-        operation.VibeCADTimelineRole = "operation"
+        operation.SteveCADTimelineRole = "operation"
         operation.Visibility = True
         operation.addProperty(
             "App::PropertyLinkListHidden",
-            "VibeCADTimelineReplacedInputs",
+            "SteveCADTimelineReplacedInputs",
             "Timeline",
         )
-        operation.VibeCADTimelineReplacedInputs = [source_body]
+        operation.SteveCADTimelineReplacedInputs = [source_body]
 
         output = self.document.addObject(
             "Part::Feature",
@@ -2516,16 +2516,16 @@ class TestFeatureTimeline(unittest.TestCase):
         output.Shape = Part.makeCylinder(3, 12, App.Vector(20, 0, 0))
         output.addProperty(
             "App::PropertyLinkHidden",
-            "VibeCADTimelineOwner",
+            "SteveCADTimelineOwner",
             "Timeline",
         )
         output.addProperty(
             "App::PropertyString",
-            "VibeCADTimelineRole",
+            "SteveCADTimelineRole",
             "Timeline",
         )
-        output.VibeCADTimelineOwner = operation
-        output.VibeCADTimelineRole = "resource"
+        output.SteveCADTimelineOwner = operation
+        output.SteveCADTimelineRole = "resource"
         operation.addObject(output)
         output.Visibility = True
         source_body.Visibility = False
@@ -2565,15 +2565,15 @@ class TestFeatureTimeline(unittest.TestCase):
     def test_owned_resources_follow_operation_without_becoming_history_steps(self):
         end_button = self.timeline_widget.findChild(
             QtGui.QToolButton,
-            "VibeCADFeatureTimelineEnd",
+            "SteveCADFeatureTimelineEnd",
         )
         previous_button = self.timeline_widget.findChild(
             QtGui.QToolButton,
-            "VibeCADFeatureTimelinePrevious",
+            "SteveCADFeatureTimelinePrevious",
         )
         next_button = self.timeline_widget.findChild(
             QtGui.QToolButton,
-            "VibeCADFeatureTimelineNext",
+            "SteveCADFeatureTimelineNext",
         )
         end_button.click()
         controller = _document_timeline(self.document)
@@ -2599,18 +2599,18 @@ class TestFeatureTimeline(unittest.TestCase):
         resource.Shape = Part.makeBox(1, 1, 1)
         resource.addProperty(
             "App::PropertyString",
-            "VibeCADTimelineRole",
+            "SteveCADTimelineRole",
             "Timeline",
         )
-        resource.VibeCADTimelineRole = "resource"
+        resource.SteveCADTimelineRole = "resource"
         resource.addProperty(
             "App::PropertyLinkHidden",
-            "VibeCADTimelineOwner",
+            "SteveCADTimelineOwner",
             "Timeline",
         )
-        resource.VibeCADTimelineOwner = operation
-        resource.setEditorMode("VibeCADTimelineRole", 2)
-        resource.setEditorMode("VibeCADTimelineOwner", 2)
+        resource.SteveCADTimelineOwner = operation
+        resource.setEditorMode("SteveCADTimelineRole", 2)
+        resource.setEditorMode("SteveCADTimelineOwner", 2)
         self.assertNotIn(
             operation,
             resource.OutList,
@@ -2665,7 +2665,7 @@ class TestFeatureTimeline(unittest.TestCase):
         _trigger_timeline_action(
             self.timeline,
             _object_items(self.timeline)[operation.Name],
-            "VibeCADTimelineSetCurrent",
+            "SteveCADTimelineSetCurrent",
         )
         operations = list(controller.Operations)
         operation_boundary = operations.index(operation)
@@ -2740,7 +2740,7 @@ class TestFeatureTimeline(unittest.TestCase):
     def test_invalid_resource_ownership_never_promotes_internal_objects(self):
         end_button = self.timeline_widget.findChild(
             QtGui.QToolButton,
-            "VibeCADFeatureTimelineEnd",
+            "SteveCADFeatureTimelineEnd",
         )
         end_button.click()
         controller = _document_timeline(self.document)
@@ -2762,16 +2762,16 @@ class TestFeatureTimeline(unittest.TestCase):
         orphan.Shape = Part.makeBox(1, 1, 1)
         orphan.addProperty(
             "App::PropertyString",
-            "VibeCADTimelineRole",
+            "SteveCADTimelineRole",
             "Timeline",
         )
         orphan.addProperty(
             "App::PropertyLinkHidden",
-            "VibeCADTimelineOwner",
+            "SteveCADTimelineOwner",
             "Timeline",
         )
-        orphan.VibeCADTimelineOwner = owner
-        orphan.VibeCADTimelineRole = "resource"
+        orphan.SteveCADTimelineOwner = owner
+        orphan.SteveCADTimelineRole = "resource"
         orphan.Visibility = True
 
         malformed_owner = self.document.addObject(
@@ -2786,16 +2786,16 @@ class TestFeatureTimeline(unittest.TestCase):
         malformed.Shape = Part.makeBox(1, 1, 1)
         malformed.addProperty(
             "App::PropertyString",
-            "VibeCADTimelineRole",
+            "SteveCADTimelineRole",
             "Timeline",
         )
         malformed.addProperty(
             "App::PropertyLink",
-            "VibeCADTimelineOwner",
+            "SteveCADTimelineOwner",
             "Timeline",
         )
-        malformed.VibeCADTimelineOwner = malformed_owner
-        malformed.VibeCADTimelineRole = "resource"
+        malformed.SteveCADTimelineOwner = malformed_owner
+        malformed.SteveCADTimelineRole = "resource"
         malformed.Visibility = True
 
         cycle_a = self.document.addObject(
@@ -2810,18 +2810,18 @@ class TestFeatureTimeline(unittest.TestCase):
             resource.Shape = Part.makeBox(1, 1, 1)
             resource.addProperty(
                 "App::PropertyString",
-                "VibeCADTimelineRole",
+                "SteveCADTimelineRole",
                 "Timeline",
             )
             resource.addProperty(
                 "App::PropertyLinkHidden",
-                "VibeCADTimelineOwner",
+                "SteveCADTimelineOwner",
                 "Timeline",
             )
-        cycle_a.VibeCADTimelineOwner = cycle_b
-        cycle_a.VibeCADTimelineRole = "resource"
-        cycle_b.VibeCADTimelineOwner = cycle_a
-        cycle_b.VibeCADTimelineRole = "resource"
+        cycle_a.SteveCADTimelineOwner = cycle_b
+        cycle_a.SteveCADTimelineRole = "resource"
+        cycle_b.SteveCADTimelineOwner = cycle_a
+        cycle_b.SteveCADTimelineRole = "resource"
         cycle_a.Visibility = True
         cycle_b.Visibility = True
         self.document.recompute()
@@ -2849,7 +2849,7 @@ class TestFeatureTimeline(unittest.TestCase):
         self.document.removeObject(owner.Name)
         self.assertTrue(
             _wait_until(
-                lambda: orphan.VibeCADTimelineOwner is None
+                lambda: orphan.SteveCADTimelineOwner is None
                 and orphan.Visibility is False
                 and orphan.Name not in _object_items(self.timeline)
             ),
@@ -2858,7 +2858,7 @@ class TestFeatureTimeline(unittest.TestCase):
         )
 
         with tempfile.TemporaryDirectory(
-            prefix="vibecad_timeline_orphan_",
+            prefix="stevecad_timeline_orphan_",
         ) as temporary_directory:
             path = os.path.join(
                 temporary_directory,
@@ -2882,19 +2882,19 @@ class TestFeatureTimeline(unittest.TestCase):
             self.assertIsNotNone(restored_malformed)
             self.assertIsNotNone(restored_cycle_a)
             self.assertIsNotNone(restored_cycle_b)
-            self.assertIsNone(restored_orphan.VibeCADTimelineOwner)
+            self.assertIsNone(restored_orphan.SteveCADTimelineOwner)
             self.assertEqual(
                 restored_malformed.getTypeIdOfProperty(
-                    "VibeCADTimelineOwner"
+                    "SteveCADTimelineOwner"
                 ),
                 "App::PropertyLink",
             )
             self.assertIs(
-                restored_cycle_a.VibeCADTimelineOwner,
+                restored_cycle_a.SteveCADTimelineOwner,
                 restored_cycle_b,
             )
             self.assertIs(
-                restored_cycle_b.VibeCADTimelineOwner,
+                restored_cycle_b.SteveCADTimelineOwner,
                 restored_cycle_a,
             )
             self.assertTrue(
@@ -2922,10 +2922,10 @@ class TestFeatureTimeline(unittest.TestCase):
         """Timeline actions never replace a transaction owned by another caller."""
 
         previous_button = self.timeline_widget.findChild(
-            QtGui.QToolButton, "VibeCADFeatureTimelinePrevious"
+            QtGui.QToolButton, "SteveCADFeatureTimelinePrevious"
         )
         end_button = self.timeline_widget.findChild(
-            QtGui.QToolButton, "VibeCADFeatureTimelineEnd"
+            QtGui.QToolButton, "SteveCADFeatureTimelineEnd"
         )
         self.assertIsNotNone(previous_button)
         self.assertIsNotNone(end_button)
@@ -3033,7 +3033,7 @@ class TestFeatureTimeline(unittest.TestCase):
         try:
             previous_button = self.timeline_widget.findChild(
                 QtGui.QToolButton,
-                "VibeCADFeatureTimelinePrevious",
+                "SteveCADFeatureTimelinePrevious",
             )
             self.assertIsNotNone(previous_button)
             previous_button.click()
@@ -3060,7 +3060,7 @@ class TestFeatureTimeline(unittest.TestCase):
 
         end_button = self.timeline_widget.findChild(
             QtGui.QToolButton,
-            "VibeCADFeatureTimelineEnd",
+            "SteveCADFeatureTimelineEnd",
         )
         end_button.click()
         self.assertTrue(
@@ -3088,7 +3088,7 @@ class TestFeatureTimeline(unittest.TestCase):
         _trigger_timeline_action(
             self.timeline,
             _object_items(self.timeline)[self.first.Name],
-            "VibeCADTimelineSetCurrent",
+            "SteveCADTimelineSetCurrent",
         )
         self.assertTrue(
             _wait_until(
@@ -3152,7 +3152,7 @@ class TestFeatureTimeline(unittest.TestCase):
             observer.armed = True
             end_button = self.timeline_widget.findChild(
                 QtGui.QToolButton,
-                "VibeCADFeatureTimelineEnd",
+                "SteveCADFeatureTimelineEnd",
             )
             end_button.click()
             self.assertTrue(
@@ -3239,7 +3239,7 @@ class TestFeatureTimeline(unittest.TestCase):
         _trigger_timeline_action(
             self.timeline,
             _object_items(self.timeline)[self.first.Name],
-            "VibeCADTimelineSetCurrent",
+            "SteveCADTimelineSetCurrent",
         )
         self.assertTrue(
             _wait_until(
@@ -3303,7 +3303,7 @@ class TestFeatureTimeline(unittest.TestCase):
         _trigger_timeline_action(
             self.timeline,
             _object_items(self.timeline)[self.first.Name],
-            "VibeCADTimelineSetCurrent",
+            "SteveCADTimelineSetCurrent",
         )
         self.assertTrue(
             _wait_until(
@@ -3397,7 +3397,7 @@ class TestFeatureTimeline(unittest.TestCase):
     def test_context_action_resolves_target_identity_after_document_mutation(self):
         end_button = self.timeline_widget.findChild(
             QtGui.QToolButton,
-            "VibeCADFeatureTimelineEnd",
+            "SteveCADFeatureTimelineEnd",
         )
         end_button.click()
         self.assertTrue(
@@ -3435,7 +3435,7 @@ class TestFeatureTimeline(unittest.TestCase):
                         candidate
                         for candidate in popup.actions()
                         if candidate.objectName()
-                        == "VibeCADTimelineSetCurrent"
+                        == "SteveCADTimelineSetCurrent"
                     ),
                     None,
                 )
@@ -3499,7 +3499,7 @@ class TestFeatureTimeline(unittest.TestCase):
                         candidate
                         for candidate in popup.actions()
                         if candidate.objectName()
-                        == "VibeCADTimelineSetCurrent"
+                        == "SteveCADTimelineSetCurrent"
                     ),
                     None,
                 )
@@ -3582,7 +3582,7 @@ class TestFeatureTimeline(unittest.TestCase):
                         candidate
                         for candidate in popup.actions()
                         if candidate.objectName()
-                        == "VibeCADTimelineSetCurrent"
+                        == "SteveCADTimelineSetCurrent"
                     ),
                     None,
                 )
@@ -3643,7 +3643,7 @@ class TestFeatureTimeline(unittest.TestCase):
                         candidate
                         for candidate in popup.actions()
                         if candidate.objectName()
-                        == "VibeCADTimelineSetCurrent"
+                        == "SteveCADTimelineSetCurrent"
                     ),
                     None,
                 )
@@ -3743,7 +3743,7 @@ class TestFeatureTimeline(unittest.TestCase):
 
         end_button = self.timeline_widget.findChild(
             QtGui.QToolButton,
-            "VibeCADFeatureTimelineEnd",
+            "SteveCADFeatureTimelineEnd",
         )
         end_button.click()
         self.assertTrue(
@@ -3756,18 +3756,18 @@ class TestFeatureTimeline(unittest.TestCase):
 
         def tag_scripted_object(obj, role):
             values = {
-                "VibeCADScriptedRole": role,
-                "VibeCADScriptedEngine": "vibescript:partdesign",
-                "VibeCADScriptedModelId": "timeline-publication-model",
-                "VibeCADScriptedOutputKey": "TimelineSolid",
-                "VibeCADPublishedRevision": "accepted",
+                "SteveCADScriptedRole": role,
+                "SteveCADScriptedEngine": "vibescript:partdesign",
+                "SteveCADScriptedModelId": "timeline-publication-model",
+                "SteveCADScriptedOutputKey": "TimelineSolid",
+                "SteveCADPublishedRevision": "accepted",
             }
             for name, value in values.items():
                 if name not in obj.PropertiesList:
                     obj.addProperty(
                         "App::PropertyString",
                         name,
-                        "VibeCAD Publication",
+                        "SteveCAD Publication",
                     )
                 setattr(obj, name, value)
 
@@ -3801,7 +3801,7 @@ class TestFeatureTimeline(unittest.TestCase):
         _trigger_timeline_action(
             self.timeline,
             _object_items(self.timeline)[self.first.Name],
-            "VibeCADTimelineSetCurrent",
+            "SteveCADTimelineSetCurrent",
         )
         self.assertTrue(
             _wait_until(
@@ -3899,7 +3899,7 @@ class TestFeatureTimeline(unittest.TestCase):
 
         reopened = None
         with tempfile.TemporaryDirectory(
-            prefix="vibecad_legacy_document_timeline_",
+            prefix="stevecad_legacy_document_timeline_",
         ) as temporary_directory:
             path = os.path.join(temporary_directory, "legacy.FCStd")
             legacy.saveAs(path)
@@ -3955,7 +3955,7 @@ class TestFeatureTimeline(unittest.TestCase):
         self.assertEqual(_marker_position(self.timeline), 3)
 
         with tempfile.TemporaryDirectory(
-            prefix="vibecad_document_timeline_",
+            prefix="stevecad_document_timeline_",
         ) as temporary_directory:
             path = os.path.join(temporary_directory, "timeline.FCStd")
             self.document.saveAs(path)
@@ -3995,7 +3995,7 @@ class TestFeatureTimeline(unittest.TestCase):
 
             end_button = self.timeline_widget.findChild(
                 QtGui.QToolButton,
-                "VibeCADFeatureTimelineEnd",
+                "SteveCADFeatureTimelineEnd",
             )
             end_button.click()
             self.assertTrue(
@@ -4027,7 +4027,7 @@ class TestFeatureTimeline(unittest.TestCase):
     def test_selection_never_filters_interleaved_multi_body_timeline(self):
         end_button = self.timeline_widget.findChild(
             QtGui.QToolButton,
-            "VibeCADFeatureTimelineEnd",
+            "SteveCADFeatureTimelineEnd",
         )
         end_button.click()
         self.assertTrue(
@@ -4144,7 +4144,7 @@ class TestFeatureTimeline(unittest.TestCase):
 
         end_button = self.timeline_widget.findChild(
             QtGui.QToolButton,
-            "VibeCADFeatureTimelineEnd",
+            "SteveCADFeatureTimelineEnd",
         )
         end_button.click()
         self.assertTrue(
@@ -4242,7 +4242,7 @@ class TestFeatureTimeline(unittest.TestCase):
             _trigger_timeline_action(
                 self.timeline,
                 item,
-                "VibeCADTimelineSetCurrent",
+                "SteveCADTimelineSetCurrent",
             )
             self.assertTrue(
                 _wait_until(
@@ -4291,7 +4291,7 @@ class TestFeatureTimeline(unittest.TestCase):
     def test_structural_body_uses_tracked_members_in_document_history(self):
         end_button = self.timeline_widget.findChild(
             QtGui.QToolButton,
-            "VibeCADFeatureTimelineEnd",
+            "SteveCADFeatureTimelineEnd",
         )
         end_button.click()
         controller = _document_timeline(self.document)
@@ -4344,7 +4344,7 @@ class TestFeatureTimeline(unittest.TestCase):
         _trigger_timeline_action(
             self.timeline,
             _object_items(self.timeline)[first.Name],
-            "VibeCADTimelineSetCurrent",
+            "SteveCADTimelineSetCurrent",
         )
         first_boundary = list(controller.Operations).index(first) + 1
         self.assertTrue(
@@ -4406,7 +4406,7 @@ class TestFeatureTimeline(unittest.TestCase):
         _trigger_timeline_action(
             self.timeline,
             _object_items(self.timeline)[first.Name],
-            "VibeCADTimelineSetCurrent",
+            "SteveCADTimelineSetCurrent",
         )
         self.assertTrue(
             _wait_until(
@@ -4416,7 +4416,7 @@ class TestFeatureTimeline(unittest.TestCase):
             )
         )
         with tempfile.TemporaryDirectory(
-            prefix="vibecad_structural_body_timeline_",
+            prefix="stevecad_structural_body_timeline_",
         ) as temporary_directory:
             path = os.path.join(temporary_directory, "structural.FCStd")
             structural_body_name = structural_body.Name
@@ -4456,7 +4456,7 @@ class TestFeatureTimeline(unittest.TestCase):
 
             end_button = self.timeline_widget.findChild(
                 QtGui.QToolButton,
-                "VibeCADFeatureTimelineEnd",
+                "SteveCADFeatureTimelineEnd",
             )
             end_button.click()
             self.assertTrue(
@@ -4474,7 +4474,7 @@ class TestFeatureTimeline(unittest.TestCase):
 
         end_button = self.timeline_widget.findChild(
             QtGui.QToolButton,
-            "VibeCADFeatureTimelineEnd",
+            "SteveCADFeatureTimelineEnd",
         )
         end_button.click()
         self.assertTrue(
@@ -4521,10 +4521,10 @@ class TestFeatureTimeline(unittest.TestCase):
         self.assertTrue(internal.isValid(), internal.getStatusString())
         self.assertIn(internal, transform_body.Group)
         self.assertIs(transform_body.Tip, multi)
-        self.assertEqual(internal.VibeCADTimelineRole, "resource")
-        self.assertIs(internal.VibeCADTimelineOwner, multi)
+        self.assertEqual(internal.SteveCADTimelineRole, "resource")
+        self.assertIs(internal.SteveCADTimelineOwner, multi)
         self.assertEqual(
-            internal.getTypeIdOfProperty("VibeCADTimelineOwner"),
+            internal.getTypeIdOfProperty("SteveCADTimelineOwner"),
             "App::PropertyLinkHidden",
         )
         self.assertNotIn(
@@ -4534,11 +4534,11 @@ class TestFeatureTimeline(unittest.TestCase):
         )
         self.assertIn(
             "Hidden",
-            internal.getEditorMode("VibeCADTimelineRole"),
+            internal.getEditorMode("SteveCADTimelineRole"),
         )
         self.assertIn(
             "Hidden",
-            internal.getEditorMode("VibeCADTimelineOwner"),
+            internal.getEditorMode("SteveCADTimelineOwner"),
         )
         self.assertTrue(
             _wait_until(
@@ -4551,7 +4551,7 @@ class TestFeatureTimeline(unittest.TestCase):
         _trigger_timeline_action(
             self.timeline,
             _object_items(self.timeline)[original.Name],
-            "VibeCADTimelineSetCurrent",
+            "SteveCADTimelineSetCurrent",
         )
         self.assertTrue(
             _wait_until(
@@ -4568,7 +4568,7 @@ class TestFeatureTimeline(unittest.TestCase):
         _trigger_timeline_action(
             self.timeline,
             _object_items(self.timeline)[multi.Name],
-            "VibeCADTimelineSetCurrent",
+            "SteveCADTimelineSetCurrent",
         )
         operations = list(_document_timeline(self.document).Operations)
         multi_boundary = max(
@@ -4642,7 +4642,7 @@ class TestFeatureTimeline(unittest.TestCase):
         _trigger_timeline_action(
             self.timeline,
             _object_items(self.timeline)[self.first.Name],
-            "VibeCADTimelineSetCurrent",
+            "SteveCADTimelineSetCurrent",
         )
         controller = _document_timeline(self.document)
         accepted_position = controller.Position
@@ -4735,7 +4735,7 @@ class TestFeatureTimeline(unittest.TestCase):
         try:
             previous_button = self.timeline_widget.findChild(
                 QtGui.QToolButton,
-                "VibeCADFeatureTimelinePrevious",
+                "SteveCADFeatureTimelinePrevious",
             )
             previous_button.click()
             self.assertTrue(
@@ -4792,11 +4792,11 @@ class TestFeatureTimeline(unittest.TestCase):
                 self.created_nested = obj
                 try:
                     self.before = self_document.getObject(
-                        "VibeCADTimeline"
+                        "SteveCADTimeline"
                     )
-                    self_document.removeObject("VibeCADTimeline")
+                    self_document.removeObject("SteveCADTimeline")
                     self.after = self_document.getObject(
-                        "VibeCADTimeline"
+                        "SteveCADTimeline"
                     )
                 except Exception as error:  # pragma: no cover - diagnostic
                     self.error = error
@@ -4867,7 +4867,7 @@ class TestFeatureTimeline(unittest.TestCase):
         # migration/recovery code; only reentrant removal is refused.
         self.document.removeObject(controller.Name)
         self.assertIsNone(_document_timeline(self.document))
-        self.assertIsNone(self.document.getObject("VibeCADTimeline"))
+        self.assertIsNone(self.document.getObject("SteveCADTimeline"))
 
     def test_replacement_controller_callback_can_remove_outer_creation_safely(self):
         """First-controller callbacks cannot leave a deleted outer object live."""
@@ -4997,7 +4997,7 @@ class TestFeatureTimeline(unittest.TestCase):
 
         recompute_button = self.timeline_widget.findChild(
             QtGui.QToolButton,
-            "VibeCADFeatureTimelineRecompute",
+            "SteveCADFeatureTimelineRecompute",
         )
         self.assertIsNotNone(recompute_button)
         self.assertFalse(recompute_button.isEnabled())
@@ -5006,9 +5006,9 @@ class TestFeatureTimeline(unittest.TestCase):
         # disabled controls. Guarding only the widget state would still leave
         # queued signals able to commit the native task's pending transaction.
         for object_name in (
-            "VibeCADFeatureTimelinePrevious",
-            "VibeCADFeatureTimelineNext",
-            "VibeCADFeatureTimelineEnd",
+            "SteveCADFeatureTimelinePrevious",
+            "SteveCADFeatureTimelineNext",
+            "SteveCADFeatureTimelineEnd",
         ):
             button = self.timeline_widget.findChild(
                 QtGui.QToolButton,
@@ -5042,7 +5042,7 @@ class TestFeatureTimeline(unittest.TestCase):
     def test_history_move_without_undo_accepts_valid_result_and_restores_failure(self):
         self.document.UndoMode = False
         end_button = self.timeline_widget.findChild(
-            QtGui.QToolButton, "VibeCADFeatureTimelineEnd"
+            QtGui.QToolButton, "SteveCADFeatureTimelineEnd"
         )
 
         end_button.click()
@@ -5072,7 +5072,7 @@ class TestFeatureTimeline(unittest.TestCase):
         _trigger_timeline_action(
             self.timeline,
             _object_items(self.timeline)[self.second.Name],
-            "VibeCADTimelineSetCurrent",
+            "SteveCADTimelineSetCurrent",
         )
         self.assertTrue(
             _wait_until(
@@ -5113,7 +5113,7 @@ class TestFeatureTimeline(unittest.TestCase):
     def test_timeline_marks_recompute_and_failed_operations(self):
         end_button = self.timeline_widget.findChild(
             QtGui.QToolButton,
-            "VibeCADFeatureTimelineEnd",
+            "SteveCADFeatureTimelineEnd",
         )
         end_button.click()
         self.assertTrue(
@@ -5218,12 +5218,12 @@ class TestFeatureTimelineIconColor(unittest.TestCase):
         main_window = Gui.getMainWindow()
         self.timeline_widget = _wait_until(
             lambda: main_window.findChild(
-                QtGui.QWidget, "VibeCADFeatureTimeline"
+                QtGui.QWidget, "SteveCADFeatureTimeline"
             )
         )
         self.assertIsNotNone(self.timeline_widget)
         self.timeline = self.timeline_widget.findChild(
-            QtGui.QListWidget, "VibeCADFeatureTimelineItems"
+            QtGui.QListWidget, "SteveCADFeatureTimelineItems"
         )
         self.assertIsNotNone(self.timeline)
         self.assertTrue(
@@ -5322,7 +5322,7 @@ class TestFeatureTimelineIconColor(unittest.TestCase):
 
         end_button = self.timeline_widget.findChild(
             QtGui.QToolButton,
-            "VibeCADFeatureTimelineEnd",
+            "SteveCADFeatureTimelineEnd",
         )
         end_button.click()
         restored_item = _wait_until(
@@ -5335,7 +5335,7 @@ class TestFeatureTimelineIconColor(unittest.TestCase):
 
         previous_button = self.timeline_widget.findChild(
             QtGui.QToolButton,
-            "VibeCADFeatureTimelinePrevious",
+            "SteveCADFeatureTimelinePrevious",
         )
         previous_button.click()
         rolled_back_item = _wait_until(

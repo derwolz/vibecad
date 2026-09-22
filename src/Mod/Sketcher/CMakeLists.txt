@@ -54,7 +54,7 @@ if(BUILD_GUI)
           SketcherTests/TestOnViewParameterGui.py
           SketcherTests/TestExternalFacePreselection.py
           SketcherTests/TestNewSketchExactFactory.py
-          SketcherTests/TestVibeCADRibbonTools.py
+          SketcherTests/TestSteveCADRibbonTools.py
     )
 endif(BUILD_GUI)
 

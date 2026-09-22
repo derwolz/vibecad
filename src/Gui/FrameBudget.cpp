@@ -254,7 +254,7 @@ private:
 
 PerformanceScope::PerformanceScope(const char* name) : name(name)
 {
-    static const bool enabled = qEnvironmentVariableIsSet("VIBECAD_RESTORE_DETAIL_TRACE");
+    static const bool enabled = qEnvironmentVariableIsSet("STEVECAD_RESTORE_DETAIL_TRACE");
     if (enabled && qApp && QThread::currentThread() == qApp->thread()) {
         timer.start();
     }

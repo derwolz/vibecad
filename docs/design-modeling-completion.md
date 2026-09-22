@@ -1,7 +1,7 @@
 # Design Modeling Completion Ledger
 
 Status: In Progress
-Scope owner: VibeCAD native multi-body modeling
+Scope owner: SteveCAD native multi-body modeling
 Last updated: 2026-08-10
 
 This document defines the design-level modeling architecture and the exact gate
@@ -10,7 +10,7 @@ pages.
 
 ## Product contract
 
-One saved VibeCAD design is one modeling space:
+One saved SteveCAD design is one modeling space:
 
 ```text
 Design

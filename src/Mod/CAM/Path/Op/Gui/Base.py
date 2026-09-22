@@ -44,7 +44,7 @@ from Path.CommandBoundary import (
 )
 from Path.Tool.library.ui.dock import ToolBitLibraryDock
 import PathScripts.PathUtils as PathUtils
-from VibeCADNativeTransaction import _OwnedDocumentTransaction
+from SteveCADNativeTransaction import _OwnedDocumentTransaction
 import importlib
 from PySide.QtCore import QT_TRANSLATE_NOOP
 

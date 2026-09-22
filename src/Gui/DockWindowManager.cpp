@@ -126,9 +126,9 @@ void presentPermanentModelBrowser(QDockWidget* dock)
         return;
     }
 
-    auto* host = getMainWindow()->findChild<QWidget*>(QStringLiteral("VibeCADModelBrowserHost"));
+    auto* host = getMainWindow()->findChild<QWidget*>(QStringLiteral("SteveCADModelBrowserHost"));
     if (!host || !host->layout()) {
-        Base::Console().error("VibeCAD model-browser host is unavailable\n");
+        Base::Console().error("SteveCAD model-browser host is unavailable\n");
         return;
     }
 
@@ -138,7 +138,7 @@ void presentPermanentModelBrowser(QDockWidget* dock)
         host->layout()->addWidget(dock);
     }
 
-    dock->setProperty("vibecadPermanentModelBrowser", true);
+    dock->setProperty("stevecadPermanentModelBrowser", true);
     dock->setAllowedAreas(Qt::NoDockWidgetArea);
     dock->setFeatures(QDockWidget::NoDockWidgetFeatures);
     dock->setAttribute(Qt::WA_NoSystemBackground);
@@ -151,9 +151,9 @@ void presentPermanentModelBrowser(QDockWidget* dock)
     }
 
     auto* titleBar = dock->titleBarWidget();
-    if (!titleBar || titleBar->objectName() != QStringLiteral("VibeCADModelBrowserTitle")) {
+    if (!titleBar || titleBar->objectName() != QStringLiteral("SteveCADModelBrowserTitle")) {
         auto* replacement = new QWidget(dock);
-        replacement->setObjectName(QStringLiteral("VibeCADModelBrowserTitle"));
+        replacement->setObjectName(QStringLiteral("SteveCADModelBrowserTitle"));
         replacement->setFixedHeight(0);
         dock->setTitleBarWidget(replacement);
         if (titleBar) {

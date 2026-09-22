@@ -33,7 +33,7 @@ from Path.CommandBoundary import (
     active_jobs,
     can_start_document_command,
 )
-from VibeCADNativeTransaction import _OwnedDocumentTransaction
+from SteveCADNativeTransaction import _OwnedDocumentTransaction
 from PySide import QtCore
 from PySide.QtCore import QT_TRANSLATE_NOOP
 
@@ -158,7 +158,7 @@ def _validate_stop_result(document, job, result, *, require_path=True):
         or PathUtils.findParentJob(result) is not job
         or PathUtil.timelineParentJob(result) is not job
         or not document.isProvisionallyEnrolledInTimelineByCurrentTransaction(result)
-        or tuple(getattr(result, "VibeCADTimelineReplacedInputs", ()) or ())
+        or tuple(getattr(result, "SteveCADTimelineReplacedInputs", ()) or ())
         or not result.isValid()
         or (require_path and not tuple(getattr(result.Path, "Commands", ()) or ()))
     ):

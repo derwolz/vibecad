@@ -353,7 +353,7 @@ void VisualInspection::accept()
         for (auto* nominal : nominalObjects) {
             nominals.append(Py::asObject(nominal->getPyObject()));
         }
-        PyObject* imported = PyImport_ImportModule("VibeCADInspectionComparisonGui");
+        PyObject* imported = PyImport_ImportModule("SteveCADInspectionComparisonGui");
         if (!imported) {
             throw Py::Exception();
         }

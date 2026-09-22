@@ -46,8 +46,8 @@ def run():
         result = {'ok': True, 'record': records[0], 'phase': phases[0]}
     except Exception:
         result['error'] = traceback.format_exc()
-    Path(os.environ['VIBECAD_TRACE_PROBE_RESULT']).write_text(json.dumps(result, indent=2), encoding='utf-8')
-    print('VIBECAD_EVENT_TRACE_PROBE ' + json.dumps(result), flush=True)
+    Path(os.environ['STEVECAD_TRACE_PROBE_RESULT']).write_text(json.dumps(result, indent=2), encoding='utf-8')
+    print('STEVECAD_EVENT_TRACE_PROBE ' + json.dumps(result), flush=True)
     QtCore.QTimer.singleShot(0, Gui.getMainWindow().close)
 
 

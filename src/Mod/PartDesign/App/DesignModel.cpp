@@ -261,7 +261,7 @@ DesignBodyState* createOutputState(
     }
     state->DesignId.setValue(operationProperties->DesignId.getValue());
     state->OperationId.setValue(operationProperties->OperationId.getValue());
-    state->BodyId.setValue(body.VibeCADBodyId.getValue());
+    state->BodyId.setValue(body.SteveCADBodyId.getValue());
     state->PreviousState.setValue(previousState);
     return state;
 }
@@ -321,7 +321,7 @@ Body* createOperationBody(
 
     const std::string name = document.getUniqueObjectName("Body");
     auto* body = document.addObject<Body>(name.c_str());
-    body->VibeCADBodyId.setValue(bodyId);
+    body->SteveCADBodyId.setValue(bodyId);
     body->DesignId.setValue(properties.DesignId.getValue());
     body->Label.setValue("Body");
     if (const auto* separate = dynamic_cast<const DesignSeparate*>(&properties)) {
@@ -524,10 +524,10 @@ void preflightReusableDefinitionDependencies(App::DocumentObject& operation)
         link->getLinks(linked, true);
         for (auto* target : linked) {
             const auto* sketchId = target
-                ? target->PropertyContainer::getPropertyByName("VibeCADSketchId")
+                ? target->PropertyContainer::getPropertyByName("SteveCADSketchId")
                 : nullptr;
             const auto* definitionId = target
-                ? target->PropertyContainer::getPropertyByName("VibeCADDefinitionId")
+                ? target->PropertyContainer::getPropertyByName("SteveCADDefinitionId")
                 : nullptr;
             if (!sketchId && !definitionId) {
                 continue;
@@ -577,7 +577,7 @@ Body* DesignModel::bodyWithId(App::Document& document, const std::string& bodyId
 
     Body* found = nullptr;
     for (auto* body : document.getObjectsOfType<Body>()) {
-        if (!body || body->VibeCADBodyId.getValueStr() != bodyId) {
+        if (!body || body->SteveCADBodyId.getValueStr() != bodyId) {
             continue;
         }
         if (found) {
@@ -641,7 +641,7 @@ App::DocumentObject* DesignModel::resolveDefinitionReference(
     // file which placed that definition inside a Body.
     if (freecad_cast<Part::Part2DObject*>(&selected) || freecad_cast<Part::Datum*>(&selected)
         || freecad_cast<ShapeBinder*>(&selected) || freecad_cast<SubShapeBinder*>(&selected)
-        || selected.PropertyContainer::getPropertyByName("VibeCADDefinitionId")) {
+        || selected.PropertyContainer::getPropertyByName("SteveCADDefinitionId")) {
         resolved = &selected;
     }
 
@@ -682,8 +682,8 @@ App::DocumentObject* DesignModel::resolveDefinitionReference(
         const auto dependencyPosition = std::ranges::find(history, root);
         const bool requiresHistory = App::DocumentTimeline::hasTimelineOperationRole(root)
             || freecad_cast<DesignBodyState*>(resolved)
-            || resolved->PropertyContainer::getPropertyByName("VibeCADSketchId")
-            || resolved->PropertyContainer::getPropertyByName("VibeCADDefinitionId");
+            || resolved->PropertyContainer::getPropertyByName("SteveCADSketchId")
+            || resolved->PropertyContainer::getPropertyByName("SteveCADDefinitionId");
         if ((requiresHistory && dependencyPosition == history.end())
             || (definitionPosition != history.end() && dependencyPosition != history.end()
                 && dependencyPosition >= definitionPosition)) {
@@ -970,7 +970,7 @@ void DesignModel::setOperationTargets(
                 "Every target must be one distinct Body in the operation document"
             );
         }
-        const std::string bodyId = body->VibeCADBodyId.getValueStr();
+        const std::string bodyId = body->SteveCADBodyId.getValueStr();
         if (bodyId.empty() || !uniqueIds.insert(bodyId).second) {
             throw Base::RuntimeError("Every target Body must have one distinct persistent identity");
         }
@@ -1137,7 +1137,7 @@ void setBodyCopySource(
             std::string(operationName) + " source must belong to the operation document"
         );
     }
-    const std::string sourceBodyId = sourceBody.VibeCADBodyId.getValueStr();
+    const std::string sourceBodyId = sourceBody.SteveCADBodyId.getValueStr();
     auto* sourceState = designBodyStateBefore(&sourceBody, operation);
     if (sourceBodyId.empty() || !sourceState) {
         throw Base::ValueError(
@@ -1318,7 +1318,7 @@ void DesignModel::setScriptOutputs(
         }
         const auto inputIndex = static_cast<long>(inputs.size());
         inputs.push_back(previous);
-        inputBodyIds.push_back(body.VibeCADBodyId.getValueStr());
+        inputBodyIds.push_back(body.SteveCADBodyId.getValueStr());
         inputFrames.push_back(frame);
         return inputIndex;
     };
@@ -1370,7 +1370,7 @@ void DesignModel::setScriptOutputs(
             }
         }
         else if (adopted) {
-            bodyId = adopted->VibeCADBodyId.getValueStr();
+            bodyId = adopted->SteveCADBodyId.getValueStr();
             frame = App::GeoFeature::getGlobalPlacement(adopted);
             previousInputIndex = appendExistingInput(*adopted, frame);
         }
@@ -1461,7 +1461,7 @@ void DesignModel::setCombineBodies(
             throw Base::ValueError("The Combine result and tools must be distinct Bodies in one "
                                    "document");
         }
-        const std::string bodyId = body->VibeCADBodyId.getValueStr();
+        const std::string bodyId = body->SteveCADBodyId.getValueStr();
         if (bodyId.empty() || !uniqueBodyIds.insert(bodyId).second) {
             throw Base::RuntimeError("Every Combine Body must have one distinct persistent identity");
         }
@@ -1554,7 +1554,7 @@ std::vector<Base::Vector3d> DesignModel::setSplitDefinition(
         throw Base::ValueError("Split requires at least one explicit face, surface, shell, or solid");
     }
 
-    const std::string sourceBodyId = sourceBody.VibeCADBodyId.getValueStr();
+    const std::string sourceBodyId = sourceBody.SteveCADBodyId.getValueStr();
     auto* sourceState = designBodyStateBefore(&sourceBody, edit.operation);
     if (sourceBodyId.empty() || !sourceState) {
         throw Base::ValueError(
@@ -1621,7 +1621,7 @@ std::vector<Base::Vector3d> DesignModel::setSplitDefinition(
         App::DocumentObject* exactDefinition = requestedObject;
         Base::Placement definitionFrame;
         if (definitionBody) {
-            const std::string definitionBodyId = definitionBody->VibeCADBodyId.getValueStr();
+            const std::string definitionBodyId = definitionBody->SteveCADBodyId.getValueStr();
             if (definitionBody == &sourceBody || definitionBodyId == sourceBodyId) {
                 throw Base::ValueError("The source Body cannot also be its own Split definition");
             }
@@ -1717,7 +1717,7 @@ void DesignModel::assignSplitRegions(
     if (!split || !document) {
         throw Base::TypeError("Split region assignment requires one live Design Split operation");
     }
-    const std::string sourceBodyId = sourceBody.VibeCADBodyId.getValueStr();
+    const std::string sourceBodyId = sourceBody.SteveCADBodyId.getValueStr();
     const auto& inputBodyIds = split->InputBodyIds.getValues();
     const auto& inputFrames = split->InputFrames.getValues();
     if (sourceBody.getDocument() != document || sourceBodyId.empty()
@@ -2240,7 +2240,7 @@ DesignBodyPublication* DesignModel::ensurePublication(App::Document& document, B
     body.addObject(publication);
     publication->BaseFeature.setValue(nullptr);
     publication->DesignId.setValue(body.DesignId.getValue());
-    publication->BodyId.setValue(body.VibeCADBodyId.getValue());
+    publication->BodyId.setValue(body.SteveCADBodyId.getValue());
     publication->CurrentState.setValue(previousState);
     document.classifyProvisionalTimelineInternalObject(publication);
     return publication;
@@ -2276,13 +2276,13 @@ DesignBodyState* DesignModel::initializeLegacyBodyState(Body& body, Part::Featur
             "Only a Body containing one standalone legacy feature can be promoted automatically"
         );
     }
-    if (body.VibeCADBodyId.getValueStr().empty() || body.DesignId.getValueStr().empty()) {
+    if (body.SteveCADBodyId.getValueStr().empty() || body.DesignId.getValueStr().empty()) {
         throw Base::RuntimeError("The legacy Body has no persistent Design identity");
     }
     if (std::ranges::any_of(
             document->getObjectsOfType<DesignBodyState>(),
             [&body](const DesignBodyState* state) {
-                return state && state->BodyId.getValueStr() == body.VibeCADBodyId.getValueStr();
+                return state && state->BodyId.getValueStr() == body.SteveCADBodyId.getValueStr();
             }
         )) {
         throw Base::ValueError("This Body already participates in the Design state graph");
@@ -2295,7 +2295,7 @@ DesignBodyState* DesignModel::initializeLegacyBodyState(Body& body, Part::Featur
     const std::string stateName = document->getUniqueObjectName("InitialBodyState");
     auto* initialState = document->addObject<DesignBodyState>(stateName.c_str());
     initialState->Operation.setValue(nullptr);
-    initialState->BodyId.setValue(body.VibeCADBodyId.getValue());
+    initialState->BodyId.setValue(body.SteveCADBodyId.getValue());
     initialState->PreviousState.setValue(nullptr);
     initialState->Present.setValue(true);
     initialState->Shape.setValue(initialShape);
@@ -2354,10 +2354,10 @@ void DesignModel::remapImportedGraph(
         if (auto* body = freecad_cast<Body*>(object)) {
             bodies.push_back(body);
         }
-        if (object->PropertyContainer::getPropertyByName("VibeCADSketchId")) {
+        if (object->PropertyContainer::getPropertyByName("SteveCADSketchId")) {
             sketches.push_back(object);
         }
-        if (object->PropertyContainer::getPropertyByName("VibeCADDefinitionId")) {
+        if (object->PropertyContainer::getPropertyByName("SteveCADDefinitionId")) {
             definitions.push_back(object);
         }
         if (dynamic_cast<DesignOperationProperties*>(object)) {
@@ -2386,9 +2386,9 @@ void DesignModel::remapImportedGraph(
     usedIdentities.insert(targetDesignId);
     constexpr const char* identityProperties[] = {
         "ComponentId",
-        "VibeCADBodyId",
-        "VibeCADSketchId",
-        "VibeCADDefinitionId",
+        "SteveCADBodyId",
+        "SteveCADSketchId",
+        "SteveCADDefinitionId",
         "OperationId",
         "BodyStateId",
     };
@@ -2439,13 +2439,13 @@ void DesignModel::remapImportedGraph(
         defineIdentity(component->ComponentId.getValueStr(), "Component");
     }
     for (auto* body : bodies) {
-        defineIdentity(body->VibeCADBodyId.getValueStr(), "Body");
+        defineIdentity(body->SteveCADBodyId.getValueStr(), "Body");
     }
     for (auto* sketch : sketches) {
-        defineIdentity(uuidPropertyValue(*sketch, "VibeCADSketchId"), "Sketch");
+        defineIdentity(uuidPropertyValue(*sketch, "SteveCADSketchId"), "Sketch");
     }
     for (auto* definition : definitions) {
-        defineIdentity(uuidPropertyValue(*definition, "VibeCADDefinitionId"), "Definition");
+        defineIdentity(uuidPropertyValue(*definition, "SteveCADDefinitionId"), "Definition");
     }
     for (auto* operation : operations) {
         auto* properties = dynamic_cast<DesignOperationProperties*>(operation);
@@ -2464,13 +2464,13 @@ void DesignModel::remapImportedGraph(
         component->DesignId.setValue(targetDesignId);
     }
     for (auto* body : bodies) {
-        body->VibeCADBodyId.setValue(requireMapped(body->VibeCADBodyId.getValueStr(), "Body identity")
+        body->SteveCADBodyId.setValue(requireMapped(body->SteveCADBodyId.getValueStr(), "Body identity")
         );
         body->DesignId.setValue(targetDesignId);
     }
     for (auto* sketch : sketches) {
         auto* sketchId = dynamic_cast<App::PropertyUUID*>(
-            sketch->PropertyContainer::getPropertyByName("VibeCADSketchId")
+            sketch->PropertyContainer::getPropertyByName("SteveCADSketchId")
         );
         auto* designId = dynamic_cast<App::PropertyUUID*>(
             sketch->PropertyContainer::getPropertyByName("DesignId")
@@ -2483,7 +2483,7 @@ void DesignModel::remapImportedGraph(
     }
     for (auto* definition : definitions) {
         auto* definitionId = dynamic_cast<App::PropertyUUID*>(
-            definition->PropertyContainer::getPropertyByName("VibeCADDefinitionId")
+            definition->PropertyContainer::getPropertyByName("SteveCADDefinitionId")
         );
         auto* designId = dynamic_cast<App::PropertyUUID*>(
             definition->PropertyContainer::getPropertyByName("DesignId")
@@ -2961,7 +2961,7 @@ void DesignModel::validateDesign(App::Document& document)
 
     std::unordered_map<std::string, Body*> bodies;
     for (auto* body : document.getObjectsOfType<Body>()) {
-        insertUniqueIdentity(bodies, body->VibeCADBodyId.getValueStr(), body, "Body");
+        insertUniqueIdentity(bodies, body->SteveCADBodyId.getValueStr(), body, "Body");
     }
 
     const auto& history = timeline->Operations.getValues();
@@ -2977,7 +2977,7 @@ void DesignModel::validateDesign(App::Document& document)
     std::unordered_map<std::string, App::DocumentObject*> sketches;
     for (auto* sketch : document.getObjects()) {
         auto* identityProperty = sketch
-            ? sketch->PropertyContainer::getPropertyByName("VibeCADSketchId")
+            ? sketch->PropertyContainer::getPropertyByName("SteveCADSketchId")
             : nullptr;
         if (!identityProperty || !App::DocumentTimeline::hasTimelineOperationRole(sketch)) {
             continue;
@@ -3043,7 +3043,7 @@ void DesignModel::validateDesign(App::Document& document)
     std::unordered_map<std::string, App::DocumentObject*> definitions;
     for (auto* definition : document.getObjects()) {
         auto* identityProperty = definition
-            ? definition->PropertyContainer::getPropertyByName("VibeCADDefinitionId")
+            ? definition->PropertyContainer::getPropertyByName("SteveCADDefinitionId")
             : nullptr;
         if (!identityProperty) {
             continue;
@@ -3759,9 +3759,9 @@ void DesignModel::validateDesign(App::Document& document)
                                              "publication, or assembly occurrence");
                 }
                 const bool reusableSketch = target
-                    && target->PropertyContainer::getPropertyByName("VibeCADSketchId");
+                    && target->PropertyContainer::getPropertyByName("SteveCADSketchId");
                 const bool reusableDefinition = target
-                    && target->PropertyContainer::getPropertyByName("VibeCADDefinitionId");
+                    && target->PropertyContainer::getPropertyByName("SteveCADDefinitionId");
                 if (reusableSketch || reusableDefinition) {
                     referencedDefinitions.insert(target);
                     auto* root = timelineRoot(document, target);
@@ -3818,7 +3818,7 @@ void DesignModel::validateDesign(App::Document& document)
         requireDesignIdentity(
             *definition,
             designId,
-            definition->PropertyContainer::getPropertyByName("VibeCADDefinitionId")
+            definition->PropertyContainer::getPropertyByName("SteveCADDefinitionId")
                 ? "Reusable definition"
                 : "Sketch"
         );
@@ -3961,7 +3961,7 @@ void DesignModel::validateDesign(App::Document& document)
         }
         requireDesignIdentity(*publication, designId, "Body publication");
         auto* current = freecad_cast<Part::Feature*>(publication->CurrentState.getValue());
-        if (!current || publication->BodyId.getValueStr() != body->VibeCADBodyId.getValueStr()
+        if (!current || publication->BodyId.getValueStr() != body->SteveCADBodyId.getValueStr()
             || successors.contains(current)) {
             throw Base::RuntimeError("A Body publication does not point to the unique History tip");
         }
@@ -3975,7 +3975,7 @@ void DesignModel::validateDesign(App::Document& document)
 
         std::unordered_set<App::DocumentObject*> visitedStates;
         while (auto* state = freecad_cast<DesignBodyState*>(current)) {
-            if (state->BodyId.getValueStr() != body->VibeCADBodyId.getValueStr()
+            if (state->BodyId.getValueStr() != body->SteveCADBodyId.getValueStr()
                 || !visitedStates.insert(state).second) {
                 throw Base::RuntimeError("A Body publication has a cyclic or cross-Body state chain");
             }

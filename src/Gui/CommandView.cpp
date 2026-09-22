@@ -804,15 +804,15 @@ Gui::Action* StdCmdDrawStyle::createAction()
         }
 
         Command* gridCommand =
-            Application::Instance->commandManager().getCommandByName("VibeCAD_ToggleGrid");
+            Application::Instance->commandManager().getCommandByName("SteveCAD_ToggleGrid");
         if (!gridCommand) {
             return;
         }
 
-        if (!menu->property("VibeCADGridActionAdded").toBool()) {
+        if (!menu->property("SteveCADGridActionAdded").toBool()) {
             menu->addSeparator();
             gridCommand->addTo(menu);
-            menu->setProperty("VibeCADGridActionAdded", true);
+            menu->setProperty("SteveCADGridActionAdded", true);
         }
         gridCommand->testActive();
     });
@@ -2517,26 +2517,26 @@ bool StdCmdAxisCross::isActive()
 }
 
 //===========================================================================
-// VibeCAD_ToggleGrid
+// SteveCAD_ToggleGrid
 //===========================================================================
-DEF_STD_CMD_AC(VibeCADCmdToggleGrid)
+DEF_STD_CMD_AC(SteveCADCmdToggleGrid)
 
-VibeCADCmdToggleGrid::VibeCADCmdToggleGrid()
-    : Command("VibeCAD_ToggleGrid")
+SteveCADCmdToggleGrid::SteveCADCmdToggleGrid()
+    : Command("SteveCAD_ToggleGrid")
 {
     sGroup = "Standard-View";
     sMenuText = QT_TR_NOOP("Toggle &Grid");
     sToolTipText = QT_TR_NOOP("Toggles the reference grid in 3D views");
     sStatusTip = sToolTipText;
-    sWhatsThis = "VibeCAD_ToggleGrid";
+    sWhatsThis = "SteveCAD_ToggleGrid";
     sPixmap = "Draft_Grid";
     eType = Alter3DView;
 }
 
-void VibeCADCmdToggleGrid::activated(int iMsg)
+void SteveCADCmdToggleGrid::activated(int iMsg)
 {
     Q_UNUSED(iMsg);
-    doCommand(Command::Gui, "import VibeCADGrid; VibeCADGrid.toggle_grid()");
+    doCommand(Command::Gui, "import SteveCADGrid; SteveCADGrid.toggle_grid()");
 
     auto hGrp = App::GetApplication().GetParameterGroupByPath(
         "User parameter:BaseApp/Preferences/Mod/Draft"
@@ -2546,7 +2546,7 @@ void VibeCADCmdToggleGrid::activated(int iMsg)
     }
 }
 
-bool VibeCADCmdToggleGrid::isActive()
+bool SteveCADCmdToggleGrid::isActive()
 {
     auto hGrp = App::GetApplication().GetParameterGroupByPath(
         "User parameter:BaseApp/Preferences/Mod/Draft"
@@ -2558,7 +2558,7 @@ bool VibeCADCmdToggleGrid::isActive()
     return true;
 }
 
-Action* VibeCADCmdToggleGrid::createAction()
+Action* SteveCADCmdToggleGrid::createAction()
 {
     Action* pcAction = Command::createAction();
     pcAction->setCheckable(true);
@@ -2566,32 +2566,32 @@ Action* VibeCADCmdToggleGrid::createAction()
 }
 
 //===========================================================================
-// VibeCAD_SectionView
+// SteveCAD_SectionView
 //===========================================================================
-DEF_STD_CMD_AC(VibeCADCmdSectionView)
+DEF_STD_CMD_AC(SteveCADCmdSectionView)
 
-VibeCADCmdSectionView::VibeCADCmdSectionView()
-    : Command("VibeCAD_SectionView")
+SteveCADCmdSectionView::SteveCADCmdSectionView()
+    : Command("SteveCAD_SectionView")
 {
     sGroup = "Standard-View";
     sMenuText = QT_TR_NOOP("Section View");
     sToolTipText = QT_TR_NOOP("Cuts the model with a Front, Top, or Right section plane");
     sStatusTip = sToolTipText;
-    sWhatsThis = "VibeCAD_SectionView";
+    sWhatsThis = "SteveCAD_SectionView";
     sPixmap = "Std_ToggleClipPlane";
     eType = Alter3DView;
 }
 
-void VibeCADCmdSectionView::activated(int iMsg)
+void SteveCADCmdSectionView::activated(int iMsg)
 {
     Q_UNUSED(iMsg);
     doCommand(
         Command::Gui,
-        "import VibeCADSectionView; VibeCADSectionView.request_section_view_toggle()"
+        "import SteveCADSectionView; SteveCADSectionView.request_section_view_toggle()"
     );
 }
 
-bool VibeCADCmdSectionView::isActive()
+bool SteveCADCmdSectionView::isActive()
 {
     auto view = qobject_cast<View3DInventor*>(Gui::getMainWindow()->activeWindow());
     if (_pcAction) {
@@ -2603,7 +2603,7 @@ bool VibeCADCmdSectionView::isActive()
     return view != nullptr;
 }
 
-Action* VibeCADCmdSectionView::createAction()
+Action* SteveCADCmdSectionView::createAction()
 {
     Action* pcAction = Command::createAction();
     pcAction->setCheckable(true);
@@ -4456,8 +4456,8 @@ void CreateViewStdCommands()
     rcCmdMgr.addCommand(new StdCmdDemoMode());
     rcCmdMgr.addCommand(new StdCmdToggleNavigation());
     rcCmdMgr.addCommand(new StdCmdAxisCross());
-    rcCmdMgr.addCommand(new VibeCADCmdToggleGrid());
-    rcCmdMgr.addCommand(new VibeCADCmdSectionView());
+    rcCmdMgr.addCommand(new SteveCADCmdToggleGrid());
+    rcCmdMgr.addCommand(new SteveCADCmdSectionView());
     rcCmdMgr.addCommand(new StdCmdSelBoundingBox());
     rcCmdMgr.addCommand(new StdCmdTreeViewActions());
     rcCmdMgr.addCommand(new StdCmdDockOverlay());

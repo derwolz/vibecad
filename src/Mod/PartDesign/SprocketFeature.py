@@ -99,12 +99,12 @@ class CommandSprocket:
             if existing is None:
                 FreeCADGui.addModule("SprocketFeature")
                 FreeCADGui.doCommand(
-                    "_vibecad_sprocket = "
+                    "_stevecad_sprocket = "
                     "SprocketFeature.makeSprocket("
                     f"'Sprocket', App.getDocument({document.Name!r}))"
                 )
                 existing = FreeCADGui.doCommandEval(
-                    "_vibecad_sprocket"
+                    "_stevecad_sprocket"
                 )
                 if (
                     existing is None

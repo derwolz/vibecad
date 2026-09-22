@@ -30,7 +30,7 @@ from Path.CommandBoundary import (
     document_is_open,
     is_document_object,
 )
-from VibeCADNativeTransaction import _OwnedDocumentTransaction
+from SteveCADNativeTransaction import _OwnedDocumentTransaction
 
 from PySide.QtCore import QT_TRANSLATE_NOOP
 
@@ -230,7 +230,7 @@ def _validate_result(
         or not document.isProvisionallyEnrolledInTimelineByCurrentTransaction(
             result
         )
-        or tuple(result.VibeCADTimelineReplacedInputs)
+        or tuple(result.SteveCADTimelineReplacedInputs)
         != ((base,) if base_was_visible else ())
         or bool(base.ViewObject.Visibility)
         or not bool(result.ViewObject.Visibility)

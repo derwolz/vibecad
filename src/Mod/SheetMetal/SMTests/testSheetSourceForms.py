@@ -48,7 +48,7 @@ class TestSheetSourceForms(unittest.TestCase):
         return self.doc.getObject(panel.run.status()["object_name"])
 
     def test_ribbon_opens_creation_without_mutation_and_keeps_legacy_commands(self):
-        from VibeCADRibbonSurface import read_active_ribbon_surface
+        from SteveCADRibbonSurface import read_active_ribbon_surface
         self.presentation.wait_for(lambda: read_active_ribbon_surface().surface_id == "sheet_metal")
         surface = read_active_ribbon_surface()
         commands = {action.command_id for action in surface.actions}
@@ -62,19 +62,19 @@ class TestSheetSourceForms(unittest.TestCase):
         self.assertFalse(self.doc.HasPendingTransaction)
         panel.fields["height"].setValue(32)
         self.assertTrue(panel.form.grab().save(str(
-            Path(os.environ["VIBECAD_TEST_OUTPUT"])/"source-creation-form.png")))
+            Path(os.environ["STEVECAD_TEST_OUTPUT"])/"source-creation-form.png")))
         panel.create_button.click()
         obj = self.finish(panel)
         self.assertEqual(float(obj.height), 32)
         self.assertTrue(obj.Shape.isValid())
-        self.assertEqual(obj.VibeCADTimelineEditCommand, "SheetMetal_EditSource")
+        self.assertEqual(obj.SteveCADTimelineEditCommand, "SheetMetal_EditSource")
         self.assertEqual(self.doc.UndoCount, before[1]+1)
         after = tuple(self.doc.Objects), self.doc.UndoCount
         panel.create()
         self.assertEqual(after, (tuple(self.doc.Objects), self.doc.UndoCount))
 
     def test_flange_ribbon_keeps_selected_boundary_and_uses_degrees(self):
-        from VibeCADRibbonSurface import read_active_ribbon_surface
+        from SteveCADRibbonSurface import read_active_ribbon_surface
         source, arguments = self.case.flange_input()
         surface = read_active_ribbon_surface()
         self.assertIn("SheetMetal_CreateFlange", {action.command_id for action in surface.actions})
@@ -118,7 +118,7 @@ class TestSheetSourceForms(unittest.TestCase):
         self.assertEqual(obj.ViewObject.Proxy.claimChildren(), [sketch])
 
     def test_internal_fold_ribbon_freezes_sheet_skin_and_sketch_selection(self):
-        from VibeCADRibbonSurface import read_active_ribbon_surface
+        from SteveCADRibbonSurface import read_active_ribbon_surface
         from SMTests import testSheetFoldSource
         helper = testSheetFoldSource.TestSheetFoldSource()
         helper.fixture, helper.doc = self.case, self.doc

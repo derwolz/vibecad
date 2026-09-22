@@ -694,7 +694,7 @@ private:
                 documentObjectFromPython(componentObject, "Separate destination Component")
             );
             if (!component || DesignModel::componentId(*component).empty()) {
-                throw Py::TypeError("Separate destination must be a VibeCAD Component");
+                throw Py::TypeError("Separate destination must be a SteveCAD Component");
             }
         }
 

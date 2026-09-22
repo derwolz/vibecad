@@ -136,7 +136,7 @@ class ObjectDressup:
         self._add_property(
             obj,
             "App::PropertyStringList",
-            "VibeCADExternalInputs",
+            "SteveCADExternalInputs",
             "ProbeData",
             QT_TRANSLATE_NOOP(
                 "App::Property",
@@ -148,7 +148,7 @@ class ObjectDressup:
             "ProbePointCount",
             "ProbeGridXCount",
             "ProbeGridYCount",
-            "VibeCADExternalInputs",
+            "SteveCADExternalInputs",
         ):
             obj.setEditorMode(property_name, 2)
 
@@ -167,7 +167,7 @@ class ObjectDressup:
             obj.ProbePointCount = 0
             obj.ProbeGridXCount = 0
             obj.ProbeGridYCount = 0
-            obj.VibeCADExternalInputs = []
+            obj.SteveCADExternalInputs = []
         if prop == "Path" and obj.ViewObject:
             obj.ViewObject.signalChangeIcon()
 
@@ -550,9 +550,9 @@ def _validate_result(
         or result not in job.Operations.Group
         or base in job.Operations.Group
         or PathUtil.timelineParentJob(result) is not job
-        or "VibeCADTimelineReplacedInputs" not in result.PropertiesList
-        or list(result.VibeCADTimelineReplacedInputs) != replaced_inputs
-        or str(result.VibeCADTimelineRole) != "operation"
+        or "SteveCADTimelineReplacedInputs" not in result.PropertiesList
+        or list(result.SteveCADTimelineReplacedInputs) != replaced_inputs
+        or str(result.SteveCADTimelineRole) != "operation"
         or not result.isValid()
         or bool(base.ViewObject.Visibility)
         or not bool(result.ViewObject.Visibility)

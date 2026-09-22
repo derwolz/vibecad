@@ -16,7 +16,7 @@ class LiveSheetFoldPrompt(live_sheet_flange_prompt.LiveSheetFlangePrompt):
     )
 
     def create_input(self):
-        from VibeCADNativeTransaction import _OwnedDocumentTransaction
+        from SteveCADNativeTransaction import _OwnedDocumentTransaction
 
         document = super().create_input()
         cut = document.getObject(self.cut_name)
@@ -61,8 +61,8 @@ class LiveSheetFoldPrompt(live_sheet_flange_prompt.LiveSheetFlangePrompt):
         self.assertIs(fold.BendLine, sketch)
         self.assertEqual(float(fold.angle), 90)
         self.assertEqual(float(fold.radius), 2)
-        self.assertEqual(fold.VibeCADTimelineRole, "operation")
-        self.assertEqual(fold.VibeCADTimelineEditCommand, "SheetMetal_EditSource")
+        self.assertEqual(fold.SteveCADTimelineRole, "operation")
+        self.assertEqual(fold.SteveCADTimelineEditCommand, "SheetMetal_EditSource")
         self.assertGreater(fold.Shape.BoundBox.ZLength, 10)
         final, = [obj for obj in states if getattr(obj, "SourceFace", None)
                   and obj.SourceFace[0] is fold]

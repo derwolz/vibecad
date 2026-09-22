@@ -16,10 +16,10 @@ import FreeCADGui as Gui
 
 import SheetMetalEditable as Editable
 from SheetMetalPresentation import _gui_thread
-from VibeCADCore import get_service
-from VibeCADNativeArguments import strict_variant_arguments
-from VibeCADNativeMutation import NativeMutationDraft, run_human_mutation
-from VibeCADNativeTargets import object_identity
+from SteveCADCore import get_service
+from SteveCADNativeArguments import strict_variant_arguments
+from SteveCADNativeMutation import NativeMutationDraft, run_human_mutation
+from SteveCADNativeTargets import object_identity
 
 
 _sessions = {}
@@ -79,7 +79,7 @@ def capture_revision(sheet):
     """
     _gui_thread()
     document = Editable.state_owner(sheet)
-    if (getattr(sheet, "VibeCADTimelineRole", None) == "operation"
+    if (getattr(sheet, "SteveCADTimelineRole", None) == "operation"
             and not document.isObjectUsableAtCurrentTimelinePosition(sheet)):
         raise RuntimeError("This sheet is not active at the current History position")
     return _capture_revision(document, sheet.Name, sheet.PreparedInputHash)
@@ -87,9 +87,9 @@ def capture_revision(sheet):
 
 def _capture_revision(document, object_name, input_hash):
     _document_ready(document)
-    import VibeCADGui
-    VibeCADGui._connect_document_observer()
-    if not VibeCADGui._document_observer_connected:
+    import SteveCADGui
+    SteveCADGui._connect_document_observer()
+    if not SteveCADGui._document_observer_connected:
         raise RuntimeError("Native document revision tracking is unavailable")
     uid = str(document.Uid)
     session = _sessions.get(uid)
@@ -180,9 +180,9 @@ def _publish_creation_history(sheet, source):
     # Body-owned results use native Tip history; the helper deliberately returns
     # False for that case. Root results record the exact consumed input instead.
     replaces_source = PartGui.setModelingReplacedInputs(sheet, [source])
-    _ensure_timeline_property(sheet, "App::PropertyString", "VibeCADTimelineEditCommand",
+    _ensure_timeline_property(sheet, "App::PropertyString", "SteveCADTimelineEditCommand",
                               "Open this sheet's source dimensions")
-    sheet.VibeCADTimelineEditCommand = "SheetMetal_EditParameters"
+    sheet.SteveCADTimelineEditCommand = "SheetMetal_EditParameters"
     if replaces_source:
         finalize_new_timeline_operation(sheet)
     else:

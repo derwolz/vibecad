@@ -1,7 +1,7 @@
 # SPDX-License-Identifier: LGPL-2.1-or-later
-"""McMaster-Carr workbench for VibeCAD.
+"""McMaster-Carr workbench for SteveCAD.
 
-VibeCAD does not show extra workbenches on its ribbon selector. This file
+SteveCAD does not show extra workbenches on its ribbon selector. This file
 still registers a real Python workbench, then InstallUI pins Catalog/Import
 onto a toolbar, the McMaster-Carr menu, and the ribbon.
 """

@@ -125,7 +125,7 @@
 #include "Utilities.h"
 #include "Tree.h"
 #include "WaitCursor.h"
-#include "VibeCADRibbon.h"
+#include "SteveCADRibbon.h"
 #include "WorkbenchManager.h"
 #include "Workbench.h"
 
@@ -375,7 +375,7 @@ constexpr int modelBrowserMinimumRemainingCanvas = 64;
 constexpr auto modelBrowserWidthPreference = "ModelBrowserWidth";
 
 /**
- * Central viewport layer used by VibeCAD's permanent model browser.
+ * Central viewport layer used by SteveCAD's permanent model browser.
  *
  * The browser deliberately is not part of QMainWindow's dock layout and is
  * not hosted by OverlayTabWidget. It therefore has no tab, splitter, docking,
@@ -402,12 +402,12 @@ public:
               ))
           ))
     {
-        setObjectName(QStringLiteral("VibeCADViewportCanvas"));
+        setObjectName(QStringLiteral("SteveCADViewportCanvas"));
         setContentsMargins(0, 0, 0, 0);
 
         mdiArea->setParent(this);
 
-        browserHost->setObjectName(QStringLiteral("VibeCADModelBrowserHost"));
+        browserHost->setObjectName(QStringLiteral("SteveCADModelBrowserHost"));
         browserHost->setAttribute(Qt::WA_NoSystemBackground);
         browserHost->setAttribute(Qt::WA_TranslucentBackground);
         browserHost->setAutoFillBackground(false);
@@ -416,7 +416,7 @@ public:
         browserLayout->setSpacing(0);
 
         browserResizeHandle->setObjectName(
-            QStringLiteral("VibeCADModelBrowserResizeHandle")
+            QStringLiteral("SteveCADModelBrowserResizeHandle")
         );
         browserResizeHandle->setCursor(Qt::SizeHorCursor);
         browserResizeHandle->setMouseTracking(true);
@@ -680,12 +680,12 @@ MainWindow::MainWindow(QWidget* parent, Qt::WindowFlags f)
 #endif
     d->mdiArea->setBackground(QBrush(QColor(160, 160, 160)));
 
-    // VibeCAD mirrors document tabs into the ribbon and collapses the original
+    // SteveCAD mirrors document tabs into the ribbon and collapses the original
     // south MDI tab bar. Keep native feature history in that reclaimed edge of
     // the central workspace. It is intentionally not a dock: workbench changes
     // and Ctrl+0 bottom-panel toggles must never remove modeling history.
     auto* workspace = new QWidget(this);
-    workspace->setObjectName(QStringLiteral("VibeCADWorkspace"));
+    workspace->setObjectName(QStringLiteral("SteveCADWorkspace"));
     auto* workspaceLayout = new QVBoxLayout(workspace);
     workspaceLayout->setContentsMargins(0, 0, 0, 0);
     workspaceLayout->setSpacing(0);
@@ -888,10 +888,10 @@ MainWindow::~MainWindow()
     // QObject tears down MainWindow's children. Destroy the direct child before
     // releasing MainWindow's private state that the filter reads.
     QObject* ribbonController = findChild<QObject*>(
-        QStringLiteral("VibeCADRibbonController"),
+        QStringLiteral("SteveCADRibbonController"),
         Qt::FindDirectChildrenOnly
     );
-    delete dynamic_cast<VibeCADRibbon*>(ribbonController);
+    delete dynamic_cast<SteveCADRibbon*>(ribbonController);
 
     // QWidget teardown may still emit subWindowActivated while child MDI
     // windows are being destroyed. Disconnect first so shutdown cannot re-enter
@@ -1892,7 +1892,7 @@ void MainWindow::setActiveWindow(MDIView* view)
     }
 
     d->activeView = view;
-    const QVariant modelBrowserPreference = view->property("vibecadUsesModelBrowser");
+    const QVariant modelBrowserPreference = view->property("stevecadUsesModelBrowser");
     d->viewportCanvas->setModelBrowserVisible(
         !modelBrowserPreference.isValid() || modelBrowserPreference.toBool()
     );
@@ -2287,8 +2287,8 @@ void MainWindow::registerQuickLookExtensions()
     checkProcess.waitForFinished();
     QString registeredPlugins = QString::fromUtf8(checkProcess.readAllStandardOutput());
 
-    const QString thumbnailId = QStringLiteral("org.vibecad.VibeCAD.quicklook.thumbnail");
-    const QString previewId = QStringLiteral("org.vibecad.VibeCAD.quicklook.preview");
+    const QString thumbnailId = QStringLiteral("org.stevecad.SteveCAD.quicklook.thumbnail");
+    const QString previewId = QStringLiteral("org.stevecad.SteveCAD.quicklook.preview");
 
     bool thumbnailRegistered = registeredPlugins.contains(thumbnailId);
     bool previewRegistered = registeredPlugins.contains(previewId);
@@ -2718,7 +2718,7 @@ static QLatin1String _MimeDocObjX("application/x-documentobject-x");
 static QLatin1String _MimeDocObjFile("application/x-documentobject-file");
 static QLatin1String _MimeDocObjXFile("application/x-documentobject-x-file");
 static QLatin1String _MimeTimelineMetadata(
-    "application/x-vibecad-timeline-metadata-v1"
+    "application/x-stevecad-timeline-metadata-v1"
 );
 
 namespace
@@ -2759,7 +2759,7 @@ QByteArray serializeTimelineClipboardMetadata(
 )
 {
     QJsonObject root;
-    root.insert("schema", "vibecad-timeline-clipboard-v1");
+    root.insert("schema", "stevecad-timeline-clipboard-v1");
     root.insert(
         "selected_names",
         timelineNamesToJson(plan.selectedNames)
@@ -2860,7 +2860,7 @@ TimelineClipboardMetadata parseTimelineClipboardMetadata(
     }
     const auto root = document.object();
     if (root.value("schema").toString()
-        != QStringLiteral("vibecad-timeline-clipboard-v1")) {
+        != QStringLiteral("stevecad-timeline-clipboard-v1")) {
         throw Base::ValueError(
             "The clipboard timeline metadata schema is unsupported"
         );

@@ -1,6 +1,6 @@
 # McMaster-Carr insert
 
-Python workbench that opens the live McMaster-Carr catalog inside VibeCAD and
+Python workbench that opens the live McMaster-Carr catalog inside SteveCAD and
 imports 3-D STEP as a `PartDesign::Component`.
 
 ## Use
@@ -11,7 +11,7 @@ imports 3-D STEP as a `PartDesign::Component`.
 Download **3-D STEP** from a product page. The catalog overlay intercepts the
 file, imports it, names the component with the part number, and puts the catalog
 title on **Description**. A transform manipulator opens so the component can be
-placed immediately. If more than one catalog download is active, VibeCAD waits
+placed immediately. If more than one catalog download is active, SteveCAD waits
 for and imports every completed file before closing the catalog.
 
 ## macOS catalog overlay
@@ -33,18 +33,18 @@ macOS fullscreen Space, so the in-process WebKit attach is preferred.
 
 ## Windows catalog
 
-Catalog opens the live site in a VibeCAD window backed by the installed
-Microsoft Edge WebView2 Runtime. Downloaded CAD goes directly to VibeCAD's
+Catalog opens the live site in a SteveCAD window backed by the installed
+Microsoft Edge WebView2 Runtime. Downloaded CAD goes directly to SteveCAD's
 watched McMaster inbox and imports automatically. The WebView2 profile is kept
-under `%LOCALAPPDATA%\VibeCAD\McMasterBrowser`, preserving McMaster cookies and
-the login session across VibeCAD restarts and upgrades.
+under `%LOCALAPPDATA%\SteveCAD\McMasterBrowser`, preserving McMaster cookies and
+the login session across SteveCAD restarts and upgrades.
 
 ## Linux catalog
 
 Catalog opens the live site in a separate WebKitGTK window when the host system
 provides WebKitGTK 4.1 and Python GObject bindings. Downloads go directly to a
-private VibeCAD inbox, so unrelated files in **Downloads** are ignored. Cookies
-and website data are kept under the VibeCAD user-data directory in
+private SteveCAD inbox, so unrelated files in **Downloads** are ignored. Cookies
+and website data are kept under the SteveCAD user-data directory in
 `McMasterBrowser/webkitgtk`, preserving the McMaster login across launches.
 
 If WebKitGTK is unavailable, Catalog opens the system browser and watches the

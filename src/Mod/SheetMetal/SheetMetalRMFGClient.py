@@ -132,7 +132,7 @@ class RMFGClient:
         # Stable multipart encoding makes an identical retry byte-for-byte
         # identical, including the envelope covered by server idempotency.
         digest = hashlib.sha256(filename.encode("ascii") + b"\0" + step_bytes).hexdigest()
-        boundary = "vibecad-" + digest
+        boundary = "stevecad-" + digest
         prefix = (f'--{boundary}\r\nContent-Disposition: form-data; name="file"; '
                   f'filename="{filename}"\r\nContent-Type: application/octet-stream\r\n\r\n')
         body = prefix.encode("ascii") + step_bytes + f"\r\n--{boundary}--\r\n".encode("ascii")

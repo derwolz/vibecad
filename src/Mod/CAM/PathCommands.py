@@ -34,7 +34,7 @@ from Path.CommandBoundary import (
     can_start_document_command,
     is_timeline_input_usable,
 )
-from VibeCADNativeTransaction import _OwnedDocumentTransaction
+from SteveCADNativeTransaction import _OwnedDocumentTransaction
 
 from PySide.QtCore import QT_TRANSLATE_NOOP
 
@@ -113,8 +113,8 @@ def _selected_copy_operations():
     for selected in selection:
         job = _validated_parent_job(selected, document)
         timeline_operation = (
-            "VibeCADTimelineRole" in selected.PropertiesList
-            and str(selected.VibeCADTimelineRole) == "operation"
+            "SteveCADTimelineRole" in selected.PropertiesList
+            and str(selected.SteveCADTimelineRole) == "operation"
         )
         if (
             selected.Document is not document

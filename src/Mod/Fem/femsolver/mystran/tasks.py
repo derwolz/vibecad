@@ -245,7 +245,7 @@ class Results(run.Results):
                     for result in tuple(self.solver.Results or ())
                     if getattr(
                         result,
-                        "VibeCADTimelineOwner",
+                        "SteveCADTimelineOwner",
                         None,
                     )
                     is self.solver

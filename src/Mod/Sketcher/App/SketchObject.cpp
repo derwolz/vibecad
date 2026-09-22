@@ -84,9 +84,9 @@ SketchObject::SketchObject() : geoLastId(0)
 {
     Base::Uuid sketchId;
     ADD_PROPERTY_TYPE(
-        VibeCADSketchId,
+        SteveCADSketchId,
         (sketchId),
-        "VibeCAD Design",
+        "SteveCAD Design",
         static_cast<App::PropertyType>(App::Prop_ReadOnly),
         "Persistent identity of this reusable Sketch"
     );
@@ -94,7 +94,7 @@ SketchObject::SketchObject() : geoLastId(0)
     ADD_PROPERTY_TYPE(
         DesignId,
         (designId),
-        "VibeCAD Design",
+        "SteveCAD Design",
         static_cast<App::PropertyType>(App::Prop_ReadOnly | App::Prop_Hidden),
         "Persistent identity of the Design which owns this reusable Sketch"
     );
@@ -236,8 +236,8 @@ void SketchObject::finalizeDesignDefinition()
             "A reusable Design Sketch requires global History"
         );
     }
-    if (VibeCADSketchId.getValueStr().empty()) {
-        VibeCADSketchId.setValue(Base::Uuid::createUuid());
+    if (SteveCADSketchId.getValueStr().empty()) {
+        SteveCADSketchId.setValue(Base::Uuid::createUuid());
     }
     if (DesignId.getValueStr().empty()) {
         DesignId.setValue(timeline->DesignId.getValue());
@@ -256,7 +256,7 @@ void SketchObject::finalizeDesignDefinition()
         roleProperty = addDynamicProperty(
             "App::PropertyString",
             App::DocumentTimeline::RolePropertyName,
-            "VibeCAD Design",
+            "SteveCAD Design",
             "Document timeline classification",
             App::Prop_NoRecompute,
             true,

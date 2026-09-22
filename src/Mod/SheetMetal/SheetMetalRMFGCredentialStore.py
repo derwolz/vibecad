@@ -55,7 +55,7 @@ class CredentialStore:
     def read(self):
         try:
             backend = self._backend_override if self._backend_override is not None else _backend()
-            value = backend.get_password("VibeCAD.RMFG", self._account)
+            value = backend.get_password("SteveCAD.RMFG", self._account)
             if value is None:
                 return None
             if not isinstance(value, str) or len(value) > 65536:
@@ -75,6 +75,6 @@ class CredentialStore:
             if len(value) > 65536:
                 raise ValueError
             backend = self._backend_override if self._backend_override is not None else _backend()
-            backend.set_password("VibeCAD.RMFG", self._account, value)
+            backend.set_password("SteveCAD.RMFG", self._account, value)
         except Exception:
             raise RMFGAuthError("credential_store", "RMFG credentials could not be saved in the system credential store.") from None

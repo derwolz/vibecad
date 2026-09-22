@@ -99,10 +99,10 @@ struct Refresh
     static const bool ZRange = true;
 };
 
-constexpr const char* SectionCutSchemaProperty = "VibeCADSectionCutSchema";
+constexpr const char* SectionCutSchemaProperty = "SteveCADSectionCutSchema";
 constexpr long SectionCutSchemaVersion = 1;
 constexpr const char* SectionCutLinksProperty =
-    "VibeCADSectionCutLinks";
+    "SteveCADSectionCutLinks";
 
 struct SectionResourceDescriptor
 {
@@ -112,13 +112,13 @@ struct SectionResourceDescriptor
 
 constexpr std::array<SectionResourceDescriptor, 7>
     SectionResourceDescriptors {{
-        {"SectionCutCompound", "VibeCADSectionCutCompound"},
-        {"SectionCutBoxX", "VibeCADSectionCutBoxX"},
-        {"SectionCutX", "VibeCADSectionCutX"},
-        {"SectionCutBoxY", "VibeCADSectionCutBoxY"},
-        {"SectionCutY", "VibeCADSectionCutY"},
-        {"SectionCutBoxZ", "VibeCADSectionCutBoxZ"},
-        {"SectionCutZ", "VibeCADSectionCutZ"},
+        {"SectionCutCompound", "SteveCADSectionCutCompound"},
+        {"SectionCutBoxX", "SteveCADSectionCutBoxX"},
+        {"SectionCutX", "SteveCADSectionCutX"},
+        {"SectionCutBoxY", "SteveCADSectionCutBoxY"},
+        {"SectionCutY", "SteveCADSectionCutY"},
+        {"SectionCutBoxZ", "SteveCADSectionCutBoxZ"},
+        {"SectionCutZ", "SteveCADSectionCutZ"},
     }};
 
 int sectionResourceIndex(const char* objectRole)

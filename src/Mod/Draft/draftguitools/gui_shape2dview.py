@@ -98,7 +98,7 @@ class Shape2DView(gui_base_original.Modifier):
                 if "Face" in e:
                     faces.append(int(e[4:]) - 1)
         # print(objs, faces)
-        commitlist = ["_vibecad_shape2d_outputs = []"]
+        commitlist = ["_stevecad_shape2d_outputs = []"]
         Gui.addModule("Draft")
         Gui.addModule("draftutils.timeline")
         if len(objs) == 1 and faces:
@@ -109,7 +109,7 @@ class Shape2DView(gui_base_original.Modifier):
             _cmd += "facenumbers=" + str(faces)
             _cmd += ")"
             commitlist.append("sv = " + _cmd)
-            commitlist.append("_vibecad_shape2d_outputs.append(sv)")
+            commitlist.append("_stevecad_shape2d_outputs.append(sv)")
         else:
             n = 0
             for o in objs:
@@ -120,12 +120,12 @@ class Shape2DView(gui_base_original.Modifier):
                 _cmd += ")"
                 commitlist.append("sv" + str(n) + " = " + _cmd)
                 commitlist.append(
-                    "_vibecad_shape2d_outputs.append(sv" + str(n) + ")"
+                    "_stevecad_shape2d_outputs.append(sv" + str(n) + ")"
                 )
                 n += 1
         if len(commitlist) > 1:
             commitlist.append(
-                "draftutils.timeline.accept_outputs(_vibecad_shape2d_outputs)"
+                "draftutils.timeline.accept_outputs(_stevecad_shape2d_outputs)"
             )
             commitlist.append("FreeCAD.ActiveDocument.recompute()")
             self.commit(

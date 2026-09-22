@@ -1,20 +1,20 @@
 {
   "task_scenes": [
     {
-      "name": "vibecad-part-assistant",
-      "coverage": ["vibecad", "vibecad-cpp-workbench", "part"],
+      "name": "stevecad-part-assistant",
+      "coverage": ["stevecad", "stevecad-cpp-workbench", "part"],
       "workbench": "PartDesignWorkbench",
       "file": "data/tests/Crank.fcstd",
-      "command": "VibeCAD_OpenAssistant",
+      "command": "SteveCAD_OpenAssistant",
       "required_widget_object_names": [
-        "VibeCADAssistantPanel",
-        "VibeCADToolPack",
-        "VibeCADScreenshotStatus",
-        "VibeCADRunStatus",
-        "VibeCADCaptureView",
-        "VibeCADPrompt",
-        "VibeCADRunPrompt",
-        "VibeCADStopPrompt"
+        "SteveCADAssistantPanel",
+        "SteveCADToolPack",
+        "SteveCADScreenshotStatus",
+        "SteveCADRunStatus",
+        "SteveCADCaptureView",
+        "SteveCADPrompt",
+        "SteveCADRunPrompt",
+        "SteveCADStopPrompt"
       ],
       "required_visible_text_contains": [
         "Workbench: PartDesignWorkbench",
@@ -31,20 +31,20 @@
       "close_after_capture": true
     },
     {
-      "name": "vibecad-draft-assistant",
-      "coverage": ["vibecad", "vibecad-python-workbench", "draft"],
+      "name": "stevecad-draft-assistant",
+      "coverage": ["stevecad", "stevecad-python-workbench", "draft"],
       "workbench": "DraftWorkbench",
       "file": "data/examples/draft_test_objects.FCStd",
-      "command": "VibeCAD_OpenAssistant",
+      "command": "SteveCAD_OpenAssistant",
       "required_widget_object_names": [
-        "VibeCADAssistantPanel",
-        "VibeCADToolPack",
-        "VibeCADScreenshotStatus",
-        "VibeCADRunStatus",
-        "VibeCADCaptureView",
-        "VibeCADPrompt",
-        "VibeCADRunPrompt",
-        "VibeCADStopPrompt"
+        "SteveCADAssistantPanel",
+        "SteveCADToolPack",
+        "SteveCADScreenshotStatus",
+        "SteveCADRunStatus",
+        "SteveCADCaptureView",
+        "SteveCADPrompt",
+        "SteveCADRunPrompt",
+        "SteveCADStopPrompt"
       ],
       "required_visible_text_contains": [
         "Workbench: DraftWorkbench",

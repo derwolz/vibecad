@@ -15,7 +15,7 @@ set(Robot_Scripts
 
 set(Robot_TestScripts
     RobotTests/__init__.py
-    RobotTests/TestVibeCADRibbonTools.py
+    RobotTests/TestSteveCADRibbonTools.py
 )
 
 if(BUILD_GUI)

@@ -27,7 +27,7 @@ struct TreeViewDetail
 };
 
 /** Optional presentation capability implemented only by view providers that
- * have useful non-object rows to expose in the VibeCAD model browser.
+ * have useful non-object rows to expose in the SteveCAD model browser.
  *
  * Keeping this separate from ViewProviderDocumentObject avoids changing the
  * ABI or imposing a virtual call on every existing view provider.

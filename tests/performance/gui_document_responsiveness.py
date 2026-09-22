@@ -1,10 +1,10 @@
-"""Measure a real VibeCAD GUI document-open and presentation run.
+"""Measure a real SteveCAD GUI document-open and presentation run.
 
-Launch this file through the complete VibeCAD executable, not FreeCADCmd:
+Launch this file through the complete SteveCAD executable, not FreeCADCmd:
 
-    VIBECAD_UI_PROBE_DOCUMENT=/absolute/model.FCStd \
-    VIBECAD_UI_PROBE_LOG=/absolute/result.log \
-    VibeCAD.exe /absolute/gui_document_responsiveness.py
+    STEVECAD_UI_PROBE_DOCUMENT=/absolute/model.FCStd \
+    STEVECAD_UI_PROBE_LOG=/absolute/result.log \
+    SteveCAD.exe /absolute/gui_document_responsiveness.py
 
 The GUI remains open after the measurement so the resulting document can be
 inspected interactively. The log records main-event-loop gaps together with the
@@ -20,8 +20,8 @@ import FreeCADGui as Gui
 from PySide6 import QtCore, QtGui, QtWidgets
 
 
-DOCUMENT = os.environ["VIBECAD_UI_PROBE_DOCUMENT"]
-LOG = os.environ["VIBECAD_UI_PROBE_LOG"]
+DOCUMENT = os.environ["STEVECAD_UI_PROBE_DOCUMENT"]
+LOG = os.environ["STEVECAD_UI_PROBE_LOG"]
 STARTED = time.perf_counter()
 last_tick = STARTED
 maximum_gap_ms = 0.0
@@ -38,7 +38,7 @@ def write(message):
     with open(LOG, "a", encoding="utf-8") as stream:
         stream.write(line)
         stream.flush()
-    App.Console.PrintMessage("VIBECAD_REAL_UI " + line)
+    App.Console.PrintMessage("STEVECAD_REAL_UI " + line)
 
 
 def visible_progress():

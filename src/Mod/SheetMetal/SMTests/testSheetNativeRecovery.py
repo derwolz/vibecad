@@ -14,10 +14,10 @@ import FreeCADGui as Gui
 
 class TestSheetNativeRecovery(unittest.TestCase):
     def test_profile_sketch_dispatch_uses_the_compact_provider_schema(self):
-        import VibeCADGui as VibeGui
-        import VibeCADSession as Session
-        from VibeCADCore import get_service
-        from VibeCADNativeSessionFactory import create_native_session_execution
+        import SteveCADGui as VibeGui
+        import SteveCADSession as Session
+        from SteveCADCore import get_service
+        from SteveCADNativeSessionFactory import create_native_session_execution
         from SMTests.live_sheet_prompt import _events
 
         previous = Gui.activeWorkbench().name()
@@ -34,7 +34,7 @@ class TestSheetNativeRecovery(unittest.TestCase):
         VibeGui._connect_document_observer()
         sketch = document.addObject("Sketcher::SketchObject", "ReliefProfile")
         document.recompute()
-        document.saveAs(str(Path(os.environ["VIBECAD_TEST_OUTPUT"]) / "profile-dispatch.FCStd"))
+        document.saveAs(str(Path(os.environ["STEVECAD_TEST_OUTPUT"]) / "profile-dispatch.FCStd"))
         self.assertTrue(Gui.activeDocument().setEdit(sketch.Name))
         self.addCleanup(lambda: Gui.getDocument(document.Name).resetEdit())
         for _ in range(24):
@@ -64,18 +64,18 @@ class TestSheetNativeRecovery(unittest.TestCase):
         self.assertTrue(all(abs(geometry.length()-10) < 1e-7 for geometry in sketch.Geometry))
 
     def test_failed_geometry_can_be_inspected_in_a_fresh_assistant_turn(self):
-        import VibeCADGui as VibeGui
-        import VibeCADSession as Session
-        from VibeCADCore import get_service
-        from VibeCADMCP import get_control_mode_controller
-        from VibeCADProvider import BaseProvider, ProviderResult
+        import SteveCADGui as VibeGui
+        import SteveCADSession as Session
+        from SteveCADCore import get_service
+        from SteveCADMCP import get_control_mode_controller
+        from SteveCADProvider import BaseProvider, ProviderResult
         from SMTests.live_sheet_flange_prompt import LiveSheetFlangePrompt
         from SMTests.live_sheet_prompt import _events
 
         fixture = LiveSheetFlangePrompt()
         self.addCleanup(fixture.doCleanups)
         document = fixture.create_input()
-        output = Path(os.environ["VIBECAD_TEST_OUTPUT"])
+        output = Path(os.environ["STEVECAD_TEST_OUTPUT"])
         document.saveAs(str(output / "before-recovery.FCStd"))
         get_control_mode_controller().request_mcp_enabled(False)
         VibeGui.ensure_commands_registered()

@@ -154,7 +154,7 @@ def _field_is_available(result, field):
 
 def _proxy_state(result):
     proxy = getattr(getattr(result, "ViewObject", None), "Proxy", None)
-    state = getattr(proxy, "_vibecad_result_presentation", None)
+    state = getattr(proxy, "_stevecad_result_presentation", None)
     if not isinstance(state, dict) or state.get("object_id") != int(result.ID):
         return None
     return state
@@ -247,7 +247,7 @@ def prepare_result_presentation(result, field, deformation_scale, visible):
 
 def _record(prepared):
     proxy = prepared.result.ViewObject.Proxy
-    proxy._vibecad_result_presentation = {
+    proxy._stevecad_result_presentation = {
         "object_id": int(prepared.result.ID),
         "field": prepared.field,
         "deformation_scale": prepared.deformation_scale,
@@ -319,8 +319,8 @@ def _restore_unmanaged(prepared):
     prepared.result.ViewObject.Visibility = bool(prepared.previous["visible"])
     view.Visibility = bool(prepared.previous["visible"])
     proxy = prepared.result.ViewObject.Proxy
-    if hasattr(proxy, "_vibecad_result_presentation"):
-        del proxy._vibecad_result_presentation
+    if hasattr(proxy, "_stevecad_result_presentation"):
+        del proxy._stevecad_result_presentation
 
 
 def restore_result_presentation(prepared):

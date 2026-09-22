@@ -151,7 +151,7 @@ class TestPresentation(unittest.TestCase):
         self.assertTrue(sheet.FlatShape.isEqual(flat))
         self.assertEqual(self.view.cached_nodes, nodes)
         self.assertEqual(self.view.mode, "folded")
-        Path(os.environ["VIBECAD_TEST_OUTPUT"], "switch-timing.json").write_text(json.dumps({
+        Path(os.environ["STEVECAD_TEST_OUTPUT"], "switch-timing.json").write_text(json.dumps({
             "count": len(timings), "mean_seconds": sum(timings)/len(timings),
             "maximum_seconds": max(timings), "scope": "cached switch call; excludes GPU frame time"}))
 
@@ -304,13 +304,13 @@ class TestPresentation(unittest.TestCase):
             count = coin.SoGetPrimitiveCountAction()
             count.apply(fixture.sheet.ViewObject.RootNode)
             self.assertEqual(count.getTriangleCount(), len(self.view._meshes[index].triangles))
-            path = str(Path(os.environ["VIBECAD_TEST_OUTPUT"], f"{mode}.png"))
+            path = str(Path(os.environ["STEVECAD_TEST_OUTPUT"], f"{mode}.png"))
             active.saveImage(path, 800, 600, "White")
             action = coin.SoWriteAction()
-            action.getOutput().openFile(str(Path(os.environ["VIBECAD_TEST_OUTPUT"], f"{mode}.iv")))
+            action.getOutput().openFile(str(Path(os.environ["STEVECAD_TEST_OUTPUT"], f"{mode}.iv")))
             action.apply(active.getSceneGraph())
             action.getOutput().closeFile()
-            Path(os.environ["VIBECAD_TEST_OUTPUT"], f"{mode}-scene.txt").write_text(
+            Path(os.environ["STEVECAD_TEST_OUTPUT"], f"{mode}-scene.txt").write_text(
                 "\nCAMERA\n" + active.getCamera()
                 + "\nVIEW\n" + str(fixture.sheet.ViewObject.Visibility)
                 + " " + fixture.sheet.ViewObject.DisplayMode)

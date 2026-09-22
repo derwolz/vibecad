@@ -15,7 +15,7 @@ def main():
     import numpy as np
     import psutil
     from threadpoolctl import threadpool_info
-    from VibeCADNumericalRuntime import _controller, numerical_thread_limits
+    from SteveCADNumericalRuntime import _controller, numerical_thread_limits
 
     _controller()
     pools = [p for p in threadpool_info() if p["internal_api"] == "openblas"]

@@ -24,20 +24,20 @@ FunctionEnd
 #--------------------------------
 # Installed-version discovery and clean replacement
 
-Function FindInstalledVibeCAD
+Function FindInstalledSteveCAD
 
   StrCpy $OldVersionNumber ""
-  StrCpy $VibeCADInstalledBuild ""
-  StrCpy $VibeCADInstalledDisplayVersion ""
-  StrCpy $VibeCADInstalledDisposition "none"
-  StrCpy $VibeCADInstalledInstallRoot ""
-  StrCpy $VibeCADInstalledPatch ""
-  StrCpy $VibeCADInstalledReleaseVersion ""
-  StrCpy $VibeCADInstalledUninstallString ""
-  StrCpy $VibeCADInstalledUpdateVersion ""
+  StrCpy $SteveCADInstalledBuild ""
+  StrCpy $SteveCADInstalledDisplayVersion ""
+  StrCpy $SteveCADInstalledDisposition "none"
+  StrCpy $SteveCADInstalledInstallRoot ""
+  StrCpy $SteveCADInstalledPatch ""
+  StrCpy $SteveCADInstalledReleaseVersion ""
+  StrCpy $SteveCADInstalledUninstallString ""
+  StrCpy $SteveCADInstalledUpdateVersion ""
 
   # Find the highest installed patch in this major/minor series. Historical
-  # VibeCAD/FreeCAD installers used one registry key per patch release.
+  # SteveCAD/FreeCAD installers used one registry key per patch release.
   IntOp $4 ${APP_VERSION_PATCH} + 20
   ${for} $5 0 $4
     StrCpy $R0 "${APP_VERSION_MAJOR}${APP_VERSION_MINOR}$5"
@@ -51,27 +51,27 @@ Function FindInstalledVibeCAD
     ${endif}
     ${if} $0 != ""
       StrCpy $OldVersionNumber $R0
-      StrCpy $VibeCADInstalledPatch $5
-      StrCpy $VibeCADInstalledDisplayVersion $0
-      ReadRegStr $VibeCADInstalledUninstallString SHCTX "$R2" "UninstallString"
+      StrCpy $SteveCADInstalledPatch $5
+      StrCpy $SteveCADInstalledDisplayVersion $0
+      ReadRegStr $SteveCADInstalledUninstallString SHCTX "$R2" "UninstallString"
       StrCpy $R3 "SOFTWARE\${APP_NAME}$OldVersionNumber"
-      ReadRegStr $VibeCADInstalledInstallRoot SHCTX "$R3" ""
-      ReadRegStr $VibeCADInstalledReleaseVersion SHCTX "$R3" "ReleaseVersion"
-      ReadRegStr $VibeCADInstalledUpdateVersion SHCTX "$R3" "UpdateVersion"
+      ReadRegStr $SteveCADInstalledInstallRoot SHCTX "$R3" ""
+      ReadRegStr $SteveCADInstalledReleaseVersion SHCTX "$R3" "ReleaseVersion"
+      ReadRegStr $SteveCADInstalledUpdateVersion SHCTX "$R3" "UpdateVersion"
       ClearErrors
       ReadRegDWORD $1 SHCTX "$R3" "Build"
       ${if} ${Errors}
-        StrCpy $VibeCADInstalledBuild ""
+        StrCpy $SteveCADInstalledBuild ""
         ClearErrors
       ${else}
-        StrCpy $VibeCADInstalledBuild $1
+        StrCpy $SteveCADInstalledBuild $1
       ${endif}
     ${endif}
   ${next}
 
 FunctionEnd
 
-Function SelectExistingVibeCADInstallMode
+Function SelectExistingSteveCADInstallMode
 
   # The MultiUser plug-in normally restores the install scope from the target
   # patch's registry key. Search the entire major/minor series as a migration
@@ -100,10 +100,10 @@ Function SelectExistingVibeCADInstallMode
     Call MultiUser.InstallMode.CurrentUser
   ${elseif} $6 != ""
   ${andif} $7 != ""
-  ${andif} $VibeCADUpdateInstallRoot != ""
+  ${andif} $SteveCADUpdateInstallRoot != ""
     GetFullPathName $6 "$6"
     GetFullPathName $7 "$7"
-    GetFullPathName $0 "$VibeCADUpdateInstallRoot"
+    GetFullPathName $0 "$SteveCADUpdateInstallRoot"
     ${if} $0 == $6
       Call MultiUser.InstallMode.AllUsers
     ${elseif} $0 == $7
@@ -113,21 +113,21 @@ Function SelectExistingVibeCADInstallMode
 
 FunctionEnd
 
-Function ClassifyInstalledVibeCAD
+Function ClassifyInstalledSteveCAD
 
-  StrCpy $VibeCADInstalledDisposition "unknown"
+  StrCpy $SteveCADInstalledDisposition "unknown"
 
   # Installers produced after this change persist a fully sortable numeric
   # identity. It includes semantic version, prerelease rank, and build.
   !if "${APP_VERSION_ORDER_KNOWN}" == "1"
-    ${if} $VibeCADInstalledUpdateVersion != ""
-      ${VersionCompare} "${APP_UPDATE_VERSION}" "$VibeCADInstalledUpdateVersion" $0
+    ${if} $SteveCADInstalledUpdateVersion != ""
+      ${VersionCompare} "${APP_UPDATE_VERSION}" "$SteveCADInstalledUpdateVersion" $0
       ${if} $0 == "1"
-        StrCpy $VibeCADInstalledDisposition "upgrade"
+        StrCpy $SteveCADInstalledDisposition "upgrade"
       ${elseif} $0 == "0"
-        StrCpy $VibeCADInstalledDisposition "repair"
+        StrCpy $SteveCADInstalledDisposition "repair"
       ${else}
-        StrCpy $VibeCADInstalledDisposition "downgrade"
+        StrCpy $SteveCADInstalledDisposition "downgrade"
       ${endif}
       Return
     ${endif}
@@ -135,25 +135,25 @@ Function ClassifyInstalledVibeCAD
 
   # Compatibility with already-published installers: exact public releases
   # have always persisted ReleaseVersion and Build separately.
-  ${if} $VibeCADInstalledReleaseVersion == "${APP_RELEASE_VERSION}"
-  ${andif} $VibeCADInstalledBuild != ""
-    ${if} $VibeCADInstalledBuild < ${APP_VERSION_BUILD}
-      StrCpy $VibeCADInstalledDisposition "upgrade"
-    ${elseif} $VibeCADInstalledBuild == ${APP_VERSION_BUILD}
-      StrCpy $VibeCADInstalledDisposition "repair"
+  ${if} $SteveCADInstalledReleaseVersion == "${APP_RELEASE_VERSION}"
+  ${andif} $SteveCADInstalledBuild != ""
+    ${if} $SteveCADInstalledBuild < ${APP_VERSION_BUILD}
+      StrCpy $SteveCADInstalledDisposition "upgrade"
+    ${elseif} $SteveCADInstalledBuild == ${APP_VERSION_BUILD}
+      StrCpy $SteveCADInstalledDisposition "repair"
     ${else}
-      StrCpy $VibeCADInstalledDisposition "downgrade"
+      StrCpy $SteveCADInstalledDisposition "downgrade"
     ${endif}
     Return
   ${endif}
 
   # Patch releases have an unambiguous order even for a legacy install.
-  ${if} $VibeCADInstalledPatch != ""
-    ${if} $VibeCADInstalledPatch < ${APP_VERSION_PATCH}
-      StrCpy $VibeCADInstalledDisposition "upgrade"
+  ${if} $SteveCADInstalledPatch != ""
+    ${if} $SteveCADInstalledPatch < ${APP_VERSION_PATCH}
+      StrCpy $SteveCADInstalledDisposition "upgrade"
       Return
-    ${elseif} $VibeCADInstalledPatch > ${APP_VERSION_PATCH}
-      StrCpy $VibeCADInstalledDisposition "downgrade"
+    ${elseif} $SteveCADInstalledPatch > ${APP_VERSION_PATCH}
+      StrCpy $SteveCADInstalledDisposition "downgrade"
       Return
     ${endif}
   ${endif}
@@ -161,25 +161,25 @@ Function ClassifyInstalledVibeCAD
   # A final release sorts after a legacy prerelease of the same patch. A
   # prerelease must never replace an installed final release automatically.
   !if "${APP_VERSION_SUFFIX}" == ""
-    ${if} $VibeCADInstalledReleaseVersion != ""
-    ${andif} $VibeCADInstalledReleaseVersion != "${APP_VERSION_MAJOR}.${APP_VERSION_MINOR}.${APP_VERSION_PATCH}"
-      StrCpy $VibeCADInstalledDisposition "upgrade"
+    ${if} $SteveCADInstalledReleaseVersion != ""
+    ${andif} $SteveCADInstalledReleaseVersion != "${APP_VERSION_MAJOR}.${APP_VERSION_MINOR}.${APP_VERSION_PATCH}"
+      StrCpy $SteveCADInstalledDisposition "upgrade"
     ${endif}
   !else
-    ${if} $VibeCADInstalledReleaseVersion == "${APP_VERSION_MAJOR}.${APP_VERSION_MINOR}.${APP_VERSION_PATCH}"
-      StrCpy $VibeCADInstalledDisposition "downgrade"
+    ${if} $SteveCADInstalledReleaseVersion == "${APP_VERSION_MAJOR}.${APP_VERSION_MINOR}.${APP_VERSION_PATCH}"
+      StrCpy $SteveCADInstalledDisposition "downgrade"
     ${endif}
   !endif
 
 FunctionEnd
 
-Function BeginManualVibeCADReplacement
+Function BeginManualSteveCADReplacement
 
-  StrCpy $VibeCADUpdateMode "manual"
-  StrCpy $VibeCADUpdateInstallRoot $VibeCADInstalledInstallRoot
-  Call ValidateVibeCADUpdateInstallRoot
+  StrCpy $SteveCADUpdateMode "manual"
+  StrCpy $SteveCADUpdateInstallRoot $SteveCADInstalledInstallRoot
+  Call ValidateSteveCADUpdateInstallRoot
   ${if} ${Errors}
-    StrCpy $VibeCADUpdateMode "false"
+    StrCpy $SteveCADUpdateMode "false"
     MessageBox MB_OK|MB_ICONSTOP "$(InvalidExistingInstall)" /SD IDOK
     SetErrorLevel 28
     Quit
@@ -188,12 +188,12 @@ Function BeginManualVibeCADReplacement
 
 FunctionEnd
 
-Function VibeCADDirectoryPagePre
+Function SteveCADDirectoryPagePre
 
   # A replacement must use the registered installation root. Skipping the
   # directory page prevents a clean upgrade from being redirected midway.
-  ${if} $VibeCADUpdateMode == "install"
-  ${orif} $VibeCADUpdateMode == "manual"
+  ${if} $SteveCADUpdateMode == "install"
+  ${orif} $SteveCADUpdateMode == "manual"
     Abort
   ${endif}
 
@@ -203,7 +203,7 @@ FunctionEnd
 # MultiUser custom method
 
 Function PostMultiUserPageInit
-  Call FindInstalledVibeCAD
+  Call FindInstalledSteveCAD
 
   ${if} $OldVersionNumber == ""
     Return
@@ -211,19 +211,19 @@ Function PostMultiUserPageInit
 
   # The verified in-app updater already supplies a silent, pinned install root.
   # Preserve that path while sharing the same clean replacement sections.
-  ${if} $VibeCADUpdateMode != "false"
+  ${if} $SteveCADUpdateMode != "false"
     Return
   ${endif}
 
-  Call ClassifyInstalledVibeCAD
+  Call ClassifyInstalledSteveCAD
 
-  ${if} $VibeCADInstalledDisposition == "upgrade"
+  ${if} $SteveCADInstalledDisposition == "upgrade"
     MessageBox MB_OKCANCEL|MB_ICONINFORMATION "$(UpgradeInstalled)" /SD IDOK IDOK AcceptManualReplacement
     Goto CancelManualReplacement
-  ${elseif} $VibeCADInstalledDisposition == "repair"
+  ${elseif} $SteveCADInstalledDisposition == "repair"
     MessageBox MB_YESNO|MB_ICONQUESTION "$(RepairInstalled)" /SD IDNO IDYES AcceptManualReplacement
     Goto CancelManualReplacement
-  ${elseif} $VibeCADInstalledDisposition == "downgrade"
+  ${elseif} $SteveCADInstalledDisposition == "downgrade"
     MessageBox MB_OK|MB_ICONSTOP "$(DowngradeBlocked)" /SD IDOK
     SetErrorLevel 27
     Quit
@@ -233,7 +233,7 @@ Function PostMultiUserPageInit
   ${endif}
 
   AcceptManualReplacement:
-    Call BeginManualVibeCADReplacement
+    Call BeginManualSteveCADReplacement
     Return
 
   CancelManualReplacement:
@@ -272,24 +272,24 @@ SectionEnd
 # the selection states of the dictionary sections
 Function .onInit
 
-  StrCpy $VibeCADUpdateMode "false"
-  StrCpy $VibeCADUpdateInstallRoot ""
+  StrCpy $SteveCADUpdateMode "false"
+  StrCpy $SteveCADUpdateInstallRoot ""
   StrCpy $OldVersionNumber ""
   ${GetParameters} $R8
   ClearErrors
-  ${GetOptions} $R8 "/VIBECADUPDATE" $R9
+  ${GetOptions} $R8 "/STEVECADUPDATE" $R9
   ${IfNot} ${Errors}
-    StrCpy $VibeCADUpdateMode "install"
+    StrCpy $SteveCADUpdateMode "install"
   ${EndIf}
   ClearErrors
-  ${GetOptions} $R8 "/VIBECADROLLBACK" $R9
+  ${GetOptions} $R8 "/STEVECADROLLBACK" $R9
   ${IfNot} ${Errors}
-    StrCpy $VibeCADUpdateMode "rollback"
+    StrCpy $SteveCADUpdateMode "rollback"
   ${EndIf}
   ClearErrors
-  ${GetOptions} $R8 "/VIBECADINSTALLROOT=" $VibeCADUpdateInstallRoot
+  ${GetOptions} $R8 "/STEVECADINSTALLROOT=" $SteveCADUpdateInstallRoot
 
-  ${if} $VibeCADUpdateMode != "false"
+  ${if} $SteveCADUpdateMode != "false"
    ${IfNot} ${Silent}
     SetErrorLevel 25
     Quit
@@ -314,11 +314,11 @@ Function .onInit
   
   # Check that FreeCAD is not currently running
   StrCpy $R1 0
-  CheckVibeCADProcess:
+  CheckSteveCADProcess:
   ${nsProcess::FindProcess} ${BIN_FREECAD} $R0
   # if running result is '0', if not running it is '603'
   ${if} $R0 == "0"
-   ${if} $VibeCADUpdateMode != "false"
+   ${if} $SteveCADUpdateMode != "false"
     IntOp $R1 $R1 + 1
     ${if} $R1 >= 600
      ${nsProcess::Unload}
@@ -326,7 +326,7 @@ Function .onInit
      Quit
     ${endif}
     Sleep 500
-    Goto CheckVibeCADProcess
+    Goto CheckSteveCADProcess
    ${else}
     MessageBox MB_OK|MB_ICONSTOP "$(UnInstallRunning)" /SD IDOK
     Abort
@@ -337,7 +337,7 @@ Function .onInit
   
   # initialize the multi-user installer UI
   !insertmacro MULTIUSER_INIT
-  Call SelectExistingVibeCADInstallMode
+  Call SelectExistingSteveCADInstallMode
 
   # this can be reset to "true" in section SecDesktop
   StrCpy $CreateDesktopIcon "false"
@@ -354,16 +354,16 @@ Function .onInit
     Call PostMultiUserPageInit
   ${endif}
 
-  ${if} $VibeCADUpdateMode != "false"
-    Call ValidateVibeCADUpdateInstallRoot
+  ${if} $SteveCADUpdateMode != "false"
+    Call ValidateSteveCADUpdateInstallRoot
     ${If} ${Errors}
       SetErrorLevel 25
       Quit
     ${EndIf}
   ${endif}
 
-  ${if} $VibeCADUpdateMode == "rollback"
-    Call RestoreVibeCADUpdateBackup
+  ${if} $SteveCADUpdateMode == "rollback"
+    Call RestoreSteveCADUpdateBackup
     SetErrorLevel 24
     ${IfNot} ${Errors}
       SetErrorLevel 0
@@ -373,9 +373,9 @@ Function .onInit
 
 FunctionEnd
 
-Function ValidateVibeCADUpdateInstallRoot
+Function ValidateSteveCADUpdateInstallRoot
 
-  ${if} $VibeCADUpdateInstallRoot == ""
+  ${if} $SteveCADUpdateInstallRoot == ""
     SetErrors
     Return
   ${endif}
@@ -389,66 +389,66 @@ Function ValidateVibeCADUpdateInstallRoot
     Return
   ${endif}
   GetFullPathName $R3 "$R3"
-  GetFullPathName $VibeCADUpdateInstallRoot "$VibeCADUpdateInstallRoot"
-  StrCmp $R3 $VibeCADUpdateInstallRoot 0 ValidateVibeCADUpdateInstallRootFailed
-  IfFileExists "$R3\bin\VibeCAD.exe" 0 ValidateVibeCADUpdateInstallRootFailed
+  GetFullPathName $SteveCADUpdateInstallRoot "$SteveCADUpdateInstallRoot"
+  StrCmp $R3 $SteveCADUpdateInstallRoot 0 ValidateSteveCADUpdateInstallRootFailed
+  IfFileExists "$R3\bin\SteveCAD.exe" 0 ValidateSteveCADUpdateInstallRootFailed
   StrCpy $INSTDIR $R3
   ClearErrors
   Return
 
-  ValidateVibeCADUpdateInstallRootFailed:
+  ValidateSteveCADUpdateInstallRootFailed:
     SetErrors
     Return
 
 FunctionEnd
 
-Function RestoreVibeCADUpdateBackup
+Function RestoreSteveCADUpdateBackup
 
-  StrCpy $VibeCADUpdateBackupDir "$INSTDIR.vibecad-rollback"
-  StrCpy $VibeCADUpdateFailedDir "$INSTDIR.vibecad-failed"
-  IfFileExists "$VibeCADUpdateBackupDir\bin\VibeCAD.exe" 0 RestoreVibeCADUpdateFailed
-  IfFileExists "$VibeCADUpdateBackupDir\vibecad-update-registry.ini" 0 RestoreVibeCADUpdateFailed
-  ReadINIStr $R2 "$VibeCADUpdateBackupDir\vibecad-update-registry.ini" "Registry" "UninstallKey"
-  ReadINIStr $R3 "$VibeCADUpdateBackupDir\vibecad-update-registry.ini" "Registry" "AppKey"
+  StrCpy $SteveCADUpdateBackupDir "$INSTDIR.stevecad-rollback"
+  StrCpy $SteveCADUpdateFailedDir "$INSTDIR.stevecad-failed"
+  IfFileExists "$SteveCADUpdateBackupDir\bin\SteveCAD.exe" 0 RestoreSteveCADUpdateFailed
+  IfFileExists "$SteveCADUpdateBackupDir\stevecad-update-registry.ini" 0 RestoreSteveCADUpdateFailed
+  ReadINIStr $R2 "$SteveCADUpdateBackupDir\stevecad-update-registry.ini" "Registry" "UninstallKey"
+  ReadINIStr $R3 "$SteveCADUpdateBackupDir\stevecad-update-registry.ini" "Registry" "AppKey"
   ${if} $R2 == ""
   ${orif} $R3 == ""
-    Goto RestoreVibeCADUpdateFailed
+    Goto RestoreSteveCADUpdateFailed
   ${endif}
   SetOutPath "$TEMP"
-  RMDir /r "$VibeCADUpdateFailedDir"
-  IfFileExists "$VibeCADUpdateFailedDir\*.*" 0 RestoreVibeCADUpdateFailedReady
-    Goto RestoreVibeCADUpdateFailed
-  RestoreVibeCADUpdateFailedReady:
+  RMDir /r "$SteveCADUpdateFailedDir"
+  IfFileExists "$SteveCADUpdateFailedDir\*.*" 0 RestoreSteveCADUpdateFailedReady
+    Goto RestoreSteveCADUpdateFailed
+  RestoreSteveCADUpdateFailedReady:
   StrCpy $R5 "false"
-  IfFileExists "$INSTDIR\*.*" 0 RestoreVibeCADUpdateBackupTree
+  IfFileExists "$INSTDIR\*.*" 0 RestoreSteveCADUpdateBackupTree
   ClearErrors
-  Rename "$INSTDIR" "$VibeCADUpdateFailedDir"
-  IfErrors RestoreVibeCADUpdateFailed
+  Rename "$INSTDIR" "$SteveCADUpdateFailedDir"
+  IfErrors RestoreSteveCADUpdateFailed
   StrCpy $R5 "true"
-  RestoreVibeCADUpdateBackupTree:
+  RestoreSteveCADUpdateBackupTree:
   ClearErrors
-  Rename "$VibeCADUpdateBackupDir" "$INSTDIR"
-  IfErrors 0 RestoreVibeCADUpdateTreeReady
+  Rename "$SteveCADUpdateBackupDir" "$INSTDIR"
+  IfErrors 0 RestoreSteveCADUpdateTreeReady
     ${if} $R5 == "true"
-      Rename "$VibeCADUpdateFailedDir" "$INSTDIR"
+      Rename "$SteveCADUpdateFailedDir" "$INSTDIR"
     ${endif}
-    Goto RestoreVibeCADUpdateFailed
-  RestoreVibeCADUpdateTreeReady:
-  RMDir /r "$VibeCADUpdateFailedDir"
+    Goto RestoreSteveCADUpdateFailed
+  RestoreSteveCADUpdateTreeReady:
+  RMDir /r "$SteveCADUpdateFailedDir"
 
   DeleteRegKey SHCTX "${APP_UNINST_KEY}"
   DeleteRegKey SHCTX "${APP_REGKEY}"
-  ReadINIStr $R4 "$INSTDIR\vibecad-update-registry.ini" "Registry" "DisplayName"
+  ReadINIStr $R4 "$INSTDIR\stevecad-update-registry.ini" "Registry" "DisplayName"
   WriteRegStr SHCTX "$R2" "DisplayName" "$R4"
-  ReadINIStr $R4 "$INSTDIR\vibecad-update-registry.ini" "Registry" "DisplayVersion"
+  ReadINIStr $R4 "$INSTDIR\stevecad-update-registry.ini" "Registry" "DisplayVersion"
   WriteRegStr SHCTX "$R2" "DisplayVersion" "$R4"
-  ReadINIStr $R4 "$INSTDIR\vibecad-update-registry.ini" "Registry" "UninstallString"
+  ReadINIStr $R4 "$INSTDIR\stevecad-update-registry.ini" "Registry" "UninstallString"
   WriteRegStr SHCTX "$R2" "UninstallString" "$R4"
-  ReadINIStr $R4 "$INSTDIR\vibecad-update-registry.ini" "Registry" "QuietUninstallString"
+  ReadINIStr $R4 "$INSTDIR\stevecad-update-registry.ini" "Registry" "QuietUninstallString"
   WriteRegStr SHCTX "$R2" "QuietUninstallString" "$R4"
-  ReadINIStr $R4 "$INSTDIR\vibecad-update-registry.ini" "Registry" "DisplayIcon"
+  ReadINIStr $R4 "$INSTDIR\stevecad-update-registry.ini" "Registry" "DisplayIcon"
   WriteRegStr SHCTX "$R2" "DisplayIcon" "$R4"
-  ReadINIStr $R4 "$INSTDIR\vibecad-update-registry.ini" "Registry" "StartMenu"
+  ReadINIStr $R4 "$INSTDIR\stevecad-update-registry.ini" "Registry" "StartMenu"
   WriteRegStr SHCTX "$R2" "StartMenu" "$R4"
   WriteRegStr SHCTX "$R2" "URLUpdateInfo" "${APP_WEBPAGE}"
   WriteRegStr SHCTX "$R2" "URLInfoAbout" "${APP_WEBPAGE}"
@@ -456,25 +456,25 @@ Function RestoreVibeCADUpdateBackup
   WriteRegStr SHCTX "$R2" "HelpLink" "${APP_WEBPAGE}/issues"
   WriteRegDWORD SHCTX "$R2" "NoModify" 0x00000001
   WriteRegDWORD SHCTX "$R2" "NoRepair" 0x00000001
-  ReadINIStr $R4 "$INSTDIR\vibecad-update-registry.ini" "Registry" "InstallPath"
+  ReadINIStr $R4 "$INSTDIR\stevecad-update-registry.ini" "Registry" "InstallPath"
   WriteRegStr SHCTX "$R3" "" "$R4"
-  ReadINIStr $R4 "$INSTDIR\vibecad-update-registry.ini" "Registry" "Version"
+  ReadINIStr $R4 "$INSTDIR\stevecad-update-registry.ini" "Registry" "Version"
   WriteRegStr SHCTX "$R3" "Version" "$R4"
-  ReadINIStr $R4 "$INSTDIR\vibecad-update-registry.ini" "Registry" "ReleaseVersion"
+  ReadINIStr $R4 "$INSTDIR\stevecad-update-registry.ini" "Registry" "ReleaseVersion"
   WriteRegStr SHCTX "$R3" "ReleaseVersion" "$R4"
-  ReadINIStr $R4 "$INSTDIR\vibecad-update-registry.ini" "Registry" "UpdateVersion"
+  ReadINIStr $R4 "$INSTDIR\stevecad-update-registry.ini" "Registry" "UpdateVersion"
   ${if} $R4 == ""
     DeleteRegValue SHCTX "$R3" "UpdateVersion"
   ${else}
     WriteRegStr SHCTX "$R3" "UpdateVersion" "$R4"
   ${endif}
-  ReadINIStr $R4 "$INSTDIR\vibecad-update-registry.ini" "Registry" "Build"
+  ReadINIStr $R4 "$INSTDIR\stevecad-update-registry.ini" "Registry" "Build"
   WriteRegDWORD SHCTX "$R3" "Build" $R4
-  Delete "$INSTDIR\vibecad-update-registry.ini"
+  Delete "$INSTDIR\stevecad-update-registry.ini"
   ClearErrors
   Return
 
-  RestoreVibeCADUpdateFailed:
+  RestoreSteveCADUpdateFailed:
     SetErrors
     Return
 

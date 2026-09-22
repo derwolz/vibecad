@@ -213,62 +213,62 @@ void recordAcceptedCrossSection(
     manager->addLine(Gui::MacroManager::App, "import Part");
     manager->addLine(
         Gui::MacroManager::App,
-        ("__vibecad_cross_doc = App.getDocument("
+        ("__stevecad_cross_doc = App.getDocument("
          + pythonString(result.getDocument()->getName()) + ")")
             .c_str()
     );
     manager->addLine(
         Gui::MacroManager::App,
-        ("__vibecad_cross = __vibecad_cross_doc.addObject('Part::CrossSections',"
+        ("__stevecad_cross = __stevecad_cross_doc.addObject('Part::CrossSections',"
          + pythonString(result.getNameInDocument()) + ")")
             .c_str()
     );
     manager->addLine(
         Gui::MacroManager::App,
-        ("__vibecad_cross.Source = (" + pythonObjectReference(source) + ","
+        ("__stevecad_cross.Source = (" + pythonObjectReference(source) + ","
          + pythonStringList(subElements) + ")")
             .c_str()
     );
     manager->addLine(
         Gui::MacroManager::App,
-        ("__vibecad_cross.PlaneNormal = App.Vector(" + pythonFloat(normal.x) + ","
+        ("__stevecad_cross.PlaneNormal = App.Vector(" + pythonFloat(normal.x) + ","
          + pythonFloat(normal.y) + "," + pythonFloat(normal.z) + ")")
             .c_str()
     );
     manager->addLine(
         Gui::MacroManager::App,
-        ("__vibecad_cross.PlanePositions = " + pythonFloatList(positions)).c_str()
+        ("__stevecad_cross.PlanePositions = " + pythonFloatList(positions)).c_str()
     );
     auto* parent = App::GeoFeatureGroupExtension::getGroupOfObject(&result);
     if (parent) {
         manager->addLine(
             Gui::MacroManager::App,
-            ("__vibecad_cross_parent = " + pythonObjectReference(parent)).c_str()
+            ("__stevecad_cross_parent = " + pythonObjectReference(parent)).c_str()
         );
         manager->addLine(
             Gui::MacroManager::App,
-            "__vibecad_cross_parent.addObject(__vibecad_cross)"
+            "__stevecad_cross_parent.addObject(__stevecad_cross)"
         );
         manager->addLine(
             Gui::MacroManager::App,
-            "if hasattr(__vibecad_cross_parent, 'Tip'): "
-            "__vibecad_cross_parent.Tip = __vibecad_cross"
+            "if hasattr(__stevecad_cross_parent, 'Tip'): "
+            "__stevecad_cross_parent.Tip = __stevecad_cross"
         );
     }
-    manager->addLine(Gui::MacroManager::App, "__vibecad_cross_doc.recompute()");
+    manager->addLine(Gui::MacroManager::App, "__stevecad_cross_doc.recompute()");
     manager->addLine(
         Gui::MacroManager::App,
-        ("__vibecad_cross_outputs.setdefault("
+        ("__stevecad_cross_outputs.setdefault("
          + pythonString(result.getDocument()->getName())
-         + ", []).append(__vibecad_cross)")
+         + ", []).append(__stevecad_cross)")
             .c_str()
     );
     manager->addLine(
         Gui::MacroManager::App,
         parent
-            ? "del __vibecad_cross_parent, __vibecad_cross, "
-              "__vibecad_cross_doc"
-            : "del __vibecad_cross, __vibecad_cross_doc"
+            ? "del __stevecad_cross_parent, __stevecad_cross, "
+              "__stevecad_cross_doc"
+            : "del __stevecad_cross, __stevecad_cross_doc"
     );
 }
 
@@ -790,7 +790,7 @@ bool CrossSections::apply()
         if (macroManager) {
             macroManager->addLine(
                 Gui::MacroManager::App,
-                "__vibecad_cross_outputs = {}"
+                "__stevecad_cross_outputs = {}"
             );
         }
         for (std::size_t index = 0; index < results.size(); ++index) {
@@ -810,15 +810,15 @@ bool CrossSections::apply()
             );
             macroManager->addLine(
                 Gui::MacroManager::App,
-                "for __vibecad_cross_group in "
-                "__vibecad_cross_outputs.values(): "
+                "for __stevecad_cross_group in "
+                "__stevecad_cross_outputs.values(): "
                 "PartGui.publishDesignDefinitionBlock("
-                "__vibecad_cross_group)"
+                "__stevecad_cross_group)"
             );
             macroManager->addLine(
                 Gui::MacroManager::App,
-                "del __vibecad_cross_group, "
-                "__vibecad_cross_outputs"
+                "del __stevecad_cross_group, "
+                "__stevecad_cross_outputs"
             );
         }
     }

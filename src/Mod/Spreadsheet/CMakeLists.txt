@@ -10,7 +10,7 @@ set(Spreadsheet_Scripts
     TestSpreadsheet.py
     TestSpreadsheetGui.py
     SpreadsheetTests/__init__.py
-    SpreadsheetTests/TestVibeCADRibbonTools.py
+    SpreadsheetTests/TestSteveCADRibbonTools.py
     importXLSX.py
     test_importXLSX.py
 )

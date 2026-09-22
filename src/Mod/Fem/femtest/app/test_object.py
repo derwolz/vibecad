@@ -1436,18 +1436,18 @@ class TestObjectType(unittest.TestCase):
         )
         resource.addProperty(
             "App::PropertyString",
-            "VibeCADTimelineRole",
+            "SteveCADTimelineRole",
             "Timeline",
         )
         resource.addProperty(
             "App::PropertyLinkHidden",
-            "VibeCADTimelineOwner",
+            "SteveCADTimelineOwner",
             "Timeline",
         )
-        resource.VibeCADTimelineOwner = owner
-        resource.VibeCADTimelineRole = "resource"
+        resource.SteveCADTimelineOwner = owner
+        resource.SteveCADTimelineRole = "resource"
 
-        timeline = self.document.getObject("VibeCADTimeline")
+        timeline = self.document.getObject("SteveCADTimeline")
         self.assertIsNotNone(timeline)
         operations = list(timeline.Operations)
         self.assertGreater(operations.index(resource), operations.index(owner))
@@ -1478,7 +1478,7 @@ class TestObjectType(unittest.TestCase):
         self.assertTrue(membertools._is_suppressed(resource))
 
         owner.Suppressed = False
-        resource.VibeCADTimelineOwner = None
+        resource.SteveCADTimelineOwner = None
         self.assertFalse(
             self.document.isObjectUsableAtCurrentTimelinePosition(
                 resource

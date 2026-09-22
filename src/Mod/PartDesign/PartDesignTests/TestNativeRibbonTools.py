@@ -599,14 +599,14 @@ class TestNativeRibbonTools(unittest.TestCase):
         )
         sketch.addProperty(
             "App::PropertyString",
-            "VibeCADTimelineRole",
+            "SteveCADTimelineRole",
             "Timeline",
         )
         sketch.setPropertyStatus(
-            "VibeCADTimelineRole",
+            "SteveCADTimelineRole",
             ("Hidden", "LockDynamic", "NoRecompute"),
         )
-        sketch.VibeCADTimelineRole = "operation"
+        sketch.SteveCADTimelineRole = "operation"
         self.document.finalizeProvisionalTimelineOperationBlock(
             sketch,
             [sketch],
@@ -687,7 +687,7 @@ class TestNativeRibbonTools(unittest.TestCase):
         self.assertEqual(operation.ResultOperation, "Join")
         self.assertEqual(
             str(operation.ResultBodyId),
-            str(result_body.VibeCADBodyId),
+            str(result_body.SteveCADBodyId),
         )
         self.assertEqual(
             list(operation.InputStates),
@@ -696,8 +696,8 @@ class TestNativeRibbonTools(unittest.TestCase):
         self.assertEqual(
             list(operation.InputBodyIds),
             [
-                str(result_body.VibeCADBodyId),
-                str(tool_body.VibeCADBodyId),
+                str(result_body.SteveCADBodyId),
+                str(tool_body.SteveCADBodyId),
             ],
         )
         self.assertFalse(operation.KeepTools)
@@ -971,7 +971,7 @@ class TestNativeRibbonTools(unittest.TestCase):
         self.assertEqual(operation.ResultOperation, "Split")
         self.assertEqual(
             str(operation.SourceBodyId),
-            str(source_body.VibeCADBodyId),
+            str(source_body.SteveCADBodyId),
         )
         self.assertEqual(list(operation.InputStates), [source_feature])
         self.assertFalse(operation.RetainedRegionChosen)
@@ -1025,7 +1025,7 @@ class TestNativeRibbonTools(unittest.TestCase):
         self.assertEqual(len(operation.OutputBodyIds), 2)
         self.assertEqual(
             str(operation.OutputBodyIds[0]),
-            str(source_body.VibeCADBodyId),
+            str(source_body.SteveCADBodyId),
         )
         self.assertEqual(
             list(operation.OutputPreviousInputIndices),
@@ -1069,7 +1069,7 @@ class TestNativeRibbonTools(unittest.TestCase):
         )
         self.document.recompute()
         before_objects = tuple(self.document.Objects)
-        timeline = self.document.getObject("VibeCADTimeline")
+        timeline = self.document.getObject("SteveCADTimeline")
         before_history = tuple(timeline.Operations) if timeline else ()
 
         Gui.activeView().setActiveObject("pdbody", None)
@@ -1084,7 +1084,7 @@ class TestNativeRibbonTools(unittest.TestCase):
         self._cancel_task("PartDesign_Split")
         self.assertEqual(tuple(self.document.Objects), before_objects)
         self.assertIs(source_body.Tip, source_feature)
-        timeline = self.document.getObject("VibeCADTimeline")
+        timeline = self.document.getObject("SteveCADTimeline")
         self.assertEqual(
             tuple(timeline.Operations) if timeline else (),
             before_history,
@@ -1110,7 +1110,7 @@ class TestNativeRibbonTools(unittest.TestCase):
         self._assert_snapshot(body, expected, "New Body task gate")
 
     def test_new_empty_body_is_structural_and_its_features_remain_history_steps(self):
-        timeline = self.document.getObject("VibeCADTimeline")
+        timeline = self.document.getObject("SteveCADTimeline")
         original_operations = (
             tuple(timeline.Operations)
             if timeline is not None
@@ -1124,7 +1124,7 @@ class TestNativeRibbonTools(unittest.TestCase):
         body = Gui.activeView().getActiveObject("pdbody")
         self.assertIsNotNone(body)
         self.assertEqual(body.TypeId, "PartDesign::Body")
-        timeline = self.document.getObject("VibeCADTimeline")
+        timeline = self.document.getObject("SteveCADTimeline")
         current_operations = (
             tuple(timeline.Operations)
             if timeline is not None
@@ -1136,7 +1136,7 @@ class TestNativeRibbonTools(unittest.TestCase):
         Gui.runCommand("Part_Box", 0)
         self._process_events()
         feature = self.document.ActiveObject
-        timeline = self.document.getObject("VibeCADTimeline")
+        timeline = self.document.getObject("SteveCADTimeline")
 
         self.assertIsNotNone(feature)
         self.assertIsNotNone(timeline)
@@ -1257,10 +1257,10 @@ class TestNativeRibbonTools(unittest.TestCase):
         self.assertTrue(first.ViewObject.Visibility)
         self.assertTrue(second.ViewObject.Visibility)
         self.assertNotIn(
-            "VibeCADTimelineReplacedInputs",
+            "SteveCADTimelineReplacedInputs",
             observer.result.PropertiesList,
         )
-        timeline = self.document.getObject("VibeCADTimeline")
+        timeline = self.document.getObject("SteveCADTimeline")
         self.assertIsNotNone(timeline)
         self.assertIn(observer.result, timeline.Operations)
         self.assertFalse(self.document.HasPendingTransaction)
@@ -1516,10 +1516,10 @@ class TestNativeRibbonTools(unittest.TestCase):
         self.assertIn(source_tip, body_binder.OutList)
         self.assertNotIn(source_body, body_binder.OutList)
         self.assertNotIn(body, body_binder.OutList)
-        self.assertNotEqual(str(body_binder.VibeCADDefinitionId), "")
-        self.assertEqual(body_binder.VibeCADTimelineRole, "operation")
+        self.assertNotEqual(str(body_binder.SteveCADDefinitionId), "")
+        self.assertEqual(body_binder.SteveCADTimelineRole, "operation")
         self.assertEqual(
-            self.document.VibeCADTimeline.Operations.count(body_binder),
+            self.document.SteveCADTimeline.Operations.count(body_binder),
             1,
         )
         self.assertTrue(body_binder.isValid(), body_binder.getStatusString())
@@ -1569,8 +1569,8 @@ class TestNativeRibbonTools(unittest.TestCase):
         self.assertEqual(tuple(body.Group), original_group)
         self.assertIn(source, binder.OutList)
         self.assertEqual(binder.Support[0][0], source)
-        self.assertNotEqual(str(binder.VibeCADDefinitionId), "")
-        self.assertEqual(binder.VibeCADTimelineRole, "operation")
+        self.assertNotEqual(str(binder.SteveCADDefinitionId), "")
+        self.assertEqual(binder.SteveCADTimelineRole, "operation")
         self.assertTrue(binder.isValid(), binder.getStatusString())
         self.assertFalse(binder.Shape.isNull())
         self.assertTrue(binder.Shape.isValid())
@@ -1642,14 +1642,14 @@ class TestNativeRibbonTools(unittest.TestCase):
         self.assertIsNone(datum.getParentGeoFeatureGroup())
         self.assertEqual(tuple(component.Group), component_group)
         self.assertIs(datum.AttachmentSupport[0][0], support)
-        self.assertNotEqual(str(datum.VibeCADDefinitionId), "")
+        self.assertNotEqual(str(datum.SteveCADDefinitionId), "")
         self.assertEqual(
             str(datum.DesignId),
-            str(self.document.VibeCADTimeline.DesignId),
+            str(self.document.SteveCADTimeline.DesignId),
         )
-        self.assertEqual(datum.VibeCADTimelineRole, "operation")
+        self.assertEqual(datum.SteveCADTimelineRole, "operation")
         self.assertEqual(
-            self.document.VibeCADTimeline.Operations.count(datum),
+            self.document.SteveCADTimeline.Operations.count(datum),
             1,
         )
         self.assertTrue(datum.isValid(), datum.getStatusString())
@@ -1684,7 +1684,7 @@ class TestNativeRibbonTools(unittest.TestCase):
             obj
             for obj in self.document.Objects
             if obj.TypeId == "PartDesign::Body"
-            and str(obj.VibeCADBodyId) == clone.OutputBodyIds[0]
+            and str(obj.SteveCADBodyId) == clone.OutputBodyIds[0]
         )
         self.assertIsNone(clone.getParentGeoFeatureGroup())
         self.assertIsNone(clone.BaseFeature)
@@ -1693,7 +1693,7 @@ class TestNativeRibbonTools(unittest.TestCase):
         self.assertEqual(clone.OutputPreviousInputIndices, [-1])
         self.assertEqual(clone.OutputPresence, (True,))
         self.assertEqual(clone_body.TypeId, "PartDesign::Body")
-        timeline = self.document.getObject("VibeCADTimeline")
+        timeline = self.document.getObject("SteveCADTimeline")
         self.assertIsNotNone(timeline)
         self.assertNotIn(clone_body, timeline.Operations)
         self.assertEqual(list(timeline.Operations).count(clone), 1)
@@ -1734,7 +1734,7 @@ class TestNativeRibbonTools(unittest.TestCase):
         clone_body_name = clone_body.Name
         identities = (
             str(clone.OperationId),
-            str(clone_body.VibeCADBodyId),
+            str(clone_body.SteveCADBodyId),
             str(clone_body.Tip.CurrentState.BodyStateId),
         )
         self.document.undo()
@@ -1749,7 +1749,7 @@ class TestNativeRibbonTools(unittest.TestCase):
         self._process_events()
         restored_clone = self.document.getObject(clone_name)
         restored_body = self.document.getObject(clone_body_name)
-        restored_timeline = self.document.getObject("VibeCADTimeline")
+        restored_timeline = self.document.getObject("SteveCADTimeline")
         self.assertIsNotNone(restored_clone)
         self.assertIsNotNone(restored_body)
         self.assertIsNotNone(restored_timeline)
@@ -1761,7 +1761,7 @@ class TestNativeRibbonTools(unittest.TestCase):
         self.assertEqual(
             (
                 str(restored_clone.OperationId),
-                str(restored_body.VibeCADBodyId),
+                str(restored_body.SteveCADBodyId),
                 str(restored_body.Tip.CurrentState.BodyStateId),
             ),
             identities,
@@ -1812,7 +1812,7 @@ class TestNativeRibbonTools(unittest.TestCase):
         self.assertEqual(list(scale.InputStates), [source])
         self.assertEqual(
             list(scale.OutputBodyIds),
-            [str(body.VibeCADBodyId)],
+            [str(body.SteveCADBodyId)],
         )
         self.assertNotIn(scale, body.Group)
 
@@ -1852,7 +1852,7 @@ class TestNativeRibbonTools(unittest.TestCase):
         self.assertFalse(
             any(obj.TypeId == "Part::Scale" for obj in self.document.Objects)
         )
-        timeline = self.document.getObject("VibeCADTimeline")
+        timeline = self.document.getObject("SteveCADTimeline")
         self.assertIsNotNone(timeline)
         self.assertEqual(list(timeline.Operations).count(scale), 1)
         PartDesign.validateDesign(scale)
@@ -2053,7 +2053,7 @@ class TestNativeRibbonTools(unittest.TestCase):
             self.assertEqual(len(created), 1, shape_name)
             body = created[0]
             self.assertEqual(
-                str(body.VibeCADBodyId),
+                str(body.SteveCADBodyId),
                 str(operation.OutputBodyIds[0]),
             )
             self.assertEqual(
@@ -2142,8 +2142,8 @@ class TestNativeRibbonTools(unittest.TestCase):
         body = bodies[0]
         feature = self.document.ActiveObject
         self.assertIs(feature.getParentGeoFeatureGroup(), body)
-        self.assertEqual(body.VibeCADTimelineRole, "internal")
-        timeline = self.document.getObject("VibeCADTimeline")
+        self.assertEqual(body.SteveCADTimelineRole, "internal")
+        timeline = self.document.getObject("SteveCADTimeline")
         self.assertIsNotNone(timeline)
         self.assertNotIn(body, timeline.Operations)
         self.assertEqual(list(timeline.Operations).count(feature), 1)
@@ -2167,11 +2167,11 @@ class TestNativeRibbonTools(unittest.TestCase):
         self._process_events()
         restored_body = self.document.getObject(body_name)
         restored_feature = self.document.getObject(feature_name)
-        restored_timeline = self.document.getObject("VibeCADTimeline")
+        restored_timeline = self.document.getObject("SteveCADTimeline")
         self.assertIsNotNone(restored_body)
         self.assertIsNotNone(restored_feature)
         self.assertIsNotNone(restored_timeline)
-        self.assertEqual(restored_body.VibeCADTimelineRole, "internal")
+        self.assertEqual(restored_body.SteveCADTimelineRole, "internal")
         self.assertNotIn(restored_body, restored_timeline.Operations)
         self.assertEqual(
             list(restored_timeline.Operations).count(restored_feature),
@@ -2312,7 +2312,7 @@ class TestNativeRibbonTools(unittest.TestCase):
                 )
                 self.assertEqual(
                     str(input_state.BodyId),
-                    str(body.VibeCADBodyId),
+                    str(body.SteveCADBodyId),
                     command_name,
                 )
                 self.assertAlmostEqual(
@@ -2538,32 +2538,32 @@ class TestNativeRibbonTools(unittest.TestCase):
         self.assertFalse(self.document.HasPendingTransaction)
         self.assertIsNone(sketch.getParentGeoFeatureGroup())
         self.assertEqual(tuple(body.Group), body_group)
-        self.assertNotEqual(str(sketch.VibeCADSketchId), "")
+        self.assertNotEqual(str(sketch.SteveCADSketchId), "")
         self.assertEqual(
             str(sketch.DesignId),
-            str(self.document.VibeCADTimeline.DesignId),
+            str(self.document.SteveCADTimeline.DesignId),
         )
-        self.assertEqual(sketch.VibeCADTimelineRole, "operation")
+        self.assertEqual(sketch.SteveCADTimelineRole, "operation")
         self.assertEqual(
-            self.document.VibeCADTimeline.Operations.count(sketch),
+            self.document.SteveCADTimeline.Operations.count(sketch),
             1,
         )
         PartDesign.validateDesign(sketch)
 
         sketch.setPropertyStatus(
-            "VibeCADTimelineRole",
+            "SteveCADTimelineRole",
             "-LockDynamic",
         )
-        sketch.removeProperty("VibeCADTimelineRole")
+        sketch.removeProperty("SteveCADTimelineRole")
         Gui.activeDocument().setEdit(sketch.Name)
         self._process_events(50)
         self.assertIsNotNone(Gui.activeDocument().getInEdit())
         Gui.runCommand("Sketcher_LeaveSketch", 0)
         self._process_events(50)
         self.assertIsNone(Gui.activeDocument().getInEdit())
-        self.assertEqual(sketch.VibeCADTimelineRole, "operation")
+        self.assertEqual(sketch.SteveCADTimelineRole, "operation")
         self.assertEqual(
-            self.document.VibeCADTimeline.Operations.count(sketch),
+            self.document.SteveCADTimeline.Operations.count(sketch),
             1,
         )
         PartDesign.validateDesign(sketch)
@@ -2876,7 +2876,7 @@ class TestNativeRibbonTools(unittest.TestCase):
         self.assertEqual(list(operation.InputStates), [source])
         self.assertEqual(
             str(operation.InputBodyIds[0]),
-            str(body.VibeCADBodyId),
+            str(body.SteveCADBodyId),
         )
         self.assertEqual(
             set(self._bodies()),
@@ -2907,7 +2907,7 @@ class TestNativeRibbonTools(unittest.TestCase):
         self.assertEqual(source_mode.currentData(), "Body")
         self.assertEqual(
             source_object.currentData(),
-            str(body.VibeCADBodyId),
+            str(body.SteveCADBodyId),
         )
         self.assertFalse(target_list.isEnabled())
 
@@ -2930,7 +2930,7 @@ class TestNativeRibbonTools(unittest.TestCase):
         ]
         self.assertEqual(len(generated_bodies), 3)
         self.assertEqual(
-            {str(candidate.VibeCADBodyId) for candidate in generated_bodies},
+            {str(candidate.SteveCADBodyId) for candidate in generated_bodies},
             {str(identity) for identity in operation.OutputBodyIds},
         )
         self.assertEqual(
@@ -2948,7 +2948,7 @@ class TestNativeRibbonTools(unittest.TestCase):
                 for candidate in generated_bodies
             )
         )
-        timeline = self.document.getObject("VibeCADTimeline")
+        timeline = self.document.getObject("SteveCADTimeline")
         self.assertIsNotNone(timeline)
         self.assertEqual(list(timeline.Operations).count(operation), 1)
         PartDesign.validateDesign(operation)
@@ -2966,7 +2966,7 @@ class TestNativeRibbonTools(unittest.TestCase):
         source_body = next(
             body
             for body in self._bodies()
-            if str(body.VibeCADBodyId)
+            if str(body.SteveCADBodyId)
             == str(source_operation.OutputBodyIds[0])
         )
         exact_source_state = source_body.Tip.CurrentState
@@ -2991,7 +2991,7 @@ class TestNativeRibbonTools(unittest.TestCase):
         self.assertEqual(list(operation.InputStates), [exact_source_state])
         self.assertEqual(
             list(operation.OutputBodyIds),
-            [str(source_body.VibeCADBodyId)],
+            [str(source_body.SteveCADBodyId)],
         )
         self.assertIsNone(operation.getParentGeoFeatureGroup())
 

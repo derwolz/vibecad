@@ -146,10 +146,10 @@ class TestSheetOperations(unittest.TestCase):
                                     expected_revision=self.operations.capture_revision(self.sheet))
 
     def test_native_assistant_runner_uses_the_same_edit_and_records_its_target(self):
-        from VibeCADCore import get_service
-        from VibeCADNativeImmediate import run_immediate_mutation
-        from VibeCADNativeRuntimeContext import NativeRuntimeContext
-        from VibeCADNativeUndo import NativeAssistantUndoLedger
+        from SteveCADCore import get_service
+        from SteveCADNativeImmediate import run_immediate_mutation
+        from SteveCADNativeRuntimeContext import NativeRuntimeContext
+        from SteveCADNativeUndo import NativeAssistantUndoLedger
         prepared = self.circle()
         service = get_service()
         state = service.native_document_state_store()

@@ -1,0 +1,630 @@
+name: SteveCAD Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      source_ref:
+        description: "Branch, tag, or commit to build. Published releases must resolve to the current main commit."
+        required: true
+        default: "main"
+        type: string
+      publish_release:
+        description: "Publish an immutable GitHub release after every release gate passes."
+        required: true
+        default: false
+        type: boolean
+
+permissions:
+  actions: read
+  attestations: write
+  contents: write
+  id-token: write
+
+concurrency:
+  group: stevecad-release-${{ inputs.source_ref }}
+  cancel-in-progress: false
+
+jobs:
+  prepare:
+    name: Prepare Canonical Release Metadata
+    runs-on: ubuntu-24.04
+    outputs:
+      artifact_retention_days: ${{ steps.meta.outputs.artifact_retention_days }}
+      build: ${{ steps.meta.outputs.build }}
+      build_tag: ${{ steps.meta.outputs.release_tag }}
+      channel: ${{ steps.meta.outputs.channel }}
+      prerelease: ${{ steps.meta.outputs.prerelease }}
+      publish_release: ${{ steps.meta.outputs.publish_release }}
+      release_tag: ${{ steps.meta.outputs.release_tag }}
+      release_title: ${{ steps.meta.outputs.release_title }}
+      release_version: ${{ steps.meta.outputs.release_version }}
+      source_sha: ${{ steps.meta.outputs.source_sha }}
+    steps:
+      - name: Check out requested source
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          ref: ${{ inputs.source_ref }}
+          fetch-depth: 0
+          submodules: false
+
+      - name: Resolve and validate canonical metadata
+        id: meta
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PUBLISH_RELEASE: ${{ inputs.publish_release }}
+        run: |
+          set -euo pipefail
+
+          source_sha="$(git rev-parse --verify HEAD)"
+          release_version="$(python src/Tools/resolve_release_artifact_name.py . --component release-version)"
+          build="$(python src/Tools/resolve_release_artifact_name.py . --component build)"
+          release_tag="$(python src/Tools/resolve_release_artifact_name.py . --component release-tag)"
+          release_title="$(python src/Tools/resolve_release_artifact_name.py . --component release-title)"
+          channel="$(python src/Tools/resolve_release_artifact_name.py . --component release-channel)"
+          prerelease="false"
+          if [[ "${channel}" == "preview" ]]; then
+            prerelease="true"
+          fi
+
+          python src/Tools/sync_version.py --check
+
+          if [[ "${PUBLISH_RELEASE}" == "true" ]]; then
+            git fetch origin main:refs/remotes/origin/main --no-tags
+            main_sha="$(git rev-parse --verify refs/remotes/origin/main)"
+            if [[ "${source_sha}" != "${main_sha}" ]]; then
+              echo "Published releases must be built from the current main commit." >&2
+              exit 1
+            fi
+            if gh release view "${release_tag}" >/dev/null 2>&1; then
+              echo "Release ${release_tag} already exists and will not be overwritten." >&2
+              exit 1
+            fi
+            if git ls-remote --exit-code --tags origin "refs/tags/${release_tag}" >/dev/null 2>&1; then
+              echo "Tag ${release_tag} already exists and will not be moved or reused." >&2
+              exit 1
+            fi
+          fi
+
+          retention_days="14"
+          if [[ "${PUBLISH_RELEASE}" == "true" ]]; then
+            retention_days="30"
+          fi
+
+          {
+            echo "artifact_retention_days=${retention_days}"
+            echo "build=${build}"
+            echo "channel=${channel}"
+            echo "prerelease=${prerelease}"
+            echo "publish_release=${PUBLISH_RELEASE}"
+            echo "release_tag=${release_tag}"
+            echo "release_title=${release_title}"
+            echo "release_version=${release_version}"
+            echo "source_sha=${source_sha}"
+          } >> "${GITHUB_OUTPUT}"
+
+          cat >> "${GITHUB_STEP_SUMMARY}" <<EOF
+          Release: ${release_title}
+
+          Channel: ${channel}
+
+          Canonical tag: ${release_tag}
+
+          Publish after validation: ${PUBLISH_RELEASE}
+          EOF
+
+  linux:
+    name: Linux AppImage and Debian Package
+    needs: prepare
+    continue-on-error: ${{ needs.prepare.outputs.prerelease == 'true' }}
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Check out source
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          ref: ${{ needs.prepare.outputs.source_sha }}
+          fetch-depth: 0
+          submodules: recursive
+
+      - name: Install Pixi
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl -fsSL https://pixi.sh/install.sh | bash
+          echo "${HOME}/.pixi/bin" >> "${GITHUB_PATH}"
+
+      - name: Restore Pixi and Python caches
+        id: cache-pixi-linux
+        uses: actions/cache/restore@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
+        with:
+          path: |
+            package/rattler-build/.pixi
+            package/rattler-build/.download-cache
+            ~/.cache/pixi
+            ~/.cache/rattler
+            ~/.cache/pip
+          key: pixi-linux-${{ hashFiles('package/rattler-build/pixi.lock', 'package/rattler-build/pixi.toml', 'package/rattler-build/recipe.yaml', 'src/Mod/SteveCAD/requirements.txt', 'src/Mod/SteveCADAero/requirements-aero.txt', 'package/rattler-build/scripts/install_stevecad_provider_deps.sh', 'package/rattler-build/scripts/install_stevecad_codex_runtime.sh', 'package/rattler-build/scripts/purge_stevecad_retired_authoring_artifacts.sh') }}
+          restore-keys: |
+            pixi-linux-
+
+      - name: Restore ccache
+        uses: actions/cache/restore@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
+        with:
+          path: ${{ runner.temp }}/ccache
+          key: ccache-linux-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: |
+            ccache-linux-
+
+      - name: Build package environment
+        shell: bash
+        working-directory: package/rattler-build
+        env:
+          CCACHE_DIR: ${{ runner.temp }}/ccache
+          CCACHE_MAXSIZE: "2G"
+        run: |
+          set -euo pipefail
+          if [[ -d .pixi/envs/default ]]; then
+            pixi reinstall -e default stevecad
+          else
+            pixi install -e default
+          fi
+          pixi install -e package
+
+      - name: Save ccache
+        if: always()
+        uses: actions/cache/save@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
+        with:
+          path: ${{ runner.temp }}/ccache
+          key: ccache-linux-${{ github.run_id }}-${{ github.run_attempt }}
+
+      - name: Build Linux AppImage and Debian package
+        shell: bash
+        working-directory: package/rattler-build
+        env:
+          APPIMAGE_EXTRACT_AND_RUN: "1"
+          BUILD_TAG: ${{ needs.prepare.outputs.build_tag }}
+          GH_UPDATE_TAG: ${{ needs.prepare.outputs.build_tag }}
+        run: |
+          set -euo pipefail
+
+          artifact_basename="$(python ../../src/Tools/resolve_release_artifact_name.py ../..)"
+          release_version="$(python ../../src/Tools/resolve_release_artifact_name.py ../.. --component release-version)"
+          CREATE_BUNDLE_PHASE=appdir pixi run -e package create_bundle
+
+          CREATE_BUNDLE_PHASE=appimage pixi run -e package create_bundle &
+          appimage_pid=$!
+          ../linux/build_deb_from_appdir.sh \
+            --appdir linux/AppDir \
+            --output-dir linux \
+            --version "${release_version}" \
+            --artifact-basename "${artifact_basename}" \
+            --arch "$(uname -m)" &
+          deb_pid=$!
+
+          appimage_rc=0
+          deb_rc=0
+          wait "${appimage_pid}" || appimage_rc=$?
+          wait "${deb_pid}" || deb_rc=$?
+          if [[ "${appimage_rc}" -ne 0 || "${deb_rc}" -ne 0 ]]; then
+            echo "AppImage exit=${appimage_rc}, Debian exit=${deb_rc}" >&2
+            exit 1
+          fi
+
+      - name: Save Pixi and Python caches
+        if: always() && steps.cache-pixi-linux.outputs.cache-hit != 'true'
+        uses: actions/cache/save@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
+        with:
+          path: |
+            package/rattler-build/.pixi
+            package/rattler-build/.download-cache
+            ~/.cache/pixi
+            ~/.cache/rattler
+            ~/.cache/pip
+          key: ${{ steps.cache-pixi-linux.outputs.cache-primary-key }}
+
+      - name: Upload Linux release assets
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: stevecad-linux
+          if-no-files-found: error
+          retention-days: ${{ needs.prepare.outputs.artifact_retention_days }}
+          path: |
+            package/rattler-build/linux/*.AppImage
+            package/rattler-build/linux/*.AppImage.zsync
+            package/rattler-build/linux/*.deb
+            package/rattler-build/linux/*SHA256.txt
+
+  windows:
+    name: Windows Bundle and Installer
+    needs: prepare
+    continue-on-error: ${{ needs.prepare.outputs.prerelease == 'true' }}
+    runs-on: windows-2022
+    steps:
+      - name: Check out source
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          ref: ${{ needs.prepare.outputs.source_sha }}
+          fetch-depth: 0
+          submodules: recursive
+
+      - name: Install Pixi
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl -fsSL https://pixi.sh/install.sh | bash
+          echo "${HOME}/.pixi/bin" >> "${GITHUB_PATH}"
+
+      - name: Restore Pixi and Python caches
+        id: cache-pixi-windows
+        uses: actions/cache/restore@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
+        with:
+          path: |
+            package/rattler-build/.pixi
+            package/rattler-build/.download-cache
+            ~\AppData\Local\pixi
+            ~\AppData\Local\rattler
+            ~\AppData\Local\pip\Cache
+          key: pixi-windows-${{ hashFiles('package/rattler-build/pixi.lock', 'package/rattler-build/pixi.toml', 'package/rattler-build/recipe.yaml', 'src/Mod/SteveCAD/requirements.txt', 'src/Mod/SteveCADAero/requirements-aero.txt', 'package/rattler-build/scripts/install_stevecad_provider_deps.sh', 'package/rattler-build/scripts/install_stevecad_codex_runtime.sh', 'package/rattler-build/scripts/purge_stevecad_retired_authoring_artifacts.sh') }}
+          restore-keys: |
+            pixi-windows-
+
+      - name: Restore ccache
+        uses: actions/cache/restore@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
+        with:
+          path: ${{ runner.temp }}\ccache
+          key: ccache-windows-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: |
+            ccache-windows-
+
+      - name: Build package environment
+        shell: bash
+        working-directory: package/rattler-build
+        env:
+          CCACHE_DIR: ${{ runner.temp }}\ccache
+          CCACHE_MAXSIZE: "2G"
+        run: |
+          set -euo pipefail
+          if [[ -d .pixi/envs/default ]]; then
+            pixi reinstall -e default stevecad
+          else
+            pixi install -e default
+          fi
+          pixi install -e package
+
+      - name: Save ccache
+        if: always()
+        uses: actions/cache/save@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
+        with:
+          path: ${{ runner.temp }}\ccache
+          key: ccache-windows-${{ github.run_id }}-${{ github.run_attempt }}
+
+      - name: Build Windows release assets
+        shell: bash
+        working-directory: package/rattler-build
+        env:
+          BUILD_TAG: ${{ needs.prepare.outputs.build_tag }}
+          MAKE_INSTALLER: "true"
+          MAKE_PORTABLE_ARCHIVE: "false"
+        run: |
+          set -euo pipefail
+          pixi run -e package create_bundle
+
+      - name: Verify clean installer upgrade from the previous build
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: >-
+          ./package/WindowsInstaller/test_clean_upgrade.ps1
+          -CurrentInstaller "package/rattler-build/windows/SteveCAD-${{ needs.prepare.outputs.release_version }}-build${{ needs.prepare.outputs.build }}-Windows-x86_64-installer.exe"
+          -Repository "${{ github.repository }}"
+          -ReleaseVersion "${{ needs.prepare.outputs.release_version }}"
+          -Build ${{ needs.prepare.outputs.build }}
+
+      - name: Save Pixi and Python caches
+        if: always() && steps.cache-pixi-windows.outputs.cache-hit != 'true'
+        uses: actions/cache/save@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
+        with:
+          path: |
+            package/rattler-build/.pixi
+            package/rattler-build/.download-cache
+            ~\AppData\Local\pixi
+            ~\AppData\Local\rattler
+            ~\AppData\Local\pip\Cache
+          key: ${{ steps.cache-pixi-windows.outputs.cache-primary-key }}
+
+      - name: Upload Windows release assets
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: stevecad-windows
+          if-no-files-found: error
+          retention-days: ${{ needs.prepare.outputs.artifact_retention_days }}
+          path: |
+            package/rattler-build/windows/*.exe
+            package/rattler-build/windows/*-installer.exe-SHA256.txt
+
+  macos:
+    name: macOS ${{ matrix.arch }} DMG
+    needs: prepare
+    continue-on-error: ${{ needs.prepare.outputs.prerelease == 'true' }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - target: osx-arm64
+            runner: macos-15
+            arch: arm64
+          - target: osx-64
+            runner: macos-15-intel
+            arch: x86_64
+    runs-on: ${{ matrix.runner }}
+    steps:
+      - name: Check out source
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          ref: ${{ needs.prepare.outputs.source_sha }}
+          fetch-depth: 0
+          submodules: recursive
+
+      - name: Install Pixi
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl -fsSL https://pixi.sh/install.sh | bash
+          echo "${HOME}/.pixi/bin" >> "${GITHUB_PATH}"
+
+      - name: Restore Pixi and runtime caches
+        id: cache-pixi-macos
+        uses: actions/cache/restore@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
+        with:
+          path: |
+            package/rattler-build/.pixi
+            package/rattler-build/.download-cache
+            ~/.cache/pixi
+            ~/.cache/rattler
+            ~/Library/Caches/pip
+          key: pixi-${{ matrix.target }}-${{ hashFiles('package/rattler-build/pixi.lock', 'package/rattler-build/pixi.toml', 'package/rattler-build/recipe.yaml', 'src/Mod/SteveCAD/requirements.txt', 'src/Mod/SteveCADAero/requirements-aero.txt', 'package/rattler-build/scripts/install_stevecad_provider_deps.sh', 'package/rattler-build/scripts/install_stevecad_codex_runtime.sh', 'package/rattler-build/scripts/purge_stevecad_retired_authoring_artifacts.sh', 'package/rattler-build/scripts/relocate_conda_environment.py') }}
+          restore-keys: |
+            pixi-${{ matrix.target }}-
+
+      - name: Restore ccache
+        uses: actions/cache/restore@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
+        with:
+          path: ${{ runner.temp }}/ccache
+          key: ccache-${{ matrix.target }}-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: |
+            ccache-${{ matrix.target }}-
+
+      - name: Build package environment
+        shell: bash
+        working-directory: package/rattler-build
+        env:
+          CCACHE_DIR: ${{ runner.temp }}/ccache
+          CCACHE_MAXSIZE: "2G"
+          MACOS_DEPLOYMENT_TARGET: "12.0"
+        run: |
+          set -euo pipefail
+          if [[ -d .pixi/envs/default ]]; then
+            pixi reinstall -e default stevecad
+          else
+            pixi install -e default
+          fi
+          pixi install -e package
+
+      - name: Save ccache
+        if: always()
+        uses: actions/cache/save@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
+        with:
+          path: ${{ runner.temp }}/ccache
+          key: ccache-${{ matrix.target }}-${{ github.run_id }}-${{ github.run_attempt }}
+
+      - name: Save Pixi and runtime caches
+        if: always() && steps.cache-pixi-macos.outputs.cache-hit != 'true'
+        uses: actions/cache/save@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
+        with:
+          path: |
+            package/rattler-build/.pixi
+            package/rattler-build/.download-cache
+            ~/.cache/pixi
+            ~/.cache/rattler
+            ~/Library/Caches/pip
+          key: ${{ steps.cache-pixi-macos.outputs.cache-primary-key }}
+
+      - name: Reclaim macOS packaging workspace
+        shell: bash
+        working-directory: package/rattler-build
+        run: |
+          set -euo pipefail
+          echo "Rattler build workspace before packaging cleanup:"
+          du -sk .pixi/bld
+          rm -rf .pixi/bld
+          if [[ -d "${RUNNER_TEMP}/ccache" ]]; then
+            echo "Compiler cache before packaging cleanup:"
+            du -sk "${RUNNER_TEMP}/ccache"
+            rm -rf "${RUNNER_TEMP}/ccache"
+          fi
+          echo "Runner disk space available for macOS packaging:"
+          df -h .
+
+      - name: Create and validate SteveCAD DMG
+        timeout-minutes: 120
+        shell: bash
+        working-directory: package/rattler-build
+        env:
+          BUILD_TAG: ${{ needs.prepare.outputs.build_tag }}
+          MACOS_DEPLOYMENT_TARGET: "12.0"
+          MACOS_SIGN_RELEASE: "false"
+        run: |
+          set -euo pipefail
+          pixi run -e package create_bundle
+
+      - name: Upload macOS release assets
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: stevecad-macos-${{ matrix.arch }}
+          if-no-files-found: error
+          retention-days: ${{ needs.prepare.outputs.artifact_retention_days }}
+          path: |
+            package/rattler-build/osx/SteveCAD-*.dmg
+            package/rattler-build/osx/SteveCAD-*.dmg-SHA256.txt
+
+  release:
+    name: Validate and Publish Canonical Release
+    needs:
+      - prepare
+      - linux
+      - windows
+      - macos
+    if: ${{ always() && needs.prepare.result == 'success' && (needs.prepare.outputs.prerelease == 'true' || (needs.linux.result == 'success' && needs.windows.result == 'success' && needs.macos.result == 'success')) }}
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Check out packaged source
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          ref: ${{ needs.prepare.outputs.source_sha }}
+          fetch-depth: 1
+          submodules: false
+
+      - name: Download available release assets
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          pattern: stevecad-*
+          path: dist/assets
+          merge-multiple: true
+
+      - name: Verify packages and generate release manifest
+        id: validate
+        shell: bash
+        env:
+          PRERELEASE: ${{ needs.prepare.outputs.prerelease }}
+          RELEASE_TAG: ${{ needs.prepare.outputs.release_tag }}
+        run: |
+          set -euo pipefail
+
+          mapfile -d '' checksum_files < <(find dist/assets -maxdepth 1 -type f -name '*-SHA256.txt' -print0)
+          for checksum in "${checksum_files[@]}"; do
+            package="${checksum%-SHA256.txt}"
+            if [[ ! -f "${package}" ]]; then
+              if [[ "${PRERELEASE}" == "true" ]]; then
+                echo "Omitting orphan checksum from preview release: ${checksum}" >&2
+                rm -f -- "${checksum}"
+                continue
+              fi
+              echo "Stable release checksum has no package: ${checksum}" >&2
+              exit 1
+            fi
+            (cd dist/assets && sha256sum --check "$(basename "${checksum}")")
+          done
+
+          mapfile -d '' package_files < <(
+            find dist/assets -maxdepth 1 -type f \
+              \( -name '*.AppImage' -o -name '*.AppImage.zsync' -o -name '*.deb' -o -name '*.exe' -o -name '*.dmg' \) \
+              -print0
+          )
+          for package_file in "${package_files[@]}"; do
+            if [[ ! -f "${package_file}-SHA256.txt" ]]; then
+              if [[ "${PRERELEASE}" == "true" ]]; then
+                echo "Omitting unchecked package from preview release: ${package_file}" >&2
+                rm -f -- "${package_file}"
+                continue
+              fi
+              echo "Missing checksum for ${package_file}." >&2
+              exit 1
+            fi
+          done
+          mapfile -d '' package_files < <(
+            find dist/assets -maxdepth 1 -type f \
+              \( -name '*.AppImage' -o -name '*.AppImage.zsync' -o -name '*.deb' -o -name '*.exe' -o -name '*.dmg' \) \
+              -print0
+          )
+          if [[ "${#package_files[@]}" -eq 0 ]]; then
+            echo "No complete, checksummed release packages were produced." >&2
+            exit 1
+          fi
+          if [[ "${PRERELEASE}" != "true" ]]; then
+            required_patterns=(
+              'dist/assets/*-Linux-*.AppImage'
+              'dist/assets/*-Linux-*.AppImage.zsync'
+              'dist/assets/*-Linux-*.deb'
+              'dist/assets/*-Windows-x86_64-installer.exe'
+              'dist/assets/*-macOS*-arm64.dmg'
+              'dist/assets/*-macOS*-x86_64.dmg'
+            )
+            for required_pattern in "${required_patterns[@]}"; do
+              if ! compgen -G "${required_pattern}" >/dev/null; then
+                echo "Stable release is missing required package: ${required_pattern}" >&2
+                exit 1
+              fi
+            done
+          fi
+
+          published_at="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+          manifest="dist/assets/SteveCAD-update-${{ needs.prepare.outputs.release_version }}-build${{ needs.prepare.outputs.build }}.json"
+          python src/Tools/generate_update_manifest.py . dist/assets \
+            --repository "${GITHUB_REPOSITORY}" \
+            --published-at "${published_at}" \
+            --output "${manifest}"
+          (cd dist/assets && sha256sum "$(basename "${manifest}")" > "$(basename "${manifest}")-SHA256.txt")
+
+          find dist/assets -maxdepth 1 -type f -print | sort
+          echo "manifest=${manifest}" >> "${GITHUB_OUTPUT}"
+
+      - name: Attest release build provenance
+        if: needs.prepare.outputs.publish_release == 'true'
+        uses: actions/attest-build-provenance@977bb373ede98d70efdf65b84cb5f73e068dcc2a # v3
+        with:
+          subject-path: dist/assets/*
+
+      - name: Publish immutable GitHub release
+        if: needs.prepare.outputs.publish_release == 'true'
+        shell: bash
+        env:
+          CHANNEL: ${{ needs.prepare.outputs.channel }}
+          GH_TOKEN: ${{ github.token }}
+          PRERELEASE: ${{ needs.prepare.outputs.prerelease }}
+          RELEASE_TAG: ${{ needs.prepare.outputs.release_tag }}
+          RELEASE_TITLE: ${{ needs.prepare.outputs.release_title }}
+          RELEASE_VERSION: ${{ needs.prepare.outputs.release_version }}
+          RELEASE_BUILD: ${{ needs.prepare.outputs.build }}
+          SOURCE_SHA: ${{ needs.prepare.outputs.source_sha }}
+        run: |
+          set -euo pipefail
+
+          if gh release view "${RELEASE_TAG}" >/dev/null 2>&1; then
+            echo "Release ${RELEASE_TAG} appeared during the build and will not be overwritten." >&2
+            exit 1
+          fi
+          if git ls-remote --exit-code --tags origin "refs/tags/${RELEASE_TAG}" >/dev/null 2>&1; then
+            echo "Tag ${RELEASE_TAG} appeared during the build and will not be reused." >&2
+            exit 1
+          fi
+
+          {
+            echo "SteveCAD ${RELEASE_VERSION} (Build ${RELEASE_BUILD}) is a ${CHANNEL} release."
+            echo
+            echo "Validated packages included in this release:"
+            compgen -G 'dist/assets/*-Linux-*.AppImage' >/dev/null && echo "- Linux AppImage for direct execution."
+            compgen -G 'dist/assets/*-Linux-*.deb' >/dev/null && echo "- Linux Debian package."
+            compgen -G 'dist/assets/*-Windows-x86_64-installer.exe' >/dev/null && echo "- Windows installer executable."
+            compgen -G 'dist/assets/*-macOS*-arm64.dmg' >/dev/null && echo "- macOS Apple Silicon DMG."
+            compgen -G 'dist/assets/*-macOS*-x86_64.dmg' >/dev/null && echo "- macOS Intel DMG."
+            echo
+            if [[ "${PRERELEASE}" == "true" ]]; then
+              echo "Preview publication is best-effort by platform; unavailable packages are omitted."
+            fi
+            echo "Every included package has a SHA-256 checksum, a canonical update manifest, and GitHub build provenance. Published release assets and their tag are immutable."
+          } > release-notes.md
+
+          mapfile -d '' release_files < <(find dist/assets -maxdepth 1 -type f -print0)
+          release_args=(--draft --target "${SOURCE_SHA}" --title "${RELEASE_TITLE}" --notes-file release-notes.md)
+          publish_args=(--draft=false)
+          if [[ "${PRERELEASE}" == "true" ]]; then
+            release_args+=(--prerelease --latest=false)
+            publish_args+=(--prerelease --latest=false)
+          else
+            release_args+=(--latest)
+            publish_args+=(--latest)
+          fi
+
+          gh release create "${RELEASE_TAG}" "${release_files[@]}" "${release_args[@]}"
+          gh release edit "${RELEASE_TAG}" "${publish_args[@]}"

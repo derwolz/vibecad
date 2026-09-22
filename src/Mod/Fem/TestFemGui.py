@@ -32,14 +32,14 @@ from femtest.gui.test_exact_native_creation_source import (
 from femtest.gui.test_python_task_boundary import (
     TestFemPythonTaskBoundary as FemGuiTest07,
 )
-from femtest.gui.test_vibecad_ribbon_tools import (
-    TestVibeCADFEMRibbonTools as FemGuiTest02,
+from femtest.gui.test_stevecad_ribbon_tools import (
+    TestSteveCADFEMRibbonTools as FemGuiTest02,
 )
-from femtest.gui.test_vibecad_ribbon_tools import (
-    TestVibeCADFEMSuppressionContract as FemGuiTest03,
+from femtest.gui.test_stevecad_ribbon_tools import (
+    TestSteveCADFEMSuppressionContract as FemGuiTest03,
 )
-from femtest.gui.test_vibecad_ribbon_tools import (
-    TestVibeCADFEMTimelineContract as FemGuiTest04,
+from femtest.gui.test_stevecad_ribbon_tools import (
+    TestSteveCADFEMTimelineContract as FemGuiTest04,
 )
 
 # dummy usage to get flake8 and lgtm quiet

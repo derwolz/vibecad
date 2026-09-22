@@ -28,7 +28,7 @@ class TestRMFGNativeConnection(unittest.TestCase):
         self.previous = Gui.activeWorkbench().name()
         self.addCleanup(lambda: Gui.activateWorkbench(self.previous))
         Gui.activateWorkbench("SMWorkbench")
-        from VibeCADNativeRuntimeRegistry import build_native_runtime_bindings
+        from SteveCADNativeRuntimeRegistry import build_native_runtime_bindings
         self.runtime = build_native_runtime_bindings(self.context, ("sheet_metal.connection",))["sheet_metal.connection"]
 
     def close_panel(self):
@@ -39,15 +39,15 @@ class TestRMFGNativeConnection(unittest.TestCase):
         self.inspection.fixture.wait_for(lambda: not self.controller.busy)
 
     def call(self, operation):
-        from VibeCADNativeRegistry import build_native_capability_registry
+        from SteveCADNativeRegistry import build_native_capability_registry
         implementation = build_native_capability_registry().implementation("sheet_metal.connection")
         return implementation.async_handler(SimpleNamespace(runtime=self.runtime, arguments={"operation": operation}))
 
     def test_ribbon_and_native_open_the_same_modeless_panel_without_document_changes(self):
         import SheetMetalRMFGGui as Connection
-        from VibeCADNativeCapabilityRegistry import resolve_native_provider_surface
-        from VibeCADNativeRegistry import build_native_capability_registry
-        from VibeCADRibbonSurface import read_active_ribbon_surface
+        from SteveCADNativeCapabilityRegistry import resolve_native_provider_surface
+        from SteveCADNativeRegistry import build_native_capability_registry
+        from SteveCADRibbonSurface import read_active_ribbon_surface
         self.inspection.fixture.wait_for(lambda: read_active_ribbon_surface().surface_id == "sheet_metal")
         surface = resolve_native_provider_surface(read_active_ribbon_surface(), build_native_capability_registry())
         self.assertTrue(surface.available, surface.summary())
@@ -61,7 +61,7 @@ class TestRMFGNativeConnection(unittest.TestCase):
         self.assertIs(Connection._panel, panel)
         self.assertTrue(result["requires_user_action"])
         self.inspection.fixture.wait_for(lambda: not self.controller.busy)
-        self.assertTrue(panel.grab().save(str(Path(os.environ["VIBECAD_TEST_OUTPUT"])/"rmfg-connection.png")))
+        self.assertTrue(panel.grab().save(str(Path(os.environ["STEVECAD_TEST_OUTPUT"])/"rmfg-connection.png")))
         self.assertEqual(before, (self.doc.UndoCount, tuple(self.doc.Objects), self.doc.isTouched()))
         self.assertFalse(self.doc.HasPendingTransaction)
 

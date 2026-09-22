@@ -66,11 +66,11 @@ class TestWindowsInstallerVersion(unittest.TestCase):
             encoding="utf-8"
         )
 
-        self.assertIn('StrCpy $VibeCADUpdateMode "manual"', init)
-        self.assertIn("Function SelectExistingVibeCADInstallMode", init)
-        self.assertIn('StrCpy $VibeCADInstalledDisposition "upgrade"', init)
-        self.assertIn('${orif} $VibeCADUpdateMode == "manual"', install)
-        self.assertIn('Rename "$INSTDIR" "$VibeCADUpdateBackupDir"', install)
+        self.assertIn('StrCpy $SteveCADUpdateMode "manual"', init)
+        self.assertIn("Function SelectExistingSteveCADInstallMode", init)
+        self.assertIn('StrCpy $SteveCADInstalledDisposition "upgrade"', init)
+        self.assertIn('${orif} $SteveCADUpdateMode == "manual"', install)
+        self.assertIn('Rename "$INSTDIR" "$SteveCADUpdateBackupDir"', install)
         self.assertIn('"UpdateVersion" "${APP_UPDATE_VERSION}"', configure)
         self.assertNotIn('$(AlreadyInstalled)', init)
 
@@ -79,25 +79,25 @@ class TestWindowsInstallerVersion(unittest.TestCase):
             INSTALLER_ROOT.parents[1]
             / "src"
             / "Mod"
-            / "VibeCAD"
-            / "VibeCADUpdateGui.py"
+            / "SteveCAD"
+            / "SteveCADUpdateGui.py"
         ).read_text(encoding="utf-8")
         helper = update_gui.split(
             "def _launch_windows_install_helper", 1
         )[1].split("def _launch_appimage_install_helper", 1)[0]
 
-        self.assertIn("$vibecad | Wait-Process", helper)
+        self.assertIn("$stevecad | Wait-Process", helper)
         self.assertIn("Start-Process -FilePath $Installer", helper)
         self.assertIn('[IO.File]::WriteAllText($Started, "$PID")', helper)
         self.assertIn("wait_for_install_helper_start(started)", helper)
         self.assertLess(
             helper.index('[IO.File]::WriteAllText($Started, "$PID")'),
-            helper.index("$vibecad | Wait-Process"),
+            helper.index("$stevecad | Wait-Process"),
         )
         self.assertNotIn("-ArgumentList", helper)
         self.assertNotIn("/S", helper)
-        self.assertNotIn("/VIBECADUPDATE", helper)
-        self.assertNotIn("/VIBECADINSTALLROOT", helper)
+        self.assertNotIn("/STEVECADUPDATE", helper)
+        self.assertNotIn("/STEVECADINSTALLROOT", helper)
 
     def test_rejects_negative_build(self):
         with self.assertRaisesRegex(ValueError, "non-negative"):

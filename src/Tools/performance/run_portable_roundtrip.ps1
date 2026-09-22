@@ -14,7 +14,7 @@ param(
 $ErrorActionPreference = 'Stop'
 $root = (Resolve-Path (Join-Path $PSScriptRoot '../../..')).Path
 $bundle = (Resolve-Path -LiteralPath $Bundle).Path
-$exe = Join-Path $bundle 'VibeCAD.exe'
+$exe = Join-Path $bundle 'SteveCAD.exe'
 $probe = Join-Path $PSScriptRoot 'portable_roundtrip_probe.py'
 if ($Name -notmatch '^[A-Za-z0-9_-]+$') { throw 'Use a simple diagnostic run name' }
 if (-not $ResultsRoot) { $ResultsRoot = Join-Path $root 'build/portable-validation-results' }
@@ -25,8 +25,8 @@ if (-not $run.StartsWith($resultsRoot + [IO.Path]::DirectorySeparatorChar, [Stri
 }
 if (Test-Path -LiteralPath $run) { throw 'Use a new run name; existing diagnostic evidence is retained' }
 $source = (Resolve-Path -LiteralPath $Document).Path
-$required = @('VibeCAD.exe', 'bin/python311.dll', 'bin/pythonw.exe', 'bin/Qt6Core.dll',
-              'lib/qt6/plugins/platforms/qwindows.dll', 'Mod/VibeCAD/VibeCADGui.py')
+$required = @('SteveCAD.exe', 'bin/python311.dll', 'bin/pythonw.exe', 'bin/Qt6Core.dll',
+              'lib/qt6/plugins/platforms/qwindows.dll', 'Mod/SteveCAD/SteveCADGui.py')
 foreach ($relative in $required) {
     if (-not (Test-Path -LiteralPath (Join-Path $bundle $relative) -PathType Leaf)) {
         throw "Incomplete portable runtime: $relative"
@@ -41,7 +41,7 @@ if ((Get-FileHash -LiteralPath $copy -Algorithm SHA256).Hash -ne $originalHash) 
 # The root portable launcher establishes Python and Qt from its own bundle.
 # Prevent inherited developer/test settings from injecting another runtime.
 foreach ($key in @('PYTHONHOME','PYTHONPATH','FC_PYTHONHOME','QT_PLUGIN_PATH',
-                   'QT_QPA_PLATFORM_PLUGIN_PATH','VIBECAD_DEV_ROOT','VIBECAD_DEV_COMMIT')) {
+                   'QT_QPA_PLATFORM_PLUGIN_PATH','STEVECAD_DEV_ROOT','STEVECAD_DEV_COMMIT')) {
     [Environment]::SetEnvironmentVariable($key, $null, 'Process')
 }
 $env:QT_QPA_PLATFORM = 'windows'
@@ -51,24 +51,24 @@ $env:PYTHONUSERBASE = Join-Path $run 'python-user'
 $env:FREECAD_USER_HOME = Join-Path $run 'freecad-user'
 $env:FREECAD_USER_DATA = Join-Path $run 'freecad-data'
 $env:FREECAD_USER_TEMP = Join-Path $run 'freecad-temp'
-$env:VIBECAD_HOME = Join-Path $run 'vibecad-data'
-$env:VIBECAD_AGENT_HOME = Join-Path $run 'agent'
-[Environment]::SetEnvironmentVariable('VIBECAD_AGENT_PORT', $null, 'Process')
-$env:VIBECAD_ROUNDTRIP_COPY = $copy
-$env:VIBECAD_ALLOW_CLEARED_INVALID_OBJECTS = ConvertTo-Json -InputObject @($AllowClearedInvalidObjects) -Compress
-$env:VIBECAD_ROUNDTRIP_REPORT = Join-Path $run 'roundtrip.json'
-$env:VIBECAD_INPUT_SENDER = Join-Path $PSScriptRoot 'native_input_sender.py'
+$env:STEVECAD_HOME = Join-Path $run 'stevecad-data'
+$env:STEVECAD_AGENT_HOME = Join-Path $run 'agent'
+[Environment]::SetEnvironmentVariable('STEVECAD_AGENT_PORT', $null, 'Process')
+$env:STEVECAD_ROUNDTRIP_COPY = $copy
+$env:STEVECAD_ALLOW_CLEARED_INVALID_OBJECTS = ConvertTo-Json -InputObject @($AllowClearedInvalidObjects) -Compress
+$env:STEVECAD_ROUNDTRIP_REPORT = Join-Path $run 'roundtrip.json'
+$env:STEVECAD_INPUT_SENDER = Join-Path $PSScriptRoot 'native_input_sender.py'
 if ($BaselineReport) {
-    $env:VIBECAD_ROUNDTRIP_BASELINE = (Resolve-Path -LiteralPath $BaselineReport).Path
+    $env:STEVECAD_ROUNDTRIP_BASELINE = (Resolve-Path -LiteralPath $BaselineReport).Path
 } else {
-    [Environment]::SetEnvironmentVariable('VIBECAD_ROUNDTRIP_BASELINE', $null, 'Process')
+    [Environment]::SetEnvironmentVariable('STEVECAD_ROUNDTRIP_BASELINE', $null, 'Process')
 }
-$env:VIBECAD_RESTORE_DETAIL_TRACE = '1'
-[Environment]::SetEnvironmentVariable('VIBECAD_PROFILE_CALLBACKS', $(if ($ProfileCallbacks) { '1' } else { $null }), 'Process')
-[Environment]::SetEnvironmentVariable('VIBECAD_PROFILE_COMMANDS', $(if ($ProfileCommandChecks) { '1' } else { $null }), 'Process')
-[Environment]::SetEnvironmentVariable('VIBECAD_EXERCISE_GENERATED_RECOMPUTE', $(if ($ExerciseGeneratedRecompute) { '1' } else { $null }), 'Process')
-[Environment]::SetEnvironmentVariable('VIBECAD_TRACE_NATIVE_EVENTS', $(if ($TraceNativeEvents) { '1' } else { $null }), 'Process')
-[Environment]::SetEnvironmentVariable('VIBECAD_ALLOW_TIMELINE_MIGRATION', $(if ($AllowTimelineMigration) { '1' } else { $null }), 'Process')
+$env:STEVECAD_RESTORE_DETAIL_TRACE = '1'
+[Environment]::SetEnvironmentVariable('STEVECAD_PROFILE_CALLBACKS', $(if ($ProfileCallbacks) { '1' } else { $null }), 'Process')
+[Environment]::SetEnvironmentVariable('STEVECAD_PROFILE_COMMANDS', $(if ($ProfileCommandChecks) { '1' } else { $null }), 'Process')
+[Environment]::SetEnvironmentVariable('STEVECAD_EXERCISE_GENERATED_RECOMPUTE', $(if ($ExerciseGeneratedRecompute) { '1' } else { $null }), 'Process')
+[Environment]::SetEnvironmentVariable('STEVECAD_TRACE_NATIVE_EVENTS', $(if ($TraceNativeEvents) { '1' } else { $null }), 'Process')
+[Environment]::SetEnvironmentVariable('STEVECAD_ALLOW_TIMELINE_MIGRATION', $(if ($AllowTimelineMigration) { '1' } else { $null }), 'Process')
 $argsList = @('--user-cfg', ('"' + (Join-Path $run 'user.cfg') + '"'),
               '--log-file', ('"' + (Join-Path $run 'application.log') + '"'),
               ('"' + $probe + '"'))

@@ -174,7 +174,7 @@ public:
     App ::PropertyLinkListHidden Exports;
     Part ::PropertyGeometryList ExternalGeo;
     App ::PropertyBool FullyConstrained;
-    App::PropertyUUID VibeCADSketchId;
+    App::PropertyUUID SteveCADSketchId;
     App::PropertyUUID DesignId;
     App ::PropertyPrecision ArcFitTolerance;
     Part ::PropertyPartShape InternalShape;

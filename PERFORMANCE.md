@@ -1,17 +1,17 @@
-# VibeCAD performance work
+# SteveCAD performance work
 
 Status: active
 Last updated: 2026-09-11
 
 ## What this work delivers
 
-This work makes VibeCAD stay responsive while it opens, updates, publishes,
+This work makes SteveCAD stay responsive while it opens, updates, publishes,
 renders, and simulates large models. The main change is a shared execution
 model: expensive work runs against detached data on application-owned workers,
 while the GUI thread performs only the document mutations and presentation that
 must happen there.
 
-People using VibeCAD should see practical improvements:
+People using SteveCAD should see practical improvements:
 
 - Large documents open and become usable sooner instead of monopolizing the
   interface until every follow-up task finishes.
@@ -39,7 +39,7 @@ and import/export code use the same runtime and ownership rules.
 
 ### Shared runtime and resource admission
 
-VibeCAD now has an application-owned runtime for CPU work, I/O work, isolated
+SteveCAD now has an application-owned runtime for CPU work, I/O work, isolated
 processes, and GUI adoption. Nested work shares one CPU budget, so parallel
 algorithms cannot silently create competing pools and oversubscribe the host.
 Cancellation and shutdown propagate through nested submissions.
@@ -84,7 +84,7 @@ resource admission, candidate isolation, and geometry validation remain.
 ### Assembly solving and simulation playback
 
 OndselSolver kinematic work now preserves the host executor and receives host
-cancellation checks. VibeCAD prepares and authenticates native playback tracks
+cancellation checks. SteveCAD prepares and authenticates native playback tracks
 that can be reused after reopening an unchanged document. An edit that changes
 the simulation input invalidates the cached result and schedules a fresh solve.
 
@@ -181,7 +181,7 @@ xvfb-run -a build/release/tests/DocumentBulkMutation_Tests_run \
   PASS: 3 passed, 0 failed with Qt 6.11.1.
 
 python3 -m pytest -q \
-  src/Mod/VibeCAD/vibecad_tests/test_simulation_playback_cache.py
+  src/Mod/SteveCAD/stevecad_tests/test_simulation_playback_cache.py
   PASS: 54 passed.
 
 python3 -m unittest src.Tools.tests.test_linux_appimage_launcher
@@ -190,12 +190,12 @@ python3 -m unittest src.Tools.tests.test_linux_appimage_launcher
 cd package/rattler-build/linux
 CREATE_BUNDLE_PHASE=appdir ./create_bundle.sh
 CREATE_BUNDLE_PHASE=appimage ./create_bundle.sh
-  PASS: VibeCAD-26.3.1-RC6-build1-Linux-x86_64.AppImage built; SHA-256 verified.
+  PASS: SteveCAD-26.3.1-RC6-build1-Linux-x86_64.AppImage built; SHA-256 verified.
 
 APPIMAGE_EXTRACT_AND_RUN=1 \
-  ./VibeCAD-26.3.1-RC6-build1-Linux-x86_64.AppImage \
+  ./SteveCAD-26.3.1-RC6-build1-Linux-x86_64.AppImage \
   freecadcmd --safe-mode --version
-  PASS: VibeCAD 26.3.1-RC6 (Build 1).
+  PASS: SteveCAD 26.3.1-RC6 (Build 1).
 ```
 
 The performance results ledger records the broader Windows native/Python test

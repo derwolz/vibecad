@@ -113,12 +113,12 @@ void MaterialManager::initManagers()
     }
 #endif
 
-    if (std::getenv("VIBECAD_RESTORE_DETAIL_TRACE") != nullptr) {
+    if (std::getenv("STEVECAD_RESTORE_DETAIL_TRACE") != nullptr) {
         const auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(
             std::chrono::steady_clock::now() - started
         ).count();
         Base::Console().message(
-            "VIBECAD_RESTORE_DETAIL material_catalog_init elapsed_ms=%lld\n",
+            "STEVECAD_RESTORE_DETAIL material_catalog_init elapsed_ms=%lld\n",
             static_cast<long long>(elapsed)
         );
     }

@@ -44,5 +44,5 @@ class SpreadsheetInstallationTests(unittest.TestCase):
                 module = root / "Mod/Spreadsheet"
                 self.assertFalse((module / "__init__.py").exists(), "Shadows Spreadsheet.pyd")
                 for relative in ("Init.py", "InitGui.py", "SpreadsheetTests/__init__.py",
-                                 "SpreadsheetTests/TestVibeCADRibbonTools.py"):
+                                 "SpreadsheetTests/TestSteveCADRibbonTools.py"):
                     self.assertEqual((module / relative).read_bytes(), (source / relative).read_bytes())

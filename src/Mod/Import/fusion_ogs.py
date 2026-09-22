@@ -8,7 +8,7 @@ binary payload from being guessed into plausible-looking geometry.
 
 The descriptor layout is documented by the MIT-licensed ``ezf3d`` project's
 public clean-room format research.  This implementation is dependency-free and
-targets the Python runtime shipped with VibeCAD.
+targets the Python runtime shipped with SteveCAD.
 """
 
 from __future__ import annotations

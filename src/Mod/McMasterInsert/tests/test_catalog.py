@@ -104,13 +104,13 @@ class TestCatalogNames(unittest.TestCase):
                 self.Name = name
 
         self.assertTrue(mmc._is_origin_object(Internal("Origin001")))
-        self.assertTrue(mmc._is_origin_object(Internal("VibeCADTimeline")))
+        self.assertTrue(mmc._is_origin_object(Internal("SteveCADTimeline")))
 
     def test_timeline_classified_component_remains_a_transform_target(self):
         class Component:
             Name = "Component_95462A029"
             TypeId = "PartDesign::Component"
-            VibeCADTimelineRole = "internal"
+            SteveCADTimelineRole = "internal"
 
         component = Component()
 
@@ -459,12 +459,12 @@ class TestCatalogLaunch(unittest.TestCase):
 
         self.assertEqual(mmc.catalog_paths_to_import(paths, "embedded"), paths)
 
-    def test_webview2_profile_is_persistent_under_vibecad_user_data(self):
+    def test_webview2_profile_is_persistent_under_stevecad_user_data(self):
         with tempfile.TemporaryDirectory() as temp_dir:
             with mock.patch.dict(mmc.os.environ, {"LOCALAPPDATA": temp_dir}):
                 root = mmc.webview2_profile_root()
 
-            self.assertEqual(root, Path(temp_dir) / "VibeCAD" / "McMasterBrowser")
+            self.assertEqual(root, Path(temp_dir) / "SteveCAD" / "McMasterBrowser")
             self.assertTrue(root.is_dir())
 
     def test_webview2_is_the_preferred_catalog_backend(self):

@@ -30,7 +30,7 @@ namespace Assembly::detail
 {
 namespace
 {
-constexpr char magic[] = "VibeCAD-frames-1";
+constexpr char magic[] = "SteveCAD-frames-1";
 constexpr qint64 headerSize = sizeof(magic) - 1 + 1 + 64 + 16 + 32;
 
 // The existing Ondsel serializer takes ofstream, but writes through ostream's

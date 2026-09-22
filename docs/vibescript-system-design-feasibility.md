@@ -1,14 +1,14 @@
 # Workbench-shaped VibeScript architecture
 
 > Historical scope note: this document remains the design record for the
-> VibeScript engine. VibeCAD now also provides a separate human-selected,
+> VibeScript engine. SteveCAD now also provides a separate human-selected,
 > ribbon-scoped Native authoring mode. The current cross-engine authority
-> contract is documented in `docs/vibecad-authoring-modes.md`; statements below
+> contract is documented in `docs/stevecad-authoring-modes.md`; statements below
 > that the assistant has no alternate engine apply only to VibeScript mode.
 
 ## Scope
 
-The VibeCAD assistant always authors through VibeScript. The active FreeCAD
+The SteveCAD assistant always authors through VibeScript. The active FreeCAD
 workbench resolves to exactly one VibeScript CAD authoring surface. The
 resolver is shared by Codex (using either ChatGPT subscription or
 OpenAI-compatible API-key authentication), Anthropic, offline/debug, and editor
@@ -241,7 +241,7 @@ recomputes it, rejects invalid native state, and returns deterministic assigned
 state plus bounded evaluated-value readback. Live publication replays that
 validated batch without recompute and must reproduce the worker digest. Because
 FreeCAD document transactions do not restore the sheet's internal cell store,
-VibeCAD also captures the accepted definition before mutation and explicitly
+SteveCAD also captures the accepted definition before mutation and explicitly
 replays it after an aborted publication; the restored digest must match. A live
 sheet edited outside its accepted VibeScript revision is detected before
 mutation rather than silently overwritten.
@@ -663,7 +663,7 @@ revision.
 `mechanism_check` evaluates only explicitly declared rigid component pairs at
 the native solved state. Collision-free and minimum-clearance requirements, and
 prohibited, clearance, allowed, required, and ignored contact policies, require
-their complete pair-specific values; VibeCAD infers no pair, fit, exemption, or
+their complete pair-specific values; SteveCAD infers no pair, fit, exemption, or
 tolerance. Allowed and required contact names one semantic interface on each
 component. The worker uses exact transformed OCCT BREPs; the host independently
 reloads authenticated source BREPs and reproduces the report before publishing

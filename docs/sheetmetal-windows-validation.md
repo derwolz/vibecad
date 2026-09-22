@@ -74,7 +74,7 @@ base-shape task regression passed in 2.503 seconds after failing before its fix.
 The final combined native suite, including all 17 added regressions:
 **375 tests passed in 848.637 seconds**, with successful unattended completion.
 Final packaging/RMFG/preset unit run: **89 tests and 113 subtests passed in 14.30 s**.
-Final changed VibeCAD unit suite: **352 tests passed in 63.84 s**.
+Final changed SteveCAD unit suite: **352 tests passed in 63.84 s**.
 Final full incremental build, including the added test resource: **passed (exit 0)**.
 
 Commands used from the repository root, with private build locations represented
@@ -103,9 +103,9 @@ python -m pytest -q --import-mode=importlib `
   src/Mod/SendCutSendPresets/tests `
   --junitxml=build/pr228-unit-results-final.xml
 
-$env:PYTHONPATH = "$PWD/src/Mod/VibeCAD"
-$tests = @(git diff --name-only 01bae317...HEAD -- 'src/Mod/VibeCAD/vibecad_tests/test_*.py')
-python -m pytest -q @tests --junitxml=build/pr228-vibecad-unit-results-final.xml
+$env:PYTHONPATH = "$PWD/src/Mod/SteveCAD"
+$tests = @(git diff --name-only 01bae317...HEAD -- 'src/Mod/SteveCAD/stevecad_tests/test_*.py')
+python -m pytest -q @tests --junitxml=build/pr228-stevecad-unit-results-final.xml
 ```
 
 The automated test window is labelled as such. Negative tests deliberately
@@ -149,11 +149,11 @@ camera and display-poll timing, and captures images without visibility or
 recompute interventions. Run in a fresh GUI with an isolated profile:
 
 ```powershell
-$env:VIBECAD_SHEET_BENCHMARK_SOURCE = $SavedDocumentCopy
+$env:STEVECAD_SHEET_BENCHMARK_SOURCE = $SavedDocumentCopy
 & ./build/pr228_after_build.ps1 -BundlePath $Bundle -Probe 'pr228-windows/src/Tools/performance/sheetmetal_restore_probe.py'
 ```
 
-The launcher supplies `VIBECAD_TEST_OUTPUT`; other launchers can set it directly
+The launcher supplies `STEVECAD_TEST_OUTPUT`; other launchers can set it directly
 and run `src/Tools/performance/sheetmetal_restore_probe.py` as the macro. The
 original file is never saved or changed. This follow-up is Python-only and was
 tested in a separate copy of the already fully built portable, leaving the live
@@ -208,20 +208,20 @@ Commands from the worktree (the private Python environment contains the same
 MCP 2.0.0 package as the portable; the initial base environment lacked it):
 
 ```powershell
-$env:PYTHONPATH = "$PWD/src/Mod/VibeCAD"
+$env:PYTHONPATH = "$PWD/src/Mod/SteveCAD"
 & ../pr228-context-test-env/Scripts/python.exe -m pytest -q `
-  src/Mod/VibeCAD/vibecad_tests/test_conversation_handoff.py `
-  src/Mod/VibeCAD/vibecad_tests/test_codex_subscription.py `
-  src/Mod/VibeCAD/vibecad_tests/test_model_context_contract.py `
-  src/Mod/VibeCAD/vibecad_tests/test_native_surface_continuation.py `
-  src/Mod/VibeCAD/vibecad_tests/test_native_session.py `
-  src/Mod/VibeCAD/vibecad_tests/test_mcp_tool_servers.py `
-  src/Mod/VibeCAD/vibecad_tests/test_gemini_provider.py `
-  src/Mod/VibeCAD/vibecad_tests/test_provider_history_budget.py `
-  src/Mod/VibeCAD/vibecad_tests/test_native_workspace_schema.py `
-  src/Mod/VibeCAD/vibecad_tests/test_native_sheetmetal_manufacturing.py `
-  src/Mod/VibeCAD/vibecad_tests/test_native_model_structure_schema.py `
-  src/Mod/VibeCAD/vibecad_tests/test_native_sheetmetal_provider.py `
+  src/Mod/SteveCAD/stevecad_tests/test_conversation_handoff.py `
+  src/Mod/SteveCAD/stevecad_tests/test_codex_subscription.py `
+  src/Mod/SteveCAD/stevecad_tests/test_model_context_contract.py `
+  src/Mod/SteveCAD/stevecad_tests/test_native_surface_continuation.py `
+  src/Mod/SteveCAD/stevecad_tests/test_native_session.py `
+  src/Mod/SteveCAD/stevecad_tests/test_mcp_tool_servers.py `
+  src/Mod/SteveCAD/stevecad_tests/test_gemini_provider.py `
+  src/Mod/SteveCAD/stevecad_tests/test_provider_history_budget.py `
+  src/Mod/SteveCAD/stevecad_tests/test_native_workspace_schema.py `
+  src/Mod/SteveCAD/stevecad_tests/test_native_sheetmetal_manufacturing.py `
+  src/Mod/SteveCAD/stevecad_tests/test_native_model_structure_schema.py `
+  src/Mod/SteveCAD/stevecad_tests/test_native_sheetmetal_provider.py `
   --tb=short --junitxml=../pr228-context-final.xml
 ```
 
@@ -229,7 +229,7 @@ Native suite command is the same ten-module command in the performance section,
 now including the source-pointer and full repair-workflow regressions. The full
 incremental build uses the above `build_env.bat`/Ninja command after copying the
 changed sources into the Rattler source sandbox. CMake regenerates and includes
-`VibeCADConversationContext.py` in its installation manifest. No running user
+`SteveCADConversationContext.py` in its installation manifest. No running user
 portable is patched or restarted for these checks.
 
 Final combined provider/session/tool suite: **291 passed, 1 skipped in 47.50 s**.

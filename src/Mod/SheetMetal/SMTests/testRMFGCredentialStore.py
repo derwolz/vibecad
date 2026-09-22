@@ -26,7 +26,7 @@ class TestRMFGCredentialStore(unittest.TestCase):
         with self.store.locked():
             self.store.write(record)
             args = self.backend.set_password.call_args.args
-            self.assertEqual(args[0], "VibeCAD.RMFG")
+            self.assertEqual(args[0], "SteveCAD.RMFG")
             self.backend.get_password.return_value = args[2]
             self.assertEqual(self.store.read(), record)
             for path in self.path.rglob("*"):

@@ -546,7 +546,7 @@ void ViewProvider::showPreviousFeature(bool enable)
             finalResultVisibility = std::make_unique<TaskInternal::VisibilitySnapshot>();
             const auto& ids = operation->OutputBodyIds.getValues();
             for (auto* body : feature->getDocument()->getObjectsOfType<PartDesign::Body>()) {
-                if (std::ranges::find(ids, body->VibeCADBodyId.getValueStr()) != ids.end()) {
+                if (std::ranges::find(ids, body->SteveCADBodyId.getValueStr()) != ids.end()) {
                     finalResultVisibility->captureObject(body);
                     if (auto* view = Gui::Application::Instance->getViewProvider(body)) {
                         view->hide();

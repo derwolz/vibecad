@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: LGPL-2.1-or-later
 
-from .TestVibeCADRibbonTools import TestVibeCADSpreadsheetRibbonTools
+from .TestSteveCADRibbonTools import TestSteveCADSpreadsheetRibbonTools
 
-__all__ = ["TestVibeCADSpreadsheetRibbonTools"]
+__all__ = ["TestSteveCADSpreadsheetRibbonTools"]

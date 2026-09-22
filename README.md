@@ -1,27 +1,27 @@
 <p align="center">
-  <img src="docs/images/vibecad-mark.svg" width="96" alt="VibeCAD mark">
+  <img src="docs/images/stevecad-mark.svg" width="96" alt="SteveCAD mark">
 </p>
 
-# VibeCAD
+# SteveCAD
 
-VibeCAD is an AI-native parametric CAD platform for designing real 3D parts through conversation, focused modeling tools, and editable geometry history.
+SteveCAD is an AI-native parametric CAD platform for designing real 3D parts through conversation, focused modeling tools, and editable geometry history.
 
-![VibeCAD workspace showing a turbocharger assembly and the AI assistant](docs/images/vibecad-workspace.png)
+![SteveCAD workspace showing a turbocharger assembly and the AI assistant](docs/images/stevecad-workspace.png)
 
 ## Before You Start
 
-You need a **ChatGPT subscription**, a **Grok / X (xAI) login**, or an **API key** for the provider you select. VibeCAD runs ChatGPT-subscription, Grok OAuth, and OpenAI-API-key requests through its bundled Codex runtime, connects directly to Anthropic and Google Gemini, and can still route Codex through OpenAI-compatible endpoints such as an xAI API key, Ollama, and other local model servers.
+You need a **ChatGPT subscription**, a **Grok / X (xAI) login**, or an **API key** for the provider you select. SteveCAD runs ChatGPT-subscription, Grok OAuth, and OpenAI-API-key requests through its bundled Codex runtime, connects directly to Anthropic and Google Gemini, and can still route Codex through OpenAI-compatible endpoints such as an xAI API key, Ollama, and other local model servers.
 
 Store the key in one of these places:
 
-- **OS keyring (recommended):** paste the key in VibeCAD Preferences, click **Save Key**, and then click **Validate**.
-- **A selected `.env` file:** create the file yourself, select it in VibeCAD Preferences, and click **Validate**. VibeCAD does not search for `.env` files automatically.
+- **OS keyring (recommended):** paste the key in SteveCAD Preferences, click **Save Key**, and then click **Validate**.
+- **A selected `.env` file:** create the file yourself, select it in SteveCAD Preferences, and click **Validate**. SteveCAD does not search for `.env` files automatically.
 
-API keys are not stored in ordinary application preferences. ChatGPT OAuth credentials are owned and refreshed by the bundled Codex app-server; VibeCAD does not read or copy those tokens. Grok / X OAuth tokens are stored in a private VibeCAD Grok credential directory and refreshed by VibeCAD; they are never written to ordinary `user.cfg`.
+API keys are not stored in ordinary application preferences. ChatGPT OAuth credentials are owned and refreshed by the bundled Codex app-server; SteveCAD does not read or copy those tokens. Grok / X OAuth tokens are stored in a private SteveCAD Grok credential directory and refreshed by SteveCAD; they are never written to ordinary `user.cfg`.
 
 ## Install
 
-Download the latest build from [VibeCAD Releases](https://github.com/10-X-eng/vibecad/releases/latest).
+Download the latest build from [SteveCAD Releases](https://github.com/10-X-eng/vibecad/releases/latest).
 
 ### Linux AppImage
 
@@ -30,8 +30,8 @@ or use a locally built `Linux-aarch64` AppImage on ARM64 hosts including DGX Spa
 The release workflow currently publishes Linux x86_64 builds. Then:
 
 ```bash
-chmod +x VibeCAD-*-Linux-$(uname -m).AppImage
-./VibeCAD-*-Linux-$(uname -m).AppImage
+chmod +x SteveCAD-*-Linux-$(uname -m).AppImage
+./SteveCAD-*-Linux-$(uname -m).AppImage
 ```
 
 ### Debian Package
@@ -40,33 +40,33 @@ Run this command from the directory containing the downloaded package. Debian
 architectures are `amd64` (x86_64) and `arm64` (aarch64):
 
 ```bash
-sudo apt install ./VibeCAD-*-Linux-$(dpkg --print-architecture).deb
+sudo apt install ./SteveCAD-*-Linux-$(dpkg --print-architecture).deb
 ```
 
 The leading `./` is required when installing a local package with `apt`.
 
 ### Windows
 
-Download the Windows installer, run it, and launch VibeCAD from the Start menu.
+Download the Windows installer, run it, and launch SteveCAD from the Start menu.
 
 ### macOS
 
-Download the Apple Silicon (`arm64`) or Intel (`x86_64`) DMG from [VibeCAD Releases](https://github.com/10-X-eng/vibecad/releases/latest). Open the DMG and drag `VibeCAD.app` to Applications.
+Download the Apple Silicon (`arm64`) or Intel (`x86_64`) DMG from [SteveCAD Releases](https://github.com/10-X-eng/vibecad/releases/latest). Open the DMG and drag `SteveCAD.app` to Applications.
 
-Current release DMGs are not Apple-notarized, so the first launch may show **“VibeCAD.app” Not Opened**. Use one of these paths, then open VibeCAD from Applications as usual:
+Current release DMGs are not Apple-notarized, so the first launch may show **“SteveCAD.app” Not Opened**. Use one of these paths, then open SteveCAD from Applications as usual:
 
-- **Without Terminal:** Apple menu → **System Settings** → **Privacy & Security** → scroll to the VibeCAD message → **Open Anyway**, then confirm.
+- **Without Terminal:** Apple menu → **System Settings** → **Privacy & Security** → scroll to the SteveCAD message → **Open Anyway**, then confirm.
 - **With Terminal** (after the app is in Applications):
 
 ```bash
-xattr -dr com.apple.quarantine /Applications/VibeCAD.app
+xattr -dr com.apple.quarantine /Applications/SteveCAD.app
 ```
 
 SHA256 files are published beside release artifacts so downloads can be verified before installation.
 
 ## Configure an AI Provider
 
-Open **Preferences**, then select **VibeCAD > VibeCAD**.
+Open **Preferences**, then select **SteveCAD > SteveCAD**.
 
 1. Enable **Use online provider**.
 2. Select **ChatGPT subscription**, **Grok (X / xAI)**, **OpenAI API key (Codex)**, **Anthropic**, or **Google Gemini** under **Provider**.
@@ -79,22 +79,22 @@ Open **Preferences**, then select **VibeCAD > VibeCAD**.
 ### Sign In With a ChatGPT Subscription
 
 1. Select **ChatGPT subscription** as the provider.
-2. Click **Sign in with ChatGPT** and complete the browser flow. Use **Use device code** when the browser callback cannot reach VibeCAD.
+2. Click **Sign in with ChatGPT** and complete the browser flow. Use **Use device code** when the browser callback cannot reach SteveCAD.
 3. Click **Fetch models** and select a subscription model, or leave **Use account default** selected.
 4. Choose a reasoning effort offered by that model, then click **Apply** or **OK**.
 
-ChatGPT credentials are stored in a private VibeCAD Codex credential directory and refreshed by the bundled, version-pinned app-server. **Logout** asks that runtime to remove the account. VibeCAD never imports credentials from another Codex installation and never falls back to an ambient API key.
+ChatGPT credentials are stored in a private SteveCAD Codex credential directory and refreshed by the bundled, version-pinned app-server. **Logout** asks that runtime to remove the account. SteveCAD never imports credentials from another Codex installation and never falls back to an ambient API key.
 
 ### Sign In With Grok / X
 
 1. Select **Grok (X / xAI)** as the provider.
-2. Click **Sign in with X / Grok** and complete the xAI browser flow at `accounts.x.ai`. Use **Use device code** when the local callback cannot reach VibeCAD (SSH, containers, or a blocked loopback port).
+2. Click **Sign in with X / Grok** and complete the xAI browser flow at `accounts.x.ai`. Use **Use device code** when the local callback cannot reach SteveCAD (SSH, containers, or a blocked loopback port).
 3. Click **Fetch models** and select a Grok model, or keep the default `grok-4.6`.
 4. Choose a reasoning effort offered by that model, then click **Apply** or **OK**.
 
-This is real xAI OAuth against the documented issuer `https://auth.x.ai` (authorization, device-code, and token endpoints from xAI's OpenID configuration). VibeCAD reuses the official public Grok CLI OAuth client shipped by xAI in [xai-org/grok-build](https://github.com/xai-org/grok-build); xAI does not publish a separate VibeCAD app registration. You need an active SuperGrok subscription or an X Premium+ account that xAI has linked to your xAI session.
+This is real xAI OAuth against the documented issuer `https://auth.x.ai` (authorization, device-code, and token endpoints from xAI's OpenID configuration). SteveCAD reuses the official public Grok CLI OAuth client shipped by xAI in [xai-org/grok-build](https://github.com/xai-org/grok-build); xAI does not publish a separate SteveCAD app registration. You need an active SuperGrok subscription or an X Premium+ account that xAI has linked to your xAI session.
 
-Grok OAuth tokens are stored only under the private VibeCAD Grok credential directory and are refreshed automatically. **Logout** revokes and deletes that store. Inference uses the xAI Responses-compatible API at `https://api.x.ai/v1` through the bundled Codex runtime.
+Grok OAuth tokens are stored only under the private SteveCAD Grok credential directory and are refreshed automatically. **Logout** revokes and deletes that store. Inference uses the xAI Responses-compatible API at `https://api.x.ai/v1` through the bundled Codex runtime.
 
 If OAuth login succeeds but model calls return HTTP 403, xAI may be gating the OAuth API surface by subscription tier. Use the API-key fallback below in that case.
 
@@ -106,13 +106,13 @@ If OAuth login succeeds but model calls return HTTP 403, xAI may be gating the O
 4. Click **Fetch models** and select a compatible Gemini model, or keep the default `gemini-flash-latest` alias.
 5. Choose a reasoning effort supported by the model, then click **Apply** or **OK**.
 
-Gemini requests use Google's OpenAI-compatible Chat Completions endpoint at `https://generativelanguage.googleapis.com/v1beta/openai/`. This endpoint is fixed for the Gemini provider; VibeCAD does not reuse the OpenAI base-URL override. Gemini supports VibeCAD tool calls, reference images, Design Review, and Intent Memory. Web research is hidden while Gemini is selected because Google Search grounding is not enabled by this integration.
+Gemini requests use Google's OpenAI-compatible Chat Completions endpoint at `https://generativelanguage.googleapis.com/v1beta/openai/`. This endpoint is fixed for the Gemini provider; SteveCAD does not reuse the OpenAI base-URL override. Gemini supports SteveCAD tool calls, reference images, Design Review, and Intent Memory. Web research is hidden while Gemini is selected because Google Search grounding is not enabled by this integration.
 
 ChatGPT subscription, Grok OAuth, OpenAI-compatible, Anthropic, Gemini, and offline/debug turns all
 use the same frozen authoring-surface resolver. The human chooses either
 **VibeScript** or **Native** in the Assistant header. VibeScript exposes the
 active workbench's exact source-backed API. Native exposes only the complete
-tool families belonging to the human-selected VibeCAD ribbon. A provider can
+tool families belonging to the human-selected SteveCAD ribbon. A provider can
 never select or switch a workbench, ribbon, or authoring mode for itself.
 
 
@@ -133,7 +133,7 @@ Integrators can pass these options in the provider run context (these are Python
 integration settings, not GUI preferences):
 
 ```python
-context["_vibecad_provider_options"] = {
+context["_stevecad_provider_options"] = {
     # "history_budget_bytes": 512 * 1024,  # opt into a hard byte limit
     # "history_budget_bytes": 0,          # disable automatic byte reduction
     # "context_window_tokens": 200_000,  # optional, set for the selected model
@@ -154,7 +154,7 @@ input from provider-reported usage when available.
 
 1. Select the provider first. Keys are stored separately for OpenAI, Anthropic, and Gemini.
 2. Paste the provider key into **API key**.
-3. Click **Save Key**. The field clears after VibeCAD hands the key to the operating system's credential store.
+3. Click **Save Key**. The field clears after SteveCAD hands the key to the operating system's credential store.
 4. Click **Validate**. A successful check reports `verified` in **Auth status**.
 5. Click **Fetch models** and choose the model to use.
 
@@ -175,7 +175,7 @@ ANTHROPIC_API_KEY=your-key-here
 GEMINI_API_KEY=your-key-here
 ```
 
-In VibeCAD Preferences:
+In SteveCAD Preferences:
 
 1. Click **Browse** beside **.env path** and select that exact file.
 2. Leave the **API key** field empty; **Save Key** is only for the OS keyring.
@@ -186,7 +186,7 @@ Do not commit a `.env` file containing a real key to source control.
 
 ### Credential Precedence
 
-VibeCAD resolves a key in this order:
+SteveCAD resolves a key in this order:
 
 1. The provider's process environment variable.
 2. The `.env` file explicitly selected in Preferences.
@@ -205,22 +205,22 @@ Prefer **Sign in with X / Grok** when you have SuperGrok or X Premium+. The API-
 5. Click **Fetch models** and select the Grok model returned by xAI.
 6. Choose a reasoning effort supported by that model, then click **Apply** or **OK**.
 
-When using a `.env` file for this fallback, use `OPENAI_API_KEY`; VibeCAD resolves that key normally and supplies it only to the bundled Codex process.
+When using a `.env` file for this fallback, use `OPENAI_API_KEY`; SteveCAD resolves that key normally and supplies it only to the bundled Codex process.
 
-![VibeCAD Preferences configured for Grok through the xAI endpoint](docs/images/vibecad-grok-provider-setup.png)
+![SteveCAD Preferences configured for Grok through the xAI endpoint](docs/images/stevecad-grok-provider-setup.png)
 
 ## Start a CAD Conversation
 
-1. Create or open a CAD document and **save it**. VibeCAD keeps the assistant disabled for unsaved documents so the conversation, design record, references, and generated source have a durable project location.
-2. Select the VibeCAD ribbon that matches the work you are doing, then choose
+1. Create or open a CAD document and **save it**. SteveCAD keeps the assistant disabled for unsaved documents so the conversation, design record, references, and generated source have a durable project location.
+2. Select the SteveCAD ribbon that matches the work you are doing, then choose
    **VibeScript** or **Native** in the Assistant header. Only the human can
    change the authoring system. Native may change CAD work between provider turns
    when the requested design requires another ribbon.
-3. Open **View > Panels > VibeCAD Assistant** if the assistant is not visible.
+3. Open **View > Panels > SteveCAD Assistant** if the assistant is not visible.
 4. Describe the intended result, including the dimensions, interfaces, material, manufacturing process, and constraints that matter.
 5. Use **Attach Image** for a reference design, or paste an image into the message box with `Ctrl+V`. Use **Attach View** to include the current viewport in the next model request only; it is consumed after that delivery.
 6. Click **Send**. Ask for a plan when you want one, revise it in the same conversation, then say **Build it** when you are ready. While work is running, the same input becomes **Steer**, so corrections stay in that conversation. **Stop** ends the run after the current provider or CAD step returns.
-7. Save the CAD document normally. Reopening it restores the associated VibeCAD conversations and project records.
+7. Save the CAD document normally. Reopening it restores the associated SteveCAD conversations and project records.
 
 Be explicit about functional intent, not only appearance. For an existing model, identify what should be preserved and what should change. For a new part, provide mating geometry and critical dimensions whenever they are known.
 
@@ -228,14 +228,14 @@ Be explicit about functional intent, not only appearance. For an existing model,
 
 The conversation selector at the top of the assistant opens prior conversations for the current CAD document. The new-conversation button starts a clean thread without deleting earlier work. This makes it possible to separate a redesign, manufacturing discussion, or analysis task while retaining the project's history.
 
-Saved conversations remain available to the human in this selector, but VibeCAD does not replay the project transcript or persisted tool traces into a model request. The model receives the current message exactly once. **Intent Memory** remains available as an explicit human project record, but it is not compiled after every turn or injected automatically.
+Saved conversations remain available to the human in this selector, but SteveCAD does not replay the project transcript or persisted tool traces into a model request. The model receives the current message exactly once. **Intent Memory** remains available as an explicit human project record, but it is not compiled after every turn or injected automatically.
 
 Turn-start CAD context is deliberately small: the frozen authoring surface,
 document identity, current edit object, exact selection, and one concise active
 domain state. In VibeScript mode it also includes the editable source targets
 owned by the active workbench. Each source target carries its stable ID,
 revision, affected outputs, and exact read/edit calls. In Native mode the tool
-declarations come only from the current VibeCAD ribbon and every mutation is
+declarations come only from the current SteveCAD ribbon and every mutation is
 revalidated against the live document and frozen ribbon before execution.
 Newly attached reference images and **Attach View** are delivered at the start
 of each later turn until the human removes or replaces them.
@@ -243,7 +243,7 @@ of each later turn until the human removes or replaces them.
 ## Choose Native or VibeScript authoring
 
 **Native** is for direct, parametric editing with the same command families the
-current VibeCAD ribbon exposes to a human. Tool surfaces are replaced only
+current SteveCAD ribbon exposes to a human. Tool surfaces are replaced only
 between turns after a human or Native work transition. Calls use exact object and
 subelement identities, structural revisions, transactions, concise receipts,
 and domain-state refreshes. Native changes do not rewrite or regenerate a
@@ -255,7 +255,7 @@ workbenches are never combined, and accepted source remains the authority for
 its published outputs. Direct Native mutation is therefore unavailable for a
 VibeScript-owned document until the human explicitly takes manual control.
 
-See [VibeCAD authoring modes](docs/vibecad-authoring-modes.md) for the complete
+See [SteveCAD authoring modes](docs/stevecad-authoring-modes.md) for the complete
 authority boundary and migration from the retired direct-tool surface.
 For products that require several verified turns and ribbons, see the
 [Native complex-design workflow](docs/native-complex-design-workflow.md).
@@ -291,7 +291,7 @@ Part, MeshPart, Points, CAM, and TechDraw deliberately collapse equivalent
 variants behind selectors or one ordered pipeline instead of advertising
 redundant operations. There are no forwarding wrappers for removed Part
 operations. Startup, test, unknown, or future unimplemented workbenches resolve
-to an exact unavailable surface; VibeCAD never substitutes another
+to an exact unavailable surface; SteveCAD never substitutes another
 workbench's tools.
 
 ## Local Models
@@ -309,12 +309,12 @@ The local server must already be running and expose an OpenAI-compatible API. So
 
 ### Increase Ollama's context length
 
-VibeCAD's CAD instructions, tool schemas, document state, and reference images
+SteveCAD's CAD instructions, tool schemas, document state, and reference images
 need more context than an ordinary chat. Use at least 64K tokens for agentic CAD
 work when the model and available memory support it. Larger context consumes
-more RAM or VRAM. VibeCAD cannot set `num_ctx` through Ollama's
+more RAM or VRAM. SteveCAD cannot set `num_ctx` through Ollama's
 OpenAI-compatible endpoint, so configure Ollama before selecting the model in
-VibeCAD.
+SteveCAD.
 
 When starting Ollama directly:
 
@@ -346,10 +346,10 @@ PARAMETER num_ctx 65536
 ```
 
 ```bash
-ollama create qwen3.5:9b-vibecad -f Modelfile
+ollama create qwen3.5:9b-stevecad -f Modelfile
 ```
 
-Select the resulting model in VibeCAD after clicking **Fetch models**. Run
+Select the resulting model in SteveCAD after clicking **Fetch models**. Run
 `ollama ps` during a request to verify the allocated context and whether the
 model is fully on GPU or partly offloaded to CPU. See Ollama's official
 [context-length guide](https://docs.ollama.com/context-length) and
@@ -358,7 +358,7 @@ for current platform-specific details.
 
 ## Troubleshooting
 
-- **`not_configured`:** VibeCAD could not find the selected provider's environment variable, a valid key in the selected `.env` file, or a keyring entry.
+- **`not_configured`:** SteveCAD could not find the selected provider's environment variable, a valid key in the selected `.env` file, or a keyring entry.
 - **No ChatGPT subscription is signed in:** open Preferences, select **ChatGPT subscription**, and complete browser or device-code sign-in.
 - **No Grok / X account is signed in:** open Preferences, select **Grok (X / xAI)**, and complete **Sign in with X / Grok** or **Use device code**.
 - **No CAD authoring tools are shown:** select a supported modeling workbench.
@@ -368,11 +368,11 @@ for current platform-specific details.
 - **No models are listed:** validate authentication first, then click **Fetch models**.
 - **The model does not support thinking:** set **Reasoning effort** to `none`.
 - **The assistant input is disabled:** save the active CAD document.
-- **The assistant panel was closed:** reopen it from **View > Panels > VibeCAD Assistant**.
+- **The assistant panel was closed:** reopen it from **View > Panels > SteveCAD Assistant**.
 
 ## Developer Testing
 
-On Windows, double-click `RUN-VIBECAD-DEV.cmd` to build and launch the exact
+On Windows, double-click `RUN-STEVECAD-DEV.cmd` to build and launch the exact
 current checkout in its repo-local Pixi environment. The visible development
 identity, checkout-scoped authenticated control channel, native file
 round-trip commands, screenshots, and plain-cyan independent-cursor tour are
@@ -383,7 +383,7 @@ does not move or click the user's physical mouse.
 Run the standalone Aero and 3D-printing component suites with one command:
 
 ```bash
-python3 tools/run_vibecad_component_tests.py
+python3 tools/run_stevecad_component_tests.py
 ```
 
 The runner uses a separate pytest process for each component so their installed
@@ -392,21 +392,21 @@ one component, and put additional pytest arguments after `--`.
 
 ## Project Status
 
-VibeCAD is under active development. The current focus is reliable, readable AI-assisted part design with explicit human control over the document, workbench, and design direction.
+SteveCAD is under active development. The current focus is reliable, readable AI-assisted part design with explicit human control over the document, workbench, and design direction.
 
 A local desktop agent (for example Grok Bot on Windows) can open documents,
 run Python or VibeScript, show Preferences, and read auth status without
 clicking menus. That loopback CLI / HTTP channel is documented in
-[docs/vibecad-agent-control.md](docs/vibecad-agent-control.md). It does not
+[docs/stevecad-agent-control.md](docs/stevecad-agent-control.md). It does not
 disable the in-app Assistant and it is not MCP.
 
 The in-app Assistant can also call tools from MCP servers you register, such as
 [Cua Driver](https://cua.ai/cua-driver) for desktop automation, a Playwright
 browser for finding and downloading models, or a project folder of datasheets.
 Registration, presets, and the download-and-import flow are documented in
-[docs/vibecad-mcp-tool-servers.md](docs/vibecad-mcp-tool-servers.md).
+[docs/stevecad-mcp-tool-servers.md](docs/stevecad-mcp-tool-servers.md).
 
-Release packaging details are documented in [docs/vibecad-release-packaging.md](docs/vibecad-release-packaging.md).
+Release packaging details are documented in [docs/stevecad-release-packaging.md](docs/stevecad-release-packaging.md).
 
 The single-workbench Part and Part Design model, compatibility boundary, and
 Body/tree behavior are documented in
@@ -423,4 +423,4 @@ rollback path are documented in
 ## Credits
 
 - The VibeLight and VibeDark themes are based on [OpenTheme by Obelisk79](https://github.com/obelisk79/OpenTheme).
-- VibeCAD is built on the work of the [FreeCAD project](https://github.com/FreeCAD/FreeCAD). Thank you to the contributors and the wider [FreeCAD community](https://forum.freecad.org/) whose CAD engine, workbenches, documentation, and support made this project possible.
+- SteveCAD is built on the work of the [FreeCAD project](https://github.com/FreeCAD/FreeCAD). Thank you to the contributors and the wider [FreeCAD community](https://forum.freecad.org/) whose CAD engine, workbenches, documentation, and support made this project possible.

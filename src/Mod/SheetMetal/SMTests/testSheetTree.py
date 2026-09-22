@@ -56,7 +56,7 @@ class TestSheetTree(unittest.TestCase):
         try:
             self.fixture.wait_for(lambda: key in self.rows())
         except AssertionError:
-            Path(os.environ["VIBECAD_TEST_OUTPUT"], "tree-rows.json").write_text(json.dumps({
+            Path(os.environ["STEVECAD_TEST_OUTPUT"], "tree-rows.json").write_text(json.dumps({
                 "expected_parent": self.sheet.Label, "rows": self.last_rows,
                 "provider_rows": self.view.getTreeViewDetails()}, indent=2))
             raise
@@ -126,7 +126,7 @@ class TestSheetTree(unittest.TestCase):
         QtWidgets.QApplication.sync()
         main = Gui.getMainWindow()
         self.assertTrue(main.windowHandle().screen().grabWindow(main.winId()).save(
-            str(Path(os.environ["VIBECAD_TEST_OUTPUT"])/"sheet-tree-editor.png")))
+            str(Path(os.environ["STEVECAD_TEST_OUTPUT"])/"sheet-tree-editor.png")))
 
     def test_removed_cut_row_cannot_edit_a_different_operation(self):
         import SheetMetalEditable as Editable

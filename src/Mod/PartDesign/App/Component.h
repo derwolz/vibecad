@@ -10,7 +10,7 @@ namespace PartDesign
 {
 
 /**
- * A physical product definition inside one VibeCAD Design.
+ * A physical product definition inside one SteveCAD Design.
  *
  * Component is an assembly, BOM, motion, and coordinate-frame boundary. It is
  * deliberately not a modeling-history boundary: sketches and operations stay

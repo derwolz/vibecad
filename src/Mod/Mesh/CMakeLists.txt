@@ -19,9 +19,9 @@ set(MeshTestDataFiles
     App/TestData/NASTRAN_Test_GRID_CTRIA3.bdf
 )
 
-set(Mesh_VibeCADTestScripts
+set(Mesh_SteveCADTestScripts
     MeshTests/__init__.py
-    MeshTests/TestVibeCADRibbonTools.py
+    MeshTests/TestSteveCADRibbonTools.py
 )
 
 if(BUILD_GUI)
@@ -39,8 +39,8 @@ add_custom_target(MeshTestData ALL
     SOURCES ${MeshTestDataFiles}
 )
 
-add_custom_target(MeshVibeCADTests ALL
-    SOURCES ${Mesh_VibeCADTestScripts}
+add_custom_target(MeshSteveCADTests ALL
+    SOURCES ${Mesh_SteveCADTestScripts}
 )
 
 fc_target_copy_resource_flat(MeshScripts
@@ -51,10 +51,10 @@ fc_target_copy_resource_flat(MeshScripts
 
 fc_copy_sources(MeshTestData "${CMAKE_BINARY_DIR}/Mod/Mesh/" ${MeshTestDataFiles})
 
-fc_target_copy_resource(MeshVibeCADTests
+fc_target_copy_resource(MeshSteveCADTests
     ${CMAKE_CURRENT_SOURCE_DIR}
     ${CMAKE_BINARY_DIR}/Mod/Mesh
-    ${Mesh_VibeCADTestScripts}
+    ${Mesh_SteveCADTestScripts}
 )
 
 INSTALL(
@@ -69,7 +69,7 @@ INSTALL(FILES ${MeshTestDataFiles} DESTINATION Mod/Mesh/App/TestData)
 
 INSTALL(
     FILES
-        ${Mesh_VibeCADTestScripts}
+        ${Mesh_SteveCADTestScripts}
     DESTINATION
         Mod/Mesh/MeshTests
 )

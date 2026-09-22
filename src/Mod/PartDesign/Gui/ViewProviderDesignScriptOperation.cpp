@@ -25,7 +25,7 @@ using namespace PartDesignGui;
 namespace
 {
 
-constexpr const char* timelineEditorCapability = "VibeCADTimelineOperationEditor";
+constexpr const char* timelineEditorCapability = "SteveCADTimelineOperationEditor";
 
 std::string utf8(const QString& text)
 {
@@ -84,7 +84,7 @@ ViewProviderDesignScriptOperation::~ViewProviderDesignScriptOperation() = defaul
 void ViewProviderDesignScriptOperation::attach(App::DocumentObject* object)
 {
     ViewProviderDesignOperation::attach(object);
-    sPixmap = "vibecad.svg";
+    sPixmap = "stevecad.svg";
 }
 
 bool ViewProviderDesignScriptOperation::doubleClicked()
@@ -120,7 +120,7 @@ void ViewProviderDesignScriptOperation::setupContextMenu(
         ViewProvider::setupContextMenu(menu, receiver, member);
         return;
     }
-    // Preserve standalone Part Design compatibility if the optional VibeCAD
+    // Preserve standalone Part Design compatibility if the optional SteveCAD
     // GUI module has not registered its source editor command.
     ViewProviderDesignOperation::setupContextMenu(menu, receiver, member);
 }
@@ -163,7 +163,7 @@ std::vector<Gui::TreeViewDetail> ViewProviderDesignScriptOperation::getTreeViewD
         const std::string displayName = label == humanLabels.end() ? key : label->second;
         const std::string icon = type == "solid"
             ? "PartDesign_Body"
-            : (type == "component_link" ? "Geoassembly" : "vibecad");
+            : (type == "component_link" ? "Geoassembly" : "stevecad");
         const QString toolTip = type.empty()
             ? QObject::tr(
                   "VibeScript output '%1'. Its stable interface is listed "

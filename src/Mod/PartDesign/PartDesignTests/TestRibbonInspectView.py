@@ -1,6 +1,6 @@
 # SPDX-License-Identifier: LGPL-2.1-or-later
 
-"""VibeCAD contracts for shared inspection and viewport ribbon tools."""
+"""SteveCAD contracts for shared inspection and viewport ribbon tools."""
 
 import hashlib
 from pathlib import Path
@@ -23,7 +23,7 @@ SHIPPED_RIBBON_DOMAINS = (
     ("Manufacture", "CAMWorkbench"),
     ("Drawing", "TechDrawWorkbench"),
     ("Parameters", "SpreadsheetWorkbench"),
-    ("Aero", "VibeCADAeroWorkbench"),
+    ("Aero", "SteveCADAeroWorkbench"),
 )
 
 INSPECTION_COMMANDS = (
@@ -37,15 +37,15 @@ INSPECTION_COMMANDS = (
 VIEW_COMMANDS = (
     "Std_ViewFitAll",
     "Std_ViewIsometric",
-    "VibeCAD_ToggleGrid",
-    "VibeCAD_SectionView",
+    "SteveCAD_ToggleGrid",
+    "SteveCAD_SectionView",
 )
 
 SHARED_RIBBON_TIMELINE_BEHAVIOR = {
     "Std_ViewFitAll": frozenset({"read-only"}),
     "Std_ViewIsometric": frozenset({"read-only"}),
-    "VibeCAD_ToggleGrid": frozenset({"read-only"}),
-    "VibeCAD_SectionView": frozenset({"read-only"}),
+    "SteveCAD_ToggleGrid": frozenset({"read-only"}),
+    "SteveCAD_SectionView": frozenset({"read-only"}),
     "Std_Measure": frozenset({"operation", "source-preserving"}),
     "Std_MassProperties": frozenset({"operation", "source-preserving"}),
     "Inspection_VisualInspection": frozenset({"operation", "replacement"}),
@@ -146,8 +146,8 @@ def _ribbon_source_path():
     for parent in here.parents:
         candidates.extend(
             (
-                parent / "src" / "Gui" / "VibeCADRibbon.cpp",
-                parent / "Gui" / "VibeCADRibbon.cpp",
+                parent / "src" / "Gui" / "SteveCADRibbon.cpp",
+                parent / "Gui" / "SteveCADRibbon.cpp",
             )
         )
     return next((path for path in candidates if path.is_file()), None)
@@ -233,7 +233,7 @@ class TestRibbonInspectView(unittest.TestCase):
     def _ribbon_group(title):
         return Gui.getMainWindow().findChild(
             QtGui.QFrame,
-            "VibeCADRibbonGroup_"
+            "SteveCADRibbonGroup_"
             + "".join(character if character.isalnum() else "_" for character in title),
         )
 
@@ -242,7 +242,7 @@ class TestRibbonInspectView(unittest.TestCase):
         self.assertIsNotNone(group, title)
         menu_button = group.findChild(
             QtGui.QToolButton,
-            "VibeCADRibbonGroupMenu",
+            "SteveCADRibbonGroupMenu",
         )
         self.assertIsNotNone(menu_button, title)
         self.assertIsNotNone(menu_button.menu(), title)
@@ -252,7 +252,7 @@ class TestRibbonInspectView(unittest.TestCase):
             if not action.isSeparator()
         ]
         by_command = {
-            str(action.property("VibeCADCommandId")): action for action in actions
+            str(action.property("SteveCADCommandId")): action for action in actions
         }
         self.assertEqual(
             len(by_command),
@@ -359,7 +359,7 @@ class TestRibbonInspectView(unittest.TestCase):
         self._process_events(100)
 
     def _assert_saved_result_follows_document_history(self, result):
-        timeline = self.document.getObject("VibeCADTimeline")
+        timeline = self.document.getObject("SteveCADTimeline")
         self.assertIsNotNone(timeline)
         operations = list(timeline.Operations)
         self.assertIn(result, operations)
@@ -367,11 +367,11 @@ class TestRibbonInspectView(unittest.TestCase):
         end_position = len(operations)
         previous = Gui.getMainWindow().findChild(
             QtGui.QToolButton,
-            "VibeCADFeatureTimelinePrevious",
+            "SteveCADFeatureTimelinePrevious",
         )
         finish = Gui.getMainWindow().findChild(
             QtGui.QToolButton,
-            "VibeCADFeatureTimelineEnd",
+            "SteveCADFeatureTimelineEnd",
         )
         self.assertIsNotNone(previous)
         self.assertIsNotNone(finish)
@@ -392,7 +392,7 @@ class TestRibbonInspectView(unittest.TestCase):
     def test_shared_ribbon_source_and_history_contract_are_exhaustive(self):
         source_path = _ribbon_source_path()
         if source_path is None:
-            self.skipTest("VibeCAD ribbon source is not present in this installation")
+            self.skipTest("SteveCAD ribbon source is not present in this installation")
         source = source_path.read_text(encoding="utf-8")
 
         domains_start = source.index(
@@ -609,30 +609,30 @@ class TestRibbonInspectView(unittest.TestCase):
         self._process_events(150)
 
     def test_shell_state_survives_ribbons_assistant_visibility_and_reopen(self):
-        import VibeCADGrid
+        import SteveCADGrid
 
         main_window = Gui.getMainWindow()
         tree = main_window.findChild(QtGui.QDockWidget, "Std_TreeView")
         tasks = main_window.findChild(QtGui.QDockWidget, "Std_TaskView")
         browser_host = main_window.findChild(
             QtGui.QWidget,
-            "VibeCADModelBrowserHost",
+            "SteveCADModelBrowserHost",
         )
         assistant = main_window.findChild(
             QtGui.QDockWidget,
-            "VibeCADAssistantPanel",
+            "SteveCADAssistantPanel",
         )
         timeline = main_window.findChild(
             QtGui.QWidget,
-            "VibeCADFeatureTimeline",
+            "SteveCADFeatureTimeline",
         )
         timeline_items = main_window.findChild(
             QtGui.QListWidget,
-            "VibeCADFeatureTimelineItems",
+            "SteveCADFeatureTimelineItems",
         )
         document_tabs = main_window.findChild(
             QtGui.QTabBar,
-            "VibeCADDocumentTabs",
+            "SteveCADDocumentTabs",
         )
         self.assertIsNotNone(tree)
         self.assertIsNotNone(tasks)
@@ -696,11 +696,11 @@ class TestRibbonInspectView(unittest.TestCase):
             )
             current_assistant = main_window.findChild(
                 QtGui.QDockWidget,
-                "VibeCADAssistantPanel",
+                "SteveCADAssistantPanel",
             )
             current_timeline = main_window.findChild(
                 QtGui.QWidget,
-                "VibeCADFeatureTimeline",
+                "SteveCADFeatureTimeline",
             )
             self.assertIs(current_tree, tree)
             self.assertIs(current_assistant, assistant)
@@ -712,15 +712,15 @@ class TestRibbonInspectView(unittest.TestCase):
             self.assertTrue(timeline.isVisible())
             self.assertTrue(document_tabs.isVisible())
             self.assertTrue(document_tabs_contain_active_document())
-            self.assertTrue(VibeCADGrid.is_grid_visible())
+            self.assertTrue(SteveCADGrid.is_grid_visible())
             self.assertTrue(tree_contains_active_document())
 
         try:
             set_dock_visible(assistant, assistant_action, True)
-            VibeCADGrid.setup()
-            VibeCADGrid.toggle_grid(True)
+            SteveCADGrid.setup()
+            SteveCADGrid.toggle_grid(True)
             self.assertTrue(
-                self._wait_until(VibeCADGrid.is_grid_visible),
+                self._wait_until(SteveCADGrid.is_grid_visible),
                 "The enabled grid did not appear in the active 3D view.",
             )
             self.assertTrue(
@@ -765,7 +765,7 @@ class TestRibbonInspectView(unittest.TestCase):
             # Exercise the actual ribbon command which previously caused the
             # tree overlay to disappear.
             set_dock_visible(assistant, assistant_action, False)
-            Gui.runCommand("VibeCAD_OpenAssistant")
+            Gui.runCommand("SteveCAD_OpenAssistant")
             self.assertTrue(
                 self._wait_until(
                     lambda: assistant_action.isChecked() and not assistant.isHidden()
@@ -786,7 +786,7 @@ class TestRibbonInspectView(unittest.TestCase):
                 )
 
             set_dock_visible(assistant, assistant_action, False)
-            Gui.runCommand("VibeCAD_OpenAssistant")
+            Gui.runCommand("SteveCAD_OpenAssistant")
             self.assertTrue(
                 self._wait_until(
                     lambda: assistant_action.isChecked() and not assistant.isHidden()
@@ -837,7 +837,7 @@ class TestRibbonInspectView(unittest.TestCase):
                 self.assertTrue(self._wait_until(tree_contains_active_document))
                 self.assertTrue(self._wait_until(timeline_contains_tip))
                 self.assertTrue(self._wait_until(document_tabs_contain_active_document))
-                self.assertTrue(self._wait_until(VibeCADGrid.is_grid_visible))
+                self.assertTrue(self._wait_until(SteveCADGrid.is_grid_visible))
 
                 for _label, workbench in SHIPPED_RIBBON_DOMAINS:
                     Gui.activateWorkbench(workbench)
@@ -847,7 +847,7 @@ class TestRibbonInspectView(unittest.TestCase):
         finally:
             current_assistant = main_window.findChild(
                 QtGui.QDockWidget,
-                "VibeCADAssistantPanel",
+                "SteveCADAssistantPanel",
             )
             if current_assistant is not None:
                 set_dock_visible(
@@ -855,7 +855,7 @@ class TestRibbonInspectView(unittest.TestCase):
                     current_assistant.toggleViewAction(),
                     original_assistant_visible,
                 )
-            VibeCADGrid.toggle_grid(original_grid_visible)
+            SteveCADGrid.toggle_grid(original_grid_visible)
             self._process_events(100)
 
     def test_shipped_commands_have_strict_usable_enablement(self):

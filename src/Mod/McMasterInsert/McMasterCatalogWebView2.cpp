@@ -17,9 +17,9 @@ using Microsoft::WRL::ComPtr;
 
 namespace
 {
-constexpr wchar_t WindowClass[] = L"VibeCADMcMasterWebView2";
-constexpr wchar_t WindowTitle[] = L"Insert McMaster-Carr Component - VibeCAD";
-constexpr wchar_t InstanceMutex[] = L"Local\\VibeCADMcMasterCatalogWebView2";
+constexpr wchar_t WindowClass[] = L"SteveCADMcMasterWebView2";
+constexpr wchar_t WindowTitle[] = L"Insert McMaster-Carr Component - SteveCAD";
+constexpr wchar_t InstanceMutex[] = L"Local\\SteveCADMcMasterCatalogWebView2";
 constexpr wchar_t RuntimeDownloadUrl[] =
     L"https://go.microsoft.com/fwlink/p/?LinkId=2124703";
 constexpr int ToolbarHeight = 44;
@@ -55,7 +55,7 @@ void setStatus(const std::wstring& text)
 void showWebViewError(const std::wstring& message)
 {
     setStatus(message);
-    MessageBoxW(windowHandle, message.c_str(), L"VibeCAD McMaster Catalog", MB_OK | MB_ICONERROR);
+    MessageBoxW(windowHandle, message.c_str(), L"SteveCAD McMaster Catalog", MB_OK | MB_ICONERROR);
 }
 
 std::wstring argumentValue(const std::vector<std::wstring>& arguments, const wchar_t* name)
@@ -201,7 +201,7 @@ HRESULT registerWebViewEvents()
                 args->get_IsSuccess(&success);
                 setStatus(
                     success
-                        ? L"Choose a part and download 3-D STEP; VibeCAD imports it automatically."
+                        ? L"Choose a part and download 3-D STEP; SteveCAD imports it automatically."
                         : L"McMaster-Carr did not load. Reload or use Open in Browser."
                 );
                 updateHistoryButtons();
@@ -245,7 +245,7 @@ HRESULT registerWebViewEvents()
 
                 HRESULT pathResult = args->put_ResultFilePath(staging.c_str());
                 if (FAILED(pathResult)) {
-                    setStatus(L"Could not send the download to VibeCAD's McMaster inbox.");
+                    setStatus(L"Could not send the download to SteveCAD's McMaster inbox.");
                     return pathResult;
                 }
                 args->put_Handled(TRUE);
@@ -267,14 +267,14 @@ HRESULT registerWebViewEvents()
                                     std::filesystem::rename(staging, target, moveError);
                                     if (moveError) {
                                         setStatus(
-                                            L"Download completed, but VibeCAD could not move it "
+                                            L"Download completed, but SteveCAD could not move it "
                                             L"into the McMaster inbox."
                                         );
                                     }
                                     else {
                                         setStatus(
                                             L"Downloaded " + target.filename().wstring()
-                                            + L". VibeCAD is importing it now."
+                                            + L". SteveCAD is importing it now."
                                         );
                                         SetTimer(
                                             windowHandle,
@@ -327,7 +327,7 @@ void initializeWebView()
                         ) -> HRESULT {
                             if (FAILED(controllerResult) || !controller) {
                                 showWebViewError(
-                                    L"VibeCAD could not create the WebView2 catalog window."
+                                    L"SteveCAD could not create the WebView2 catalog window."
                                 );
                                 return controllerResult;
                             }
@@ -335,7 +335,7 @@ void initializeWebView()
                             HRESULT coreResult = controller->get_CoreWebView2(&webView);
                             if (FAILED(coreResult) || !webView) {
                                 showWebViewError(
-                                    L"VibeCAD could not initialize the WebView2 browser."
+                                    L"SteveCAD could not initialize the WebView2 browser."
                                 );
                                 return coreResult;
                             }
@@ -347,7 +347,7 @@ void initializeWebView()
                             HRESULT eventResult = registerWebViewEvents();
                             if (FAILED(eventResult)) {
                                 showWebViewError(
-                                    L"VibeCAD could not attach WebView2 browser events."
+                                    L"SteveCAD could not attach WebView2 browser events."
                                 );
                                 return eventResult;
                             }
@@ -361,7 +361,7 @@ void initializeWebView()
         ).Get()
     );
     if (FAILED(result)) {
-        showWebViewError(L"VibeCAD could not start the Microsoft Edge WebView2 Runtime.");
+        showWebViewError(L"SteveCAD could not start the Microsoft Edge WebView2 Runtime.");
     }
 }
 
@@ -537,8 +537,8 @@ int WINAPI wWinMain(HINSTANCE instance, HINSTANCE, PWSTR, int commandShow)
     if (inboxPath.empty() || profilePath.empty()) {
         MessageBoxW(
             nullptr,
-            L"VibeCAD did not provide the McMaster inbox and browser profile paths.",
-            L"VibeCAD McMaster Catalog",
+            L"SteveCAD did not provide the McMaster inbox and browser profile paths.",
+            L"SteveCAD McMaster Catalog",
             MB_OK | MB_ICONERROR
         );
         CoUninitialize();
@@ -600,9 +600,9 @@ int WINAPI wWinMain(HINSTANCE instance, HINSTANCE, PWSTR, int commandShow)
     if (!webView2RuntimeAvailable()) {
         const int choice = MessageBoxW(
             windowHandle,
-            L"Microsoft Edge WebView2 Runtime is required for the VibeCAD McMaster catalog. "
+            L"Microsoft Edge WebView2 Runtime is required for the SteveCAD McMaster catalog. "
             L"Open Microsoft's installer page now?",
-            L"VibeCAD McMaster Catalog",
+            L"SteveCAD McMaster Catalog",
             MB_YESNO | MB_ICONINFORMATION
         );
         if (choice == IDYES) {

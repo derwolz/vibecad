@@ -1,6 +1,6 @@
 # Part and Part Design Consolidation
 
-VibeCAD ships Part Design as its one general 3D modeling workbench. The old
+SteveCAD ships Part Design as its one general 3D modeling workbench. The old
 Part workbench is not registered. The Part geometry kernel, `Part::` document
 types, Python modules, and view providers remain installed because Part Design
 and existing FCStd files depend on them.

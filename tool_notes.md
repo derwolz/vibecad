@@ -1,7 +1,7 @@
-# VibeCAD Tool Outcome Notes
+# SteveCAD Tool Outcome Notes
 
 Live evaluation document: `test9.FCStd`
-Evaluation client: Codex through VibeCAD MCP
+Evaluation client: Codex through SteveCAD MCP
 Started: 2026-08-04
 
 ## Purpose
@@ -124,7 +124,7 @@ This is the current positive reference for successful write outcomes.
 Observed sequence:
 
 1. A normal object schema was rejected with `arbitrary object inputs are forbidden; use a stable reference`.
-2. Adding `x-vibecad-reference` without member declarations was rejected because `document_uid` and `object_name` must be declared.
+2. Adding `x-stevecad-reference` without member declarations was rejected because `document_uid` and `object_name` must be declared.
 3. The complete reference schema was accepted.
 
 The complete copyable schema does exist in `vibescript.read_api` under `model_operating_contract.input_schema_templates.stable_reference_property`. The initial authoring mistake was therefore avoidable after a complete API-contract read. However, the validation outcomes still reveal one constraint at a time and do not point to or include that existing template.
@@ -226,7 +226,7 @@ These operations must remain independent of the active authoring workbench.
 
 Implemented and live-checked:
 
-- `vibecad.manage_document(action='open', path=...)` opened `test9.FCStd` in
+- `stevecad.manage_document(action='open', path=...)` opened `test9.FCStd` in
   3.9 seconds and returned only the active document name, label, physical path,
   modified state, and object count.
 - Opening is now independent of the active workbench and no shell/Python CAD
@@ -243,7 +243,7 @@ Automation that presses only the first stage is still blocked.
 
 Implemented outcome:
 
-- `vibecad.recover_documents` detects the exact native dialog, executes both
+- `stevecad.recover_documents` detects the exact native dialog, executes both
   stages, returns every native document/status row, and is an exact no-op when
   recovery is absent.
 - Recovery continues to use FreeCAD's native implementation; the MCP tool does
@@ -331,7 +331,7 @@ Resolution:
 
 Observed:
 
-- `vibecad.manage_document(action='save')` completed successfully, but both its
+- `stevecad.manage_document(action='save')` completed successfully, but both its
   result and the following `action='list'` still reported `modified=true`.
 - The file reopened with all 140 objects, so the save itself completed; the dirty
   flag is not a reliable postcondition for deciding whether the requested file
@@ -355,7 +355,7 @@ Live MCP verification on the rebuilt host returned
 Lifecycle invariant established during live use:
 
 - Every intentional close or application shutdown must first call
-  `vibecad.manage_document(action='save')` for each modified document and verify
+  `stevecad.manage_document(action='save')` for each modified document and verify
   `save_completed=true, modified=false`.
 - Recovery is reserved for an actual crash; it is not a substitute for saving.
 - A recovered 140-object document and the authoritative 192-object robot
@@ -394,7 +394,7 @@ Resolution:
 Defects found during the run, including their current status:
 
 1. A single-point native `api.hole` could remove no material despite an intersecting through-all cut direction. Fixed: explicit direction, centered through-all, and cuts across a fused material step are covered by native Part Design integration.
-2. `vibescript.delete_object` was advertised but failed because `VibeCADObjectDeletion` was absent from the packaged runtime. Fixed: the helper is now in the release CMake package and a packaging regression pins it there.
+2. `vibescript.delete_object` was advertised but failed because `SteveCADObjectDeletion` was absent from the packaged runtime. Fixed: the helper is now in the release CMake package and a packaging regression pins it there.
 3. Result-only linked-component deletion rebuilt imported geometry. Fixed by exact metadata-only component capture while retaining source validation.
 4. Catalog searches repeatedly surfaced an unrelated corrupt saved document. Fixed: ordinary searches are quiet, exact path searches return their diagnostics, and inventory reports one compact health warning.
 5. Publishing three lightweight links to one open imported component took approximately 79 seconds. Fixed; the measured path is now 0.54 seconds.
@@ -606,7 +606,7 @@ streams belong behind explicit diagnostics.
 Verification after the shared lifecycle/playback changes:
 
 - Complete local build: passed.
-- VibeCAD Python suite: 624 passed, 4 skipped.
+- SteveCAD Python suite: 624 passed, 4 skipped.
 - Native Part Design API integration: passed, including failed-source repair.
 - Native Assembly playback GUI gate: 4 passed.
 - Native model browser/body/sketch/occurrence GUI gate: 23 passed.
@@ -669,7 +669,7 @@ agent.
 
 ### Multiple-instance MCP endpoint collision
 
-A second VibeCAD process inherited the persisted MCP-enabled preference while
+A second SteveCAD process inherited the persisted MCP-enabled preference while
 the primary instance owned `127.0.0.1:8765`. Uvicorn attempted the bind inside
 an asynchronous task and printed a full `SystemExit` traceback plus "Task
 exception was never retrieved" even though the CAD process remained usable.
@@ -679,7 +679,7 @@ Resolution:
 - Reserve the TCP listener synchronously before starting uvicorn and pass that
   exact socket into the server.
 - A collision now produces one actionable controller error stating that
-  another VibeCAD instance may own the endpoint, with no asynchronous traceback.
+  another SteveCAD instance may own the endpoint, with no asynchronous traceback.
 - A focused test binds a real ephemeral listener and verifies the duplicate-bind
   failure. The native Assembly playback gate was rerun while the primary MCP
   server was active; all four tests passed and the traceback was absent.
@@ -819,7 +819,7 @@ harder to use than necessary.
    even though the actionable information was one error, one working revision,
    and the source text.
 2. A terminal `vibescript.read_operation` result exceeded the provider byte
-   limit and was replaced wholesale by `_vibecad_value_omitted`. The caller then
+   limit and was replaced wholesale by `_stevecad_value_omitted`. The caller then
    had to issue `read_source` to discover whether the operation failed and why.
    Terminal projection must happen before byte-limit enforcement and must never
    omit `ok`, error, failure code/stage, revision, accepted-state preservation,

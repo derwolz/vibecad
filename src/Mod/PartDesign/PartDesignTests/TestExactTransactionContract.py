@@ -1,4 +1,4 @@
-"""VibeCAD contracts for exact native modeling transaction ownership."""
+"""SteveCAD contracts for exact native modeling transaction ownership."""
 
 from pathlib import Path
 import unittest
@@ -15,7 +15,7 @@ class TestExactTransactionContract(unittest.TestCase):
     def setUp(self):
         self.root = source_root()
         if self.root is None:
-            self.skipTest("VibeCAD source checkout is unavailable")
+            self.skipTest("SteveCAD source checkout is unavailable")
 
     def read(self, relative):
         return (self.root / relative).read_text(encoding="utf-8")

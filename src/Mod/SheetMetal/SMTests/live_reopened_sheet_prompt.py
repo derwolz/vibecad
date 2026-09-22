@@ -69,7 +69,7 @@ class LiveReopenedSheetPrompt(live.LiveSheetPrompt):
         self.assertIsNone(sheet.Proxy._geometry)
         self.assertEqual(sheet.PreparedInputHash, self.original_hash)
         Gui.getDocument(document.Name).setEdit("Assembly")
-        from VibeCADEditState import active_edit_object
+        from SteveCADEditState import active_edit_object
         self.assertIs(active_edit_object(), document.getObject("Assembly"))
         return document
 
@@ -89,7 +89,7 @@ class LiveReopenedSheetPrompt(live.LiveSheetPrompt):
         self.assertEqual(root.PreparedInputHash, self.original_hash)
         self.assertAlmostEqual(float(cut.Radius), 5)
         self.assertEqual(cut.ViewObject.Proxy.mode, "folded")
-        self.assertEqual(cut.VibeCADTimelineRole, "operation")
+        self.assertEqual(cut.SteveCADTimelineRole, "operation")
         original = Editable.get_state_geometry(root)
         edited = Editable.get_state_geometry(cut)
         for shape in (edited.folded, edited.flat):

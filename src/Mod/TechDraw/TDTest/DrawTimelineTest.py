@@ -22,7 +22,7 @@ class DrawTimelineTest(unittest.TestCase):
             os.remove(self.saved_file)
 
     def _timeline(self):
-        timeline = self.document.getObject("VibeCADTimeline")
+        timeline = self.document.getObject("SteveCADTimeline")
         self.assertIsNotNone(timeline)
         return timeline
 
@@ -163,46 +163,46 @@ class DrawTimelineTest(unittest.TestCase):
 
         for operation in (page, annotation, group, weld):
             self.assertNotEqual(
-                getattr(operation, "VibeCADTimelineRole", None),
+                getattr(operation, "SteveCADTimelineRole", None),
                 "resource",
             )
         for operation in (group, weld):
             self.assertEqual(
-                operation.VibeCADTimelineRole,
+                operation.SteveCADTimelineRole,
                 "operation",
             )
             self.assertIn(
                 "Hidden",
-                operation.getEditorMode("VibeCADTimelineRole"),
+                operation.getEditorMode("SteveCADTimelineRole"),
             )
             self.assertFalse(
-                operation.removeProperty("VibeCADTimelineRole")
+                operation.removeProperty("SteveCADTimelineRole")
             )
 
         self.assertNotEqual(
-            getattr(template, "VibeCADTimelineRole", None),
+            getattr(template, "SteveCADTimelineRole", None),
             "resource",
         )
         self.assertNotIn(
-            "VibeCADTimelineOwner",
+            "SteveCADTimelineOwner",
             template.PropertiesList,
         )
-        self.assertEqual(projection.VibeCADTimelineRole, "resource")
-        self.assertEqual(projection.VibeCADTimelineOwner, group)
+        self.assertEqual(projection.SteveCADTimelineRole, "resource")
+        self.assertEqual(projection.SteveCADTimelineOwner, group)
         self.assertEqual(
-            projection.getTypeIdOfProperty("VibeCADTimelineOwner"),
+            projection.getTypeIdOfProperty("SteveCADTimelineOwner"),
             "App::PropertyLinkHidden",
         )
         self.assertNotIn(group, projection.OutList)
         self.assertEqual(len(weld_tiles), 2)
         for tile in weld_tiles:
-            self.assertEqual(tile.VibeCADTimelineRole, "resource")
-            self.assertEqual(tile.VibeCADTimelineOwner, weld)
+            self.assertEqual(tile.SteveCADTimelineRole, "resource")
+            self.assertEqual(tile.SteveCADTimelineOwner, weld)
             self.assertEqual(
-                tile.getTypeIdOfProperty("VibeCADTimelineOwner"),
+                tile.getTypeIdOfProperty("SteveCADTimelineOwner"),
                 "App::PropertyLinkHidden",
             )
-            # VibeCADTimelineOwner is hidden from the dependency graph. The
+            # SteveCADTimelineOwner is hidden from the dependency graph. The
             # tile's existing TileParent property is a legitimate modeling
             # dependency on the same weld and must remain in the OutList.
             self.assertEqual(
@@ -211,17 +211,17 @@ class DrawTimelineTest(unittest.TestCase):
             )
             self.assertIn(
                 "Hidden",
-                tile.getEditorMode("VibeCADTimelineRole"),
+                tile.getEditorMode("SteveCADTimelineRole"),
             )
             self.assertIn(
                 "Hidden",
-                tile.getEditorMode("VibeCADTimelineOwner"),
+                tile.getEditorMode("SteveCADTimelineOwner"),
             )
             self.assertFalse(
-                tile.removeProperty("VibeCADTimelineRole")
+                tile.removeProperty("SteveCADTimelineRole")
             )
             self.assertFalse(
-                tile.removeProperty("VibeCADTimelineOwner")
+                tile.removeProperty("SteveCADTimelineOwner")
             )
 
     def test_assigning_an_existing_template_keeps_it_an_independent_operation(
@@ -244,11 +244,11 @@ class DrawTimelineTest(unittest.TestCase):
         self.assertIn(template, timeline.Operations)
         self.assertIn(page, timeline.Operations)
         self.assertNotEqual(
-            getattr(template, "VibeCADTimelineRole", None),
+            getattr(template, "SteveCADTimelineRole", None),
             "resource",
         )
         self.assertNotIn(
-            "VibeCADTimelineOwner",
+            "SteveCADTimelineOwner",
             template.PropertiesList,
         )
 
@@ -436,17 +436,17 @@ class DrawTimelineTest(unittest.TestCase):
 
         self.document = FreeCAD.openDocument(self.saved_file)
         restored_page = self.document.getObject("Page")
-        restored_timeline = self.document.getObject("VibeCADTimeline")
+        restored_timeline = self.document.getObject("SteveCADTimeline")
         restored_template = restored_page.Template
         self.assertEqual(restored_timeline.Position, expected_position)
         self.assertTrue(os.path.isfile(str(restored_template.PageResult)))
         self.assertGreater(os.path.getsize(str(restored_template.PageResult)), 0)
         self.assertNotEqual(
-            getattr(restored_template, "VibeCADTimelineRole", None),
+            getattr(restored_template, "SteveCADTimelineRole", None),
             "resource",
         )
         self.assertNotIn(
-            "VibeCADTimelineOwner",
+            "SteveCADTimelineOwner",
             restored_template.PropertiesList,
         )
         restored_operations = list(restored_timeline.Operations)

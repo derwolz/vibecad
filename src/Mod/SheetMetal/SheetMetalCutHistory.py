@@ -255,9 +255,9 @@ def _publish(step, base, *, editor_command="SheetMetal_EditHistoryCut"):
         _ensure_timeline_property, _mark_timeline_operation, finalize_new_timeline_operation,
     )
     replaced = PartGui.setModelingReplacedInputs(step, [base])
-    _ensure_timeline_property(step, "App::PropertyString", "VibeCADTimelineEditCommand",
+    _ensure_timeline_property(step, "App::PropertyString", "SteveCADTimelineEditCommand",
                               "Edit this sheet cut")
-    step.VibeCADTimelineEditCommand = editor_command
+    step.SteveCADTimelineEditCommand = editor_command
     if replaced:
         finalize_new_timeline_operation(step)
     else:
@@ -291,8 +291,8 @@ def start_radius_edit(step, radius, *, expected_revision):
     """Use the shared short transaction and native async-completion coordinator."""
     _mutation_thread()
     import SheetMetalOperations as Operations
-    from VibeCADNativeMutation import NativeMutationDraft, run_human_mutation
-    from VibeCADNativeTargets import object_identity
+    from SteveCADNativeMutation import NativeMutationDraft, run_human_mutation
+    from SteveCADNativeTargets import object_identity
     _active(step)
     Operations._check_revision(step, expected_revision)
     def mutate(document):

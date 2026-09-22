@@ -293,40 +293,40 @@ class TestConsolidatedPartTools(unittest.TestCase):
     def _assert_body_native_timeline_result(self, body, result):
         self.assertIs(body.Tip, result)
         self.assertNotIn(
-            "VibeCADTimelineReplacedInputs",
+            "SteveCADTimelineReplacedInputs",
             result.PropertiesList,
         )
 
     def _assert_exact_root_replacement(self, result, sources):
         self._process_events()
         self.document.recompute()
-        self.assertEqual(result.VibeCADTimelineRole, "operation")
+        self.assertEqual(result.SteveCADTimelineRole, "operation")
         self.assertEqual(
-            result.getTypeIdOfProperty("VibeCADTimelineRole"),
+            result.getTypeIdOfProperty("SteveCADTimelineRole"),
             "App::PropertyString",
         )
         self.assertIn(
             "Hidden",
-            result.getEditorMode("VibeCADTimelineRole"),
+            result.getEditorMode("SteveCADTimelineRole"),
         )
         self.assertEqual(
-            list(result.VibeCADTimelineReplacedInputs),
+            list(result.SteveCADTimelineReplacedInputs),
             list(sources),
         )
         self.assertEqual(
             result.getTypeIdOfProperty(
-                "VibeCADTimelineReplacedInputs"
+                "SteveCADTimelineReplacedInputs"
             ),
             "App::PropertyLinkListHidden",
         )
         self.assertIn(
             "Hidden",
             result.getEditorMode(
-                "VibeCADTimelineReplacedInputs"
+                "SteveCADTimelineReplacedInputs"
             ),
         )
-        if "VibeCADTimelineOwner" in result.PropertiesList:
-            self.assertIsNone(result.VibeCADTimelineOwner)
+        if "SteveCADTimelineOwner" in result.PropertiesList:
+            self.assertIsNone(result.SteveCADTimelineOwner)
 
         source_tips = {
             source: source.Tip
@@ -343,16 +343,16 @@ class TestConsolidatedPartTools(unittest.TestCase):
             all(not source.ViewObject.Visibility for source in sources)
         )
 
-        timeline = self.document.getObject("VibeCADTimeline")
+        timeline = self.document.getObject("SteveCADTimeline")
         self.assertIsNotNone(timeline)
         operation_index = list(timeline.Operations).index(result)
         previous = Gui.getMainWindow().findChild(
             QtGui.QToolButton,
-            "VibeCADFeatureTimelinePrevious",
+            "SteveCADFeatureTimelinePrevious",
         )
         end = Gui.getMainWindow().findChild(
             QtGui.QToolButton,
-            "VibeCADFeatureTimelineEnd",
+            "SteveCADFeatureTimelineEnd",
         )
         self.assertIsNotNone(previous)
         self.assertIsNotNone(end)
@@ -574,7 +574,7 @@ class TestConsolidatedPartTools(unittest.TestCase):
         def result_timeline_item():
             timeline = Gui.getMainWindow().findChild(
                 QtGui.QListWidget,
-                "VibeCADFeatureTimelineItems",
+                "SteveCADFeatureTimelineItems",
             )
             if timeline is None:
                 return None
@@ -594,7 +594,7 @@ class TestConsolidatedPartTools(unittest.TestCase):
 
         timeline = Gui.getMainWindow().findChild(
             QtGui.QListWidget,
-            "VibeCADFeatureTimelineItems",
+            "SteveCADFeatureTimelineItems",
         )
         current_items = [
             timeline.item(index)
@@ -1801,9 +1801,9 @@ class TestConsolidatedPartTools(unittest.TestCase):
             set(created),
             set(resources) | {controller},
         )
-        self.assertEqual(controller.VibeCADTimelineRole, "operation")
+        self.assertEqual(controller.SteveCADTimelineRole, "operation")
         self.assertEqual(
-            list(controller.VibeCADTimelineReplacedInputs),
+            list(controller.SteveCADTimelineReplacedInputs),
             [first_mesh, second_mesh],
         )
         self.assertFalse(first_mesh.Visibility)
@@ -1813,8 +1813,8 @@ class TestConsolidatedPartTools(unittest.TestCase):
             self.assertEqual(resource.TypeId, "Part::Feature")
             self.assertFalse(resource.Shape.isNull())
             self.assertEqual(resource.getStatusString(), "Valid")
-            self.assertEqual(resource.VibeCADTimelineRole, "resource")
-            self.assertIs(resource.VibeCADTimelineOwner, controller)
+            self.assertEqual(resource.SteveCADTimelineRole, "resource")
+            self.assertIs(resource.SteveCADTimelineOwner, controller)
 
         timeline = next(
             obj
@@ -2098,8 +2098,8 @@ class TestConsolidatedPartTools(unittest.TestCase):
         self.assertEqual(tuple(self.body.Group), ())
         self.assertIn(source, self._linked_objects(binder.Support))
         self.assertNotIn(created_body, self._linked_objects(binder.Support))
-        self.assertNotEqual(str(binder.VibeCADDefinitionId), "")
-        self.assertEqual(binder.VibeCADTimelineRole, "operation")
+        self.assertNotEqual(str(binder.SteveCADDefinitionId), "")
+        self.assertEqual(binder.SteveCADTimelineRole, "operation")
         self.document.recompute()
         self.assertFalse(binder.Shape.isNull())
 
@@ -2119,7 +2119,7 @@ class TestConsolidatedPartTools(unittest.TestCase):
             obj
             for obj in self.document.Objects
             if obj.TypeId == "PartDesign::Body"
-            and str(obj.VibeCADBodyId) == clone.OutputBodyIds[0]
+            and str(obj.SteveCADBodyId) == clone.OutputBodyIds[0]
         )
         self.assertIsNone(clone.getParentGeoFeatureGroup())
         self.assertIsNot(clone_body, self.body)
@@ -2279,30 +2279,30 @@ class TestConsolidatedPartTools(unittest.TestCase):
                 obj
                 for obj in self.document.Objects
                 if obj.TypeId == "Part::Compound"
-                and "VibeCADSectionCutSchema" in obj.PropertiesList
+                and "SteveCADSectionCutSchema" in obj.PropertiesList
             ),
             None,
         )
         self.assertIsNotNone(owner)
-        self.assertEqual(owner.VibeCADSectionCutSchema, 1)
-        self.assertEqual(owner.VibeCADTimelineRole, "operation")
+        self.assertEqual(owner.SteveCADSectionCutSchema, 1)
+        self.assertEqual(owner.SteveCADTimelineRole, "operation")
         self.assertEqual(
-            list(owner.VibeCADTimelineReplacedInputs),
+            list(owner.SteveCADTimelineReplacedInputs),
             [source],
         )
         self.assertEqual(
-            owner.VibeCADTimelineEditCommand,
+            owner.SteveCADTimelineEditCommand,
             "Part_SectionCut",
         )
         resources = [
             obj
             for obj in self.document.Objects
-            if "VibeCADTimelineOwner" in obj.PropertiesList
-            and obj.VibeCADTimelineOwner is owner
+            if "SteveCADTimelineOwner" in obj.PropertiesList
+            and obj.SteveCADTimelineOwner is owner
         ]
         self.assertTrue(resources)
         self.assertTrue(
-            all(obj.VibeCADTimelineRole == "resource" for obj in resources)
+            all(obj.SteveCADTimelineRole == "resource" for obj in resources)
         )
         self.assertTrue(all(not obj.Visibility for obj in resources))
         resource_names = [obj.Name for obj in resources]
@@ -2318,7 +2318,7 @@ class TestConsolidatedPartTools(unittest.TestCase):
 
         timeline = Gui.getMainWindow().findChild(
             QtGui.QListWidget,
-            "VibeCADFeatureTimelineItems",
+            "SteveCADFeatureTimelineItems",
         )
         self.assertIsNotNone(timeline)
 
@@ -2808,7 +2808,7 @@ class TestConsolidatedPartTools(unittest.TestCase):
         self.assertEqual(len(slice_features), 1)
         self.assertFalse(slice_features[0].ViewObject.ShowInTree)
         self.assertFalse(slice_features[0].Visibility)
-        self.assertEqual(output_component.VibeCADTimelineRole, "operation")
+        self.assertEqual(output_component.SteveCADTimelineRole, "operation")
 
         self.assertEqual(tuple(base_body.Group), original_base_group)
         self.assertIs(base_body.Tip, original_base_tip)
@@ -2831,14 +2831,14 @@ class TestConsolidatedPartTools(unittest.TestCase):
                 ),
                 ("Part_SliceApart", self._visible_tree_labels()),
             )
-            self.assertEqual(body.VibeCADTimelineRole, "resource")
-            self.assertIs(body.VibeCADTimelineOwner, output_component)
-            self.assertEqual(result.VibeCADTimelineRole, "resource")
-            self.assertIs(result.VibeCADTimelineOwner, body)
+            self.assertEqual(body.SteveCADTimelineRole, "resource")
+            self.assertIs(body.SteveCADTimelineOwner, output_component)
+            self.assertEqual(result.SteveCADTimelineRole, "resource")
+            self.assertIs(result.SteveCADTimelineOwner, body)
 
         timeline = Gui.getMainWindow().findChild(
             QtGui.QListWidget,
-            "VibeCADFeatureTimelineItems",
+            "SteveCADFeatureTimelineItems",
         )
         timeline_results = [
             item
@@ -2914,44 +2914,44 @@ class TestConsolidatedPartTools(unittest.TestCase):
         self.assertEqual(len(private_drivers), 1)
         private_driver = private_drivers[0]
 
-        self.assertEqual(output_component.VibeCADTimelineRole, "operation")
+        self.assertEqual(output_component.SteveCADTimelineRole, "operation")
         self.assertEqual(
-            list(output_component.VibeCADTimelineReplacedInputs),
+            list(output_component.SteveCADTimelineReplacedInputs),
             [base_body, tool_body],
         )
         self.assertEqual(
             output_component.getTypeIdOfProperty(
-                "VibeCADTimelineReplacedInputs"
+                "SteveCADTimelineReplacedInputs"
             ),
             "App::PropertyLinkListHidden",
         )
         self.assertIn(
             "Hidden",
-            output_component.getEditorMode("VibeCADTimelineReplacedInputs"),
+            output_component.getEditorMode("SteveCADTimelineReplacedInputs"),
         )
-        self.assertEqual(private_driver.VibeCADTimelineRole, "resource")
-        self.assertIs(private_driver.VibeCADTimelineOwner, output_component)
-        self.assertIs(output_component.VibeCADTimelineEditor, private_driver)
+        self.assertEqual(private_driver.SteveCADTimelineRole, "resource")
+        self.assertIs(private_driver.SteveCADTimelineOwner, output_component)
+        self.assertIs(output_component.SteveCADTimelineEditor, private_driver)
         self.assertEqual(
-            output_component.getTypeIdOfProperty("VibeCADTimelineEditor"),
+            output_component.getTypeIdOfProperty("SteveCADTimelineEditor"),
             "App::PropertyLinkHidden",
         )
         self.assertIn(
             "Hidden",
-            output_component.getEditorMode("VibeCADTimelineEditor"),
+            output_component.getEditorMode("SteveCADTimelineEditor"),
         )
         self.assertEqual(
-            private_driver.getTypeIdOfProperty("VibeCADTimelineOwner"),
+            private_driver.getTypeIdOfProperty("SteveCADTimelineOwner"),
             "App::PropertyLinkHidden",
         )
         self.assertNotIn(output_component, private_driver.OutList)
         self.assertIn(
             "Hidden",
-            private_driver.getEditorMode("VibeCADTimelineRole"),
+            private_driver.getEditorMode("SteveCADTimelineRole"),
         )
         self.assertIn(
             "Hidden",
-            private_driver.getEditorMode("VibeCADTimelineOwner"),
+            private_driver.getEditorMode("SteveCADTimelineOwner"),
         )
         owned_results = []
         for body in output_bodies:
@@ -2959,19 +2959,19 @@ class TestConsolidatedPartTools(unittest.TestCase):
             self.assertIsNotNone(result)
             owned_results.extend((body, result))
             for resource in (body, result):
-                self.assertEqual(resource.VibeCADTimelineRole, "resource")
+                self.assertEqual(resource.SteveCADTimelineRole, "resource")
                 self.assertIs(
-                    resource.VibeCADTimelineOwner,
+                    resource.SteveCADTimelineOwner,
                     output_component if resource is body else body,
                 )
                 self.assertEqual(
-                    resource.getTypeIdOfProperty("VibeCADTimelineOwner"),
+                    resource.getTypeIdOfProperty("SteveCADTimelineOwner"),
                     "App::PropertyLinkHidden",
                 )
                 self.assertNotIn(output_component, resource.OutList)
                 self.assertTrue(resource.ViewObject.ShowInTree)
 
-        timeline = self.document.getObject("VibeCADTimeline")
+        timeline = self.document.getObject("SteveCADTimeline")
         operations = list(timeline.Operations)
         owner_boundary = operations.index(output_component) + 1
         self.assertIn(private_driver, operations)
@@ -2992,15 +2992,15 @@ class TestConsolidatedPartTools(unittest.TestCase):
         main_window = Gui.getMainWindow()
         timeline_items = main_window.findChild(
             QtGui.QListWidget,
-            "VibeCADFeatureTimelineItems",
+            "SteveCADFeatureTimelineItems",
         )
         previous = main_window.findChild(
             QtGui.QToolButton,
-            "VibeCADFeatureTimelinePrevious",
+            "SteveCADFeatureTimelinePrevious",
         )
         end = main_window.findChild(
             QtGui.QToolButton,
-            "VibeCADFeatureTimelineEnd",
+            "SteveCADFeatureTimelineEnd",
         )
         self.assertIsNotNone(timeline_items)
         self.assertIsNotNone(previous)
@@ -3073,21 +3073,21 @@ class TestConsolidatedPartTools(unittest.TestCase):
             restored_resources = [
                 restored_document.getObject(name) for name in owned_names
             ]
-            restored_timeline = restored_document.getObject("VibeCADTimeline")
+            restored_timeline = restored_document.getObject("SteveCADTimeline")
             self.assertEqual(
-                restored_component.VibeCADTimelineRole,
+                restored_component.SteveCADTimelineRole,
                 "operation",
             )
             self.assertEqual(
-                restored_driver.VibeCADTimelineRole,
+                restored_driver.SteveCADTimelineRole,
                 "resource",
             )
             self.assertIs(
-                restored_driver.VibeCADTimelineOwner,
+                restored_driver.SteveCADTimelineOwner,
                 restored_component,
             )
             self.assertEqual(
-                restored_driver.getTypeIdOfProperty("VibeCADTimelineOwner"),
+                restored_driver.getTypeIdOfProperty("SteveCADTimelineOwner"),
                 "App::PropertyLinkHidden",
             )
             self.assertNotIn(
@@ -3095,16 +3095,16 @@ class TestConsolidatedPartTools(unittest.TestCase):
                 restored_driver.OutList,
             )
             self.assertIs(
-                restored_component.VibeCADTimelineEditor,
+                restored_component.SteveCADTimelineEditor,
                 restored_driver,
             )
             self.assertEqual(
-                list(restored_component.VibeCADTimelineReplacedInputs),
+                list(restored_component.SteveCADTimelineReplacedInputs),
                 [restored_base_body, restored_tool_body],
             )
             for restored_resource in restored_resources:
                 self.assertEqual(
-                    restored_resource.VibeCADTimelineRole,
+                    restored_resource.SteveCADTimelineRole,
                     "resource",
                 )
                 restored_owner = (
@@ -3113,7 +3113,7 @@ class TestConsolidatedPartTools(unittest.TestCase):
                     else restored_resource.getParentGeoFeatureGroup()
                 )
                 self.assertIs(
-                    restored_resource.VibeCADTimelineOwner,
+                    restored_resource.SteveCADTimelineOwner,
                     restored_owner,
                 )
             self.assertEqual(restored_timeline.Position, saved_position)
@@ -3227,19 +3227,19 @@ class TestConsolidatedPartTools(unittest.TestCase):
             )
         )
         self.assertEqual(
-            self.document.VibeCADTimeline.Operations.count(operation),
+            self.document.SteveCADTimeline.Operations.count(operation),
             1,
         )
         self.assertLess(
-            self.document.VibeCADTimeline.Operations.index(source),
-            self.document.VibeCADTimeline.Operations.index(operation),
+            self.document.SteveCADTimeline.Operations.index(source),
+            self.document.SteveCADTimeline.Operations.index(operation),
         )
         PartDesign.validateDesign(operation)
 
         output_identity = [
             (
                 body.Name,
-                str(body.VibeCADBodyId),
+                str(body.SteveCADBodyId),
                 str(body.Tip.CurrentState.BodyStateId),
             )
             for body in output_bodies
@@ -3256,7 +3256,7 @@ class TestConsolidatedPartTools(unittest.TestCase):
             [
                 (
                     self.document.getObject(name).Name,
-                    str(self.document.getObject(name).VibeCADBodyId),
+                    str(self.document.getObject(name).SteveCADBodyId),
                     str(
                         self.document.getObject(
                             name
@@ -3282,7 +3282,7 @@ class TestConsolidatedPartTools(unittest.TestCase):
             [
                 (
                     self.document.getObject(name).Name,
-                    str(self.document.getObject(name).VibeCADBodyId),
+                    str(self.document.getObject(name).SteveCADBodyId),
                     str(
                         self.document.getObject(
                             name
@@ -3304,7 +3304,7 @@ class TestConsolidatedPartTools(unittest.TestCase):
             [
                 (
                     self.document.getObject(name).Name,
-                    str(self.document.getObject(name).VibeCADBodyId),
+                    str(self.document.getObject(name).SteveCADBodyId),
                     str(
                         self.document.getObject(
                             name
@@ -3357,11 +3357,11 @@ class TestConsolidatedPartTools(unittest.TestCase):
         )[0]
         accepted_ids = list(operation.OutputBodyIds)
         accepted_state_ids = {
-            str(body.VibeCADBodyId): str(
+            str(body.SteveCADBodyId): str(
                 body.Tip.CurrentState.BodyStateId
             )
             for body in self.document.findObjects("PartDesign::Body")
-            if str(body.VibeCADBodyId) in accepted_ids
+            if str(body.SteveCADBodyId) in accepted_ids
         }
 
         self.document.openTransaction("Add source solid")
@@ -3411,7 +3411,7 @@ class TestConsolidatedPartTools(unittest.TestCase):
                     for body in self.document.findObjects(
                         "PartDesign::Body"
                     )
-                    if str(body.VibeCADBodyId) in accepted_ids
+                    if str(body.SteveCADBodyId) in accepted_ids
                 ]
             ),
             2,
@@ -3442,9 +3442,9 @@ class TestConsolidatedPartTools(unittest.TestCase):
         self.assertEqual(list(operation.OutputBodyIds)[:2], accepted_ids)
         output_ids = list(operation.OutputBodyIds)
         bodies_by_id = {
-            str(body.VibeCADBodyId): body
+            str(body.SteveCADBodyId): body
             for body in self.document.findObjects("PartDesign::Body")
-            if str(body.VibeCADBodyId) in output_ids
+            if str(body.SteveCADBodyId) in output_ids
         }
         self.assertEqual(len(bodies_by_id), 3)
         self.assertEqual(
@@ -3525,7 +3525,7 @@ class TestConsolidatedPartTools(unittest.TestCase):
             set(output_bodies),
         )
         self.assertFalse(source.Visibility)
-        self.assertEqual(output_component.VibeCADTimelineRole, "operation")
+        self.assertEqual(output_component.SteveCADTimelineRole, "operation")
 
         for body in output_bodies:
             self.assertEqual(len(body.Group), 1, body.Name)
@@ -3544,14 +3544,14 @@ class TestConsolidatedPartTools(unittest.TestCase):
                 ),
                 ("Part_ExplodeCompound", self._visible_tree_labels()),
             )
-            self.assertEqual(body.VibeCADTimelineRole, "resource")
-            self.assertIs(body.VibeCADTimelineOwner, output_component)
-            self.assertEqual(result.VibeCADTimelineRole, "resource")
-            self.assertIs(result.VibeCADTimelineOwner, body)
+            self.assertEqual(body.SteveCADTimelineRole, "resource")
+            self.assertIs(body.SteveCADTimelineOwner, output_component)
+            self.assertEqual(result.SteveCADTimelineRole, "resource")
+            self.assertIs(result.SteveCADTimelineOwner, body)
 
         timeline = Gui.getMainWindow().findChild(
             QtGui.QListWidget,
-            "VibeCADFeatureTimelineItems",
+            "SteveCADFeatureTimelineItems",
         )
         timeline_results = [
             item
@@ -3622,36 +3622,36 @@ class TestConsolidatedPartTools(unittest.TestCase):
         output_results = [body.Tip for body in output_bodies]
         owned_results = [*output_bodies, *output_results]
 
-        self.assertEqual(output_component.VibeCADTimelineRole, "operation")
+        self.assertEqual(output_component.SteveCADTimelineRole, "operation")
         self.assertEqual(
-            list(output_component.VibeCADTimelineReplacedInputs),
+            list(output_component.SteveCADTimelineReplacedInputs),
             [source_body],
         )
         self.assertEqual(
             output_component.getTypeIdOfProperty(
-                "VibeCADTimelineReplacedInputs"
+                "SteveCADTimelineReplacedInputs"
             ),
             "App::PropertyLinkListHidden",
         )
         self.assertIn(
             "Hidden",
-            output_component.getEditorMode("VibeCADTimelineReplacedInputs"),
+            output_component.getEditorMode("SteveCADTimelineReplacedInputs"),
         )
         for body in output_bodies:
             for resource in (body, body.Tip):
-                self.assertEqual(resource.VibeCADTimelineRole, "resource")
+                self.assertEqual(resource.SteveCADTimelineRole, "resource")
                 self.assertIs(
-                    resource.VibeCADTimelineOwner,
+                    resource.SteveCADTimelineOwner,
                     output_component if resource is body else body,
                 )
                 self.assertEqual(
-                    resource.getTypeIdOfProperty("VibeCADTimelineOwner"),
+                    resource.getTypeIdOfProperty("SteveCADTimelineOwner"),
                     "App::PropertyLinkHidden",
                 )
                 self.assertNotIn(output_component, resource.OutList)
                 self.assertTrue(resource.ViewObject.ShowInTree)
 
-        timeline = self.document.getObject("VibeCADTimeline")
+        timeline = self.document.getObject("SteveCADTimeline")
         operations = list(timeline.Operations)
         owner_boundary = operations.index(output_component) + 1
         self.assertTrue(all(resource in operations for resource in owned_results))
@@ -3671,15 +3671,15 @@ class TestConsolidatedPartTools(unittest.TestCase):
         main_window = Gui.getMainWindow()
         timeline_items = main_window.findChild(
             QtGui.QListWidget,
-            "VibeCADFeatureTimelineItems",
+            "SteveCADFeatureTimelineItems",
         )
         previous = main_window.findChild(
             QtGui.QToolButton,
-            "VibeCADFeatureTimelinePrevious",
+            "SteveCADFeatureTimelinePrevious",
         )
         end = main_window.findChild(
             QtGui.QToolButton,
-            "VibeCADFeatureTimelineEnd",
+            "SteveCADFeatureTimelineEnd",
         )
 
         def visible_names():
@@ -3733,18 +3733,18 @@ class TestConsolidatedPartTools(unittest.TestCase):
             restored_resources = [
                 restored_document.getObject(name) for name in resource_names
             ]
-            restored_timeline = restored_document.getObject("VibeCADTimeline")
+            restored_timeline = restored_document.getObject("SteveCADTimeline")
             self.assertEqual(
-                restored_component.VibeCADTimelineRole,
+                restored_component.SteveCADTimelineRole,
                 "operation",
             )
             self.assertEqual(
-                list(restored_component.VibeCADTimelineReplacedInputs),
+                list(restored_component.SteveCADTimelineReplacedInputs),
                 [restored_source_body],
             )
             for restored_resource in restored_resources:
                 self.assertEqual(
-                    restored_resource.VibeCADTimelineRole,
+                    restored_resource.SteveCADTimelineRole,
                     "resource",
                 )
                 restored_owner = (
@@ -3753,7 +3753,7 @@ class TestConsolidatedPartTools(unittest.TestCase):
                     else restored_resource.getParentGeoFeatureGroup()
                 )
                 self.assertIs(
-                    restored_resource.VibeCADTimelineOwner,
+                    restored_resource.SteveCADTimelineOwner,
                     restored_owner,
                 )
             self.assertEqual(restored_timeline.Position, saved_position)

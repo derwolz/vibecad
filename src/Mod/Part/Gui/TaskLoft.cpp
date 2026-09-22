@@ -287,61 +287,61 @@ void recordAcceptedLoft(
     const auto* document = loft.getDocument();
     manager->addLine(Gui::MacroManager::App, "import Part");
     const std::string documentRef = "App.getDocument(" + pythonString(document->getName()) + ")";
-    manager->addLine(Gui::MacroManager::App, ("__vibecad_loft_doc = " + documentRef).c_str());
+    manager->addLine(Gui::MacroManager::App, ("__stevecad_loft_doc = " + documentRef).c_str());
     manager->addLine(
         Gui::MacroManager::App,
-        ("__vibecad_loft = __vibecad_loft_doc.addObject('Part::Loft',"
+        ("__stevecad_loft = __stevecad_loft_doc.addObject('Part::Loft',"
          + pythonString(loft.getNameInDocument()) + ")")
             .c_str()
     );
     manager->addLine(
         Gui::MacroManager::App,
-        ("__vibecad_loft.Sections = " + pythonObjectList(profiles)).c_str()
+        ("__stevecad_loft.Sections = " + pythonObjectList(profiles)).c_str()
     );
     if (hasSubElement) {
         manager->addLine(
             Gui::MacroManager::App,
-            ("__vibecad_loft.ProfileLinks = " + pythonProfileLinks(profiles, subElements)).c_str()
+            ("__stevecad_loft.ProfileLinks = " + pythonProfileLinks(profiles, subElements)).c_str()
         );
     }
     manager->addLine(
         Gui::MacroManager::App,
-        ("__vibecad_loft.Solid = " + std::string(loft.Solid.getValue() ? "True" : "False")).c_str()
+        ("__stevecad_loft.Solid = " + std::string(loft.Solid.getValue() ? "True" : "False")).c_str()
     );
     manager->addLine(
         Gui::MacroManager::App,
-        ("__vibecad_loft.Ruled = " + std::string(loft.Ruled.getValue() ? "True" : "False")).c_str()
+        ("__stevecad_loft.Ruled = " + std::string(loft.Ruled.getValue() ? "True" : "False")).c_str()
     );
     manager->addLine(
         Gui::MacroManager::App,
-        ("__vibecad_loft.Closed = " + std::string(loft.Closed.getValue() ? "True" : "False")).c_str()
+        ("__stevecad_loft.Closed = " + std::string(loft.Closed.getValue() ? "True" : "False")).c_str()
     );
     manager->addLine(
         Gui::MacroManager::App,
-        ("__vibecad_loft.MaxDegree = " + std::to_string(loft.MaxDegree.getValue())).c_str()
+        ("__stevecad_loft.MaxDegree = " + std::to_string(loft.MaxDegree.getValue())).c_str()
     );
     manager->addLine(
         Gui::MacroManager::App,
-        ("__vibecad_loft.Linearize = " + std::string(loft.Linearize.getValue() ? "True" : "False")).c_str()
+        ("__stevecad_loft.Linearize = " + std::string(loft.Linearize.getValue() ? "True" : "False")).c_str()
     );
     if (parent) {
         manager->addLine(
             Gui::MacroManager::App,
-            ("__vibecad_loft_parent = " + pythonObjectReference(parent)).c_str()
+            ("__stevecad_loft_parent = " + pythonObjectReference(parent)).c_str()
         );
-        manager->addLine(Gui::MacroManager::App, "__vibecad_loft_parent.addObject(__vibecad_loft)");
+        manager->addLine(Gui::MacroManager::App, "__stevecad_loft_parent.addObject(__stevecad_loft)");
         manager->addLine(
             Gui::MacroManager::App,
-            "if hasattr(__vibecad_loft_parent, 'Tip'): "
-            "__vibecad_loft_parent.Tip = __vibecad_loft"
+            "if hasattr(__stevecad_loft_parent, 'Tip'): "
+            "__stevecad_loft_parent.Tip = __stevecad_loft"
         );
     }
-    manager->addLine(Gui::MacroManager::App, "__vibecad_loft_doc.recompute()");
+    manager->addLine(Gui::MacroManager::App, "__stevecad_loft_doc.recompute()");
     manager->addLine(
         Gui::MacroManager::App,
         parent
-            ? "del __vibecad_loft_parent, __vibecad_loft, __vibecad_loft_doc"
-            : "del __vibecad_loft, __vibecad_loft_doc"
+            ? "del __stevecad_loft_parent, __stevecad_loft, __stevecad_loft_doc"
+            : "del __stevecad_loft, __stevecad_loft_doc"
     );
 }
 

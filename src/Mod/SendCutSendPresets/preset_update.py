@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: MIT
-"""Use VibeCAD's native undo and cooperative mutation boundaries for presets."""
+"""Use SteveCAD's native undo and cooperative mutation boundaries for presets."""
 
 
 def run_document_update(document, operation, name="Apply bend preset"):
@@ -12,7 +12,7 @@ def run_document_update(document, operation, name="Apply bend preset"):
     booked = getattr(document, "getBookedTransactionID", lambda: 0)()
     if not booked and not getattr(document, "HasPendingTransaction", False):
         try:
-            from VibeCADNativeTransaction import _OwnedDocumentTransaction
+            from SteveCADNativeTransaction import _OwnedDocumentTransaction
         except ImportError:
             document.openTransaction(name)
             legacy_owned = True

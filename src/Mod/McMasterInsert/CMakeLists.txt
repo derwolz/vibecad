@@ -15,8 +15,8 @@ SET(McMasterInsert_SRCS
 )
 
 if(WIN32 AND BUILD_GUI)
-    # WebView2 is kept out of the main VibeCAD process. This small native
-    # helper uses the installed Evergreen Edge runtime and a VibeCAD-owned
+    # WebView2 is kept out of the main SteveCAD process. This small native
+    # helper uses the installed Evergreen Edge runtime and a SteveCAD-owned
     # profile, avoiding any changes to FreeCAD's Qt/PySide dependency graph.
     set(MCMASTER_WEBVIEW2_VERSION "1.0.4129.50")
     set(MCMASTER_WEBVIEW2_SHA256
@@ -65,7 +65,7 @@ if(WIN32 AND BUILD_GUI)
         set(MCMASTER_WEBVIEW2_ARCH "x64")
     endif()
 
-    set(VIBECAD_ICON_PATH "${CMAKE_SOURCE_DIR}/src/Main/vibecad.ico")
+    set(STEVECAD_ICON_PATH "${CMAKE_SOURCE_DIR}/src/Main/stevecad.ico")
     configure_file(
         McMasterCatalogWebView2.rc.cmake
         "${CMAKE_CURRENT_BINARY_DIR}/McMasterCatalogWebView2.rc"

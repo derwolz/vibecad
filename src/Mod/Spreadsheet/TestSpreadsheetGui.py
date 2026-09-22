@@ -26,8 +26,8 @@ import FreeCAD
 from PySide import QtCore, QtGui
 import FreeCADGui
 
-from SpreadsheetTests.TestVibeCADRibbonTools import (
-    TestVibeCADSpreadsheetRibbonTools,
+from SpreadsheetTests.TestSteveCADRibbonTools import (
+    TestSteveCADSpreadsheetRibbonTools,
 )
 
 # ----------------------------------------------------------------------------------

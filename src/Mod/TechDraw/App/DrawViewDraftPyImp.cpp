@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (c) 2026 VibeCAD contributors                              *
+ *   Copyright (c) 2026 SteveCAD contributors                              *
  *                                                                         *
  *   This file is part of the FreeCAD CAx development system.              *
  *                                                                         *

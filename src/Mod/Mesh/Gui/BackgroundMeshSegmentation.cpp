@@ -31,7 +31,7 @@ void MeshGui::startBackgroundMeshSegmentation(
             }
             pythonSources.append(Py::asObject(source->getPyObject()));
         }
-        PyObject* imported = PyImport_ImportModule("VibeCADMeshSegmentationGui");
+        PyObject* imported = PyImport_ImportModule("SteveCADMeshSegmentationGui");
         if (!imported) {
             throw Py::Exception();
         }

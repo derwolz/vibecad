@@ -97,8 +97,8 @@ protected:
     void showOnStartupChanged(bool checked);
     void openFirstStartClicked();
     void firstStartWidgetDismissed();
-    void openVibeCADPreferences();
-    void openVibeCADAssistant();
+    void openSteveCADPreferences();
+    void openSteveCADAssistant();
 
     QString fileCardStyle() const;
 

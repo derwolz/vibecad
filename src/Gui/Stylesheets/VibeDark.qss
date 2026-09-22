@@ -1,5 +1,5 @@
 /*==================================================================================================
-VibeCAD Dark — a modern 2026 dark theme for VibeCAD
+SteveCAD Dark — a modern 2026 dark theme for SteveCAD
 ====================================================================================================
 Design tokens (single source of truth — every color below comes from this palette):
 
@@ -92,35 +92,35 @@ Start page
   background-color: transparent;
   border: none; }
 
-QWidget#VibeCADStartContent {
+QWidget#SteveCADStartContent {
   background-color: transparent; }
 
-QFrame#VibeCADStartHero {
+QFrame#SteveCADStartHero {
   color: #e8edf2;
   background-color: #1b2938;
   border: 1px solid #2e4b66;
   border-radius: 14px; }
 
-QLabel#VibeCADStartBrandTitle,
-QLabel#VibeCADFirstStartTitle {
+QLabel#SteveCADStartBrandTitle,
+QLabel#SteveCADFirstStartTitle {
   color: #f3f7fb;
   font-size: 26px;
   font-weight: 700; }
 
-QLabel#VibeCADStartBrandDescription,
-QLabel#VibeCADFirstStartDescription,
-QLabel#VibeCADAISetupDescription {
+QLabel#SteveCADStartBrandDescription,
+QLabel#SteveCADFirstStartDescription,
+QLabel#SteveCADAISetupDescription {
   color: #aab7c4;
   font-size: 14px; }
 
-QLabel#VibeCADStartSectionTitle,
-QLabel#VibeCADFirstStartSectionTitle,
-QLabel#VibeCADAISetupTitle {
+QLabel#SteveCADStartSectionTitle,
+QLabel#SteveCADFirstStartSectionTitle,
+QLabel#SteveCADAISetupTitle {
   color: #edf3f8;
   font-size: 18px;
   font-weight: 650; }
 
-QFrame#VibeCADAISetupCard {
+QFrame#SteveCADAISetupCard {
   background-color: #202b37;
   border: 1px solid #334252;
   border-radius: 12px; }
@@ -1042,8 +1042,8 @@ QDockWidget QTreeView, QDockWidget QListView {
   border-radius: 0px; }
 
 /* Permanent model browser: viewport-owned chrome, never a dock surface. */
-QWidget#VibeCADModelBrowserHost,
-QWidget#VibeCADModelBrowserHost QWidget,
+QWidget#SteveCADModelBrowserHost,
+QWidget#SteveCADModelBrowserHost QWidget,
 QDockWidget#Std_TreeView {
   background-color: transparent;
   border: none; }
@@ -1446,14 +1446,14 @@ QDialog#Gui__Dialog__DlgPreferences QTableWidget#PreferencePacks QHeaderView::se
   padding: 5px 8px; }
 
 /*--------------------------------------------------------------------------------------------------
-VibeCAD assistant panel
+SteveCAD assistant panel
 --------------------------------------------------------------------------------------------------*/
-QDockWidget#VibeCADAssistantPanel {
+QDockWidget#SteveCADAssistantPanel {
   color: #e8edf2;
   background-color: #0e1116;
   border-left: 1px solid #29313c; }
 
-QDockWidget#VibeCADAssistantPanel::title {
+QDockWidget#SteveCADAssistantPanel::title {
   min-height: 26px;
   color: #e8edf2;
   background-color: #0e1116;
@@ -1691,7 +1691,7 @@ QLabel#VibeStatusLine {
   background-color: transparent;
   padding: 0px 2px; }
 
-QDockWidget#VibeCADScriptedModelPanel QWidget#VibeScriptedModelRoot {
+QDockWidget#SteveCADScriptedModelPanel QWidget#VibeScriptedModelRoot {
   color: #e8edf2;
   background-color: #10141a; }
 
@@ -1762,31 +1762,31 @@ QLabel#VibeScriptedStatus {
   color: #9fb0c2;
   padding: 2px; }
 
-/* VibeCAD document strip and task ribbon */
-QToolBar#VibeCADRibbonToolBar {
+/* SteveCAD document strip and task ribbon */
+QToolBar#SteveCADRibbonToolBar {
   spacing: 0px;
   padding: 0px;
   background-color: #12171d;
   border-bottom: 1px solid #29313c; }
 
-QWidget#VibeCADRibbon,
-QWidget#VibeCADApplicationStrip,
-QWidget#VibeCADDomainStrip {
+QWidget#SteveCADRibbon,
+QWidget#SteveCADApplicationStrip,
+QWidget#SteveCADDomainStrip {
   background-color: #12171d; }
 
-QWidget#VibeCADApplicationStrip {
+QWidget#SteveCADApplicationStrip {
   min-height: 36px;
   border-bottom: 1px solid #2a323c; }
 
-QWidget#VibeCADLeadingTools,
-QWidget#VibeCADTrailingTools {
+QWidget#SteveCADLeadingTools,
+QWidget#SteveCADTrailingTools {
   background-color: transparent; }
 
-QWidget#VibeCADDomainStrip {
+QWidget#SteveCADDomainStrip {
   min-height: 31px;
   background-color: #151a21; }
 
-QToolButton#VibeCADAppButton {
+QToolButton#SteveCADAppButton {
   min-width: 30px;
   min-height: 30px;
   max-width: 30px;
@@ -1796,20 +1796,20 @@ QToolButton#VibeCADAppButton {
   border: 1px solid transparent;
   border-radius: 5px; }
 
-QToolButton#VibeCADAppButton:hover,
-QToolButton#VibeCADAppButton:pressed {
+QToolButton#SteveCADAppButton:hover,
+QToolButton#SteveCADAppButton:pressed {
   background-color: #242c35;
   border-color: #394552; }
 
-QToolButton#VibeCADRibbonOpen,
-QToolButton#VibeCADRibbonSave,
-QToolButton#VibeCADRibbonUndo,
-QToolButton#VibeCADRibbonRedo,
-QToolButton#VibeCADRibbonNew,
-QToolButton#VibeCADRibbonSearch,
-QToolButton#VibeCADThemeToggle,
-QToolButton#VibeCADRibbonAssistant,
-QToolButton#VibeCADRibbonSettings {
+QToolButton#SteveCADRibbonOpen,
+QToolButton#SteveCADRibbonSave,
+QToolButton#SteveCADRibbonUndo,
+QToolButton#SteveCADRibbonRedo,
+QToolButton#SteveCADRibbonNew,
+QToolButton#SteveCADRibbonSearch,
+QToolButton#SteveCADThemeToggle,
+QToolButton#SteveCADRibbonAssistant,
+QToolButton#SteveCADRibbonSettings {
   min-width: 29px;
   min-height: 29px;
   max-width: 29px;
@@ -1819,30 +1819,30 @@ QToolButton#VibeCADRibbonSettings {
   border: 1px solid transparent;
   border-radius: 4px; }
 
-QToolButton#VibeCADRibbonOpen:hover,
-QToolButton#VibeCADRibbonSave:hover,
-QToolButton#VibeCADRibbonUndo:hover,
-QToolButton#VibeCADRibbonRedo:hover,
-QToolButton#VibeCADRibbonNew:hover,
-QToolButton#VibeCADRibbonSearch:hover,
-QToolButton#VibeCADThemeToggle:hover,
-QToolButton#VibeCADRibbonAssistant:hover,
-QToolButton#VibeCADRibbonSettings:hover {
+QToolButton#SteveCADRibbonOpen:hover,
+QToolButton#SteveCADRibbonSave:hover,
+QToolButton#SteveCADRibbonUndo:hover,
+QToolButton#SteveCADRibbonRedo:hover,
+QToolButton#SteveCADRibbonNew:hover,
+QToolButton#SteveCADRibbonSearch:hover,
+QToolButton#SteveCADThemeToggle:hover,
+QToolButton#SteveCADRibbonAssistant:hover,
+QToolButton#SteveCADRibbonSettings:hover {
   background-color: #242c35;
   border-color: #394552; }
 
-QFrame#VibeCADRibbonSeparator {
+QFrame#SteveCADRibbonSeparator {
   margin: 5px 3px;
   color: #303945; }
 
-QTabBar#VibeCADDocumentTabs {
+QTabBar#SteveCADDocumentTabs {
   min-height: 31px;
   background-color: #0e1217;
   border: 1px solid #303945;
   border-bottom: 0px;
   border-radius: 6px 6px 0px 0px; }
 
-QTabBar#VibeCADDocumentTabs::tab {
+QTabBar#SteveCADDocumentTabs::tab {
   min-width: 150px;
   min-height: 29px;
   padding: 0px 34px 0px 14px;
@@ -1853,37 +1853,37 @@ QTabBar#VibeCADDocumentTabs::tab {
   border-bottom: 0px;
   border-radius: 5px 5px 0px 0px; }
 
-QTabBar#VibeCADDocumentTabs::tab:hover {
+QTabBar#SteveCADDocumentTabs::tab:hover {
   color: #e4e9ef;
   background-color: #1b222a; }
 
-QTabBar#VibeCADDocumentTabs::tab:selected {
+QTabBar#SteveCADDocumentTabs::tab:selected {
   color: #ffffff;
   font-weight: 500;
   background-color: #1a2028;
   border-color: #35404c; }
 
-QTabBar#VibeCADDocumentTabs::close-button {
+QTabBar#SteveCADDocumentTabs::close-button {
   subcontrol-position: right;
   width: 12px;
   height: 12px;
   margin-right: 7px;
   image: url(qss:images_dark-light/close_light.svg); }
 
-QLineEdit#VibeCADCommandSearch {
+QLineEdit#SteveCADCommandSearch {
   min-height: 28px;
   padding: 2px 10px;
   background-color: #11161c;
   border: 1px solid #35404c;
   border-radius: 5px; }
 
-QLineEdit#VibeCADCommandSearch:focus {
+QLineEdit#SteveCADCommandSearch:focus {
   border-color: #4dabf7; }
 
-QTabBar#VibeCADRibbonTabs {
+QTabBar#SteveCADRibbonTabs {
   background-color: #0e1116; }
 
-QTabBar#VibeCADRibbonTabs::tab {
+QTabBar#SteveCADRibbonTabs::tab {
   min-width: 76px;
   min-height: 29px;
   padding: 0px 14px;
@@ -1892,18 +1892,18 @@ QTabBar#VibeCADRibbonTabs::tab {
   border: 0px solid transparent;
   border-bottom: 3px solid transparent; }
 
-QTabBar#VibeCADRibbonTabs::tab:hover {
+QTabBar#SteveCADRibbonTabs::tab:hover {
   color: #e8edf2;
   background-color: #202730; }
 
-QTabBar#VibeCADRibbonTabs::tab:selected {
+QTabBar#SteveCADRibbonTabs::tab:selected {
   color: #ffffff;
   font-weight: 600;
   background-color: #1a2028;
   border-bottom-color: #4dabf7; }
 
-QWidget#VibeCADRibbonPage,
-QWidget#VibeCADAeroWorkspaceHost {
+QWidget#SteveCADRibbonPage,
+QWidget#SteveCADAeroWorkspaceHost {
   background-color: #1a2028;
   border-top: 1px solid #2a323c; }
 
@@ -1911,7 +1911,7 @@ QFrame[ribbonGroup="true"] {
   background-color: transparent;
   border-right: 1px solid #303945; }
 
-QWidget#VibeCADRibbonGroupExpanded {
+QWidget#SteveCADRibbonGroupExpanded {
   background-color: transparent; }
 
 QToolButton[ribbonCommand="true"] {
@@ -1926,7 +1926,7 @@ QToolButton[ribbonCommand="true"]:hover {
   background-color: #252d36;
   border-color: #3a4653; }
 
-QToolButton#VibeCADRibbonGroupMenu {
+QToolButton#SteveCADRibbonGroupMenu {
   min-height: 16px;
   max-height: 16px;
   padding: 0px 16px 0px 8px;
@@ -1935,19 +1935,19 @@ QToolButton#VibeCADRibbonGroupMenu {
   background-color: transparent;
   border: 0px; }
 
-QToolButton#VibeCADRibbonGroupMenu:hover {
+QToolButton#SteveCADRibbonGroupMenu:hover {
   color: #ffffff;
   background-color: #252d36; }
 
-QToolButton#VibeCADRibbonGroupMenu::menu-indicator {
+QToolButton#SteveCADRibbonGroupMenu::menu-indicator {
   width: 9px;
   height: 9px;
   subcontrol-origin: padding;
   subcontrol-position: right center;
   image: url(qss:images_dark-light/light_more_arrow.svg); }
 
-QToolButton#VibeCADRibbonCollapsedGroup,
-QToolButton#VibeCADRibbonPageMore {
+QToolButton#SteveCADRibbonCollapsedGroup,
+QToolButton#SteveCADRibbonPageMore {
   min-height: 50px;
   padding: 2px 6px;
   color: #c7d0da; }

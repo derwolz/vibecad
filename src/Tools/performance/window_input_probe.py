@@ -31,7 +31,7 @@ class WindowInputProbe:
         self._kernel.SetEvent.argtypes = (wintypes.HANDLE,)
         self._kernel.CloseHandle.argtypes = (wintypes.HANDLE,)
         self._kernel.GetTickCount.restype = wintypes.DWORD
-        stop_name = f'Local\\VibeCADInputProbe-{os.getpid()}-{uuid.uuid4().hex}'
+        stop_name = f'Local\\SteveCADInputProbe-{os.getpid()}-{uuid.uuid4().hex}'
         self._stop = self._kernel.CreateEventW(None, True, False, stop_name)
         if not self._stop:
             raise ctypes.WinError(ctypes.get_last_error())
@@ -54,7 +54,7 @@ class WindowInputProbe:
         self._app.installNativeEventFilter(self._native_filter)
         self._app.installEventFilter(self._key_filter)
         python_bin = Path(os.environ.get(
-            'VIBECAD_TEST_PYTHON', str(Path(App.getHomePath()) / 'bin')))
+            'STEVECAD_TEST_PYTHON', str(Path(App.getHomePath()) / 'bin')))
         try:
             self._sender = subprocess.Popen([
                 str(python_bin / 'pythonw.exe'),

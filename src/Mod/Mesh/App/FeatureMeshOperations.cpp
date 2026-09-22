@@ -126,9 +126,9 @@ public:
     {
         const std::string prefix =
             App::Application::getTempFileName();
-        input = prefix + "vibecad-remesh-input.stl";
-        project = prefix + "vibecad-remesh.geo";
-        output = prefix + "vibecad-remesh-output.stl";
+        input = prefix + "stevecad-remesh-input.stl";
+        project = prefix + "stevecad-remesh.geo";
+        output = prefix + "stevecad-remesh-output.stl";
     }
 
     ~TemporaryGmshFiles()
@@ -665,15 +665,15 @@ OutputGroup::OutputGroup()
         "Saved external input identities; reopening never reads these paths"
     );
     ADD_PROPERTY_TYPE(
-        VibeCADTimelineRole,
+        SteveCADTimelineRole,
         (App::DocumentTimeline::OperationRole),
         "Timeline",
         static_cast<App::PropertyType>(App::Prop_Hidden | App::Prop_NoRecompute),
         "Document timeline classification"
     );
-    VibeCADTimelineRole.setStatus(App::Property::Hidden, true);
-    VibeCADTimelineRole.setStatus(App::Property::LockDynamic, true);
-    VibeCADTimelineRole.setStatus(App::Property::NoRecompute, true);
+    SteveCADTimelineRole.setStatus(App::Property::Hidden, true);
+    SteveCADTimelineRole.setStatus(App::Property::LockDynamic, true);
+    SteveCADTimelineRole.setStatus(App::Property::NoRecompute, true);
 }
 
 short OutputGroup::mustExecute() const

@@ -38,7 +38,7 @@ import codecs
 from fractions import Fraction
 import os.path
 import TechDraw
-from VibeCADNativeTransaction import _OwnedDocumentTransaction
+from SteveCADNativeTransaction import _OwnedDocumentTransaction
 
 CreatedByChkLst = []
 ScaleChkLst = []

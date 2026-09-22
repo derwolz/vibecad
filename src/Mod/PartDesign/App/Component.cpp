@@ -23,7 +23,7 @@ Component::Component()
     ADD_PROPERTY_TYPE(
         ComponentId,
         (componentId),
-        "VibeCAD Design",
+        "SteveCAD Design",
         static_cast<App::PropertyType>(App::Prop_ReadOnly),
         "Persistent identity of this physical Component"
     );
@@ -32,7 +32,7 @@ Component::Component()
     ADD_PROPERTY_TYPE(
         DesignId,
         (designId),
-        "VibeCAD Design",
+        "SteveCAD Design",
         static_cast<App::PropertyType>(App::Prop_ReadOnly | App::Prop_Hidden),
         "Persistent identity of the Design which owns this Component"
     );

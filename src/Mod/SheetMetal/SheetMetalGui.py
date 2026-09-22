@@ -481,4 +481,4 @@ def ensure_commands_registered():
         if Gui.Command.get(command) is None:
             Gui.addCommand(command, _Command(mode, label, icon, tooltip))
     for action in Gui.Command.get("SheetMetal_EditParameters").ensureAction():
-        action.setProperty("VibeCADTimelineOperationEditor", True)
+        action.setProperty("SteveCADTimelineOperationEditor", True)

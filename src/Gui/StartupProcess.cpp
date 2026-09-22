@@ -55,7 +55,7 @@
 #include "Dialogs/DlgVersionMigrator.h"
 #include "FreeCADStyle.h"
 #include "ThemeManager.h"
-#include "VibeCADRibbon.h"
+#include "SteveCADRibbon.h"
 
 #include <App/Application.h>
 #include <App/ApplicationDirectories.h>
@@ -240,7 +240,7 @@ void StartupPostProcess::execute()
     setBranding();
     showMainWindow();
     activateWorkbench();
-    VibeCADRibbon::install(mainWindow);
+    SteveCADRibbon::install(mainWindow);
     checkParameters();
     checkVersionMigration();
 }
@@ -535,7 +535,7 @@ void StartupPostProcess::activateWorkbench()
         mainWindow->loadWindowSettings();
     }
 
-    migrateVibeCADBackgroundAutoload(wb);
+    migrateSteveCADBackgroundAutoload(wb);
 
     // Now run the background autoload, for workbenches that should be loaded at startup, but not
     // displayed to the user immediately
@@ -554,9 +554,9 @@ void StartupPostProcess::setStyleSheet()
     guiApp.setStyleSheet(QString::fromStdString(style), hGrp->GetBool("TiledBackground", false));
 }
 
-void StartupPostProcess::migrateVibeCADBackgroundAutoload(const QStringList& workbenches)
+void StartupPostProcess::migrateSteveCADBackgroundAutoload(const QStringList& workbenches)
 {
-    constexpr auto migrationKey = "VibeCADBackgroundAutoloadModules2026";
+    constexpr auto migrationKey = "SteveCADBackgroundAutoloadModules2026";
     auto migration = App::GetApplication().GetParameterGroupByPath(
         "User parameter:BaseApp/Preferences/Migration"
     );
@@ -579,7 +579,7 @@ void StartupPostProcess::migrateVibeCADBackgroundAutoload(const QStringList& wor
         }
     }
 
-    // The original VibeCAD preference pack enabled every then-supported modeling
+    // The original SteveCAD preference pack enabled every then-supported modeling
     // workbench for background autoload. Applying the Workbenches preference page
     // rewrote that value to the installed subset, so recognize both persisted forms.
     const std::set<std::string> legacyPackModules = {
@@ -609,7 +609,7 @@ void StartupPostProcess::migrateVibeCADBackgroundAutoload(const QStringList& wor
         || (!installedLegacyModules.empty() && configured == installedLegacyModules)) {
         general->RemoveASCII("BackgroundAutoloadModules");
         Base::Console().message(
-            "Removed VibeCAD's obsolete all-workbench background autoload preference.\n"
+            "Removed SteveCAD's obsolete all-workbench background autoload preference.\n"
         );
     }
     migration->SetBool(migrationKey, true);

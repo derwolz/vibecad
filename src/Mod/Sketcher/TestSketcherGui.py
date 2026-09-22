@@ -7,7 +7,7 @@ from SketcherTests.TestNewSketchExactFactory import (
     TestNewSketchExactFactoryRuntime,
     TestNewSketchExactFactorySourceContract,
 )
-from SketcherTests.TestVibeCADRibbonTools import TestVibeCADSketchRibbonTools
+from SketcherTests.TestSteveCADRibbonTools import TestSteveCADSketchRibbonTools
 
 # Use the module so that code checkers don't complain (flake8)
 (
@@ -18,6 +18,6 @@ from SketcherTests.TestVibeCADRibbonTools import TestVibeCADSketchRibbonTools
     and TestExternalFacePreselection
     and TestNewSketchExactFactoryRuntime
     and TestNewSketchExactFactorySourceContract
-    and TestVibeCADSketchRibbonTools
+    and TestSteveCADSketchRibbonTools
     else False
 )

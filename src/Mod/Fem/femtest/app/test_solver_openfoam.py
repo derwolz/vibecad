@@ -166,7 +166,7 @@ class TestOpenFOAMSolver(unittest.TestCase):
         solver = ObjectsFem.makeSolverOpenFOAM(self.document)
         solver.TurbulenceModel = ["laminar"]
         solver_name = solver.Name
-        with tempfile.TemporaryDirectory(prefix="vibecad-openfoam-solver-") as root:
+        with tempfile.TemporaryDirectory(prefix="stevecad-openfoam-solver-") as root:
             path = Path(root) / "solver.FCStd"
             self.document.saveAs(str(path))
             App.closeDocument(self.document.Name)
@@ -197,7 +197,7 @@ class TestOpenFOAMSolver(unittest.TestCase):
 
         with mock.patch.dict(
             "sys.modules",
-            {"VibeCADAnalyzeSolverGui": gui_runner},
+            {"SteveCADAnalyzeSolverGui": gui_runner},
         ), mock.patch.object(App, "GuiUp", True):
             results = [run_fem_solver(solver) for solver in solvers]
 
@@ -249,7 +249,7 @@ class TestOpenFOAMSolver(unittest.TestCase):
         dataset.GetPointData().AddArray(pressure)
         dataset.GetPointData().AddArray(velocity)
 
-        with tempfile.TemporaryDirectory(prefix="vibecad-openfoam-result-") as root:
+        with tempfile.TemporaryDirectory(prefix="stevecad-openfoam-result-") as root:
             vtk_path = Path(root) / "flow.vtk"
             writer = vtk.vtkDataSetWriter()
             writer.SetFileName(str(vtk_path))
@@ -336,7 +336,7 @@ class TestOpenFOAMSolver(unittest.TestCase):
             add_fields(dataset, pressure_value)
             return dataset
 
-        with tempfile.TemporaryDirectory(prefix="vibecad-openfoam-summary-") as root:
+        with tempfile.TemporaryDirectory(prefix="stevecad-openfoam-summary-") as root:
             vtk_root = Path(root) / "VTK"
             vtk_root.mkdir()
             internal = vtk.vtkUnstructuredGrid()

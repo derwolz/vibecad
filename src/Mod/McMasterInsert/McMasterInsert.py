@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: LGPL-2.1-or-later
-"""Browse the McMaster-Carr catalog and import downloaded CAD into VibeCAD.
+"""Browse the McMaster-Carr catalog and import downloaded CAD into SteveCAD.
 
 Opens McMaster's live website in a catalog window (same idea as Fusion 360 /
 SolidWorks). When you download 3-D STEP from a product page, the file is
@@ -63,10 +63,10 @@ def downloads_dir() -> Path:
 
 
 def webview2_profile_root() -> Path:
-    """Persistent WebView2 data so McMaster login survives VibeCAD restarts."""
+    """Persistent WebView2 data so McMaster login survives SteveCAD restarts."""
     local_app_data = str(os.environ.get("LOCALAPPDATA", "") or "").strip()
     if local_app_data:
-        root = Path(local_app_data) / "VibeCAD" / "McMasterBrowser"
+        root = Path(local_app_data) / "SteveCAD" / "McMasterBrowser"
     else:
         root = Path(App.getUserAppDataDir()) / "McMasterBrowser"
     root.mkdir(parents=True, exist_ok=True)
@@ -338,7 +338,7 @@ def _is_origin_object(obj) -> bool:
         tid in _SKIP_TRANSFORM_TYPES
         or "Origin" in tid
         or bool(re.fullmatch(r"Origin\d*", name))
-        or name == "VibeCADTimeline"
+        or name == "SteveCADTimeline"
     )
 
 
@@ -481,7 +481,7 @@ def _promote_to_component(doc, created: list, part_number: str, source_path: Pat
         "Component",
     )
     if component is None or _type_id(component) != "PartDesign::Component":
-        raise RuntimeError("VibeCAD did not create a PartDesign::Component")
+        raise RuntimeError("SteveCAD did not create a PartDesign::Component")
     _classify_structure(doc, component)
     _set_label(component, label)
     _stamp_metadata(component, part_number, source_path)
@@ -596,7 +596,7 @@ def _transform_target(objects: list):
 
 
 def _show_placement_dialog(obj) -> None:
-    """Fallback XYZ / rotation panel when VibeCAD has no transform command."""
+    """Fallback XYZ / rotation panel when SteveCAD has no transform command."""
     from PySide import QtCore, QtWidgets
     import FreeCADGui as Gui
 
@@ -722,7 +722,7 @@ def _show_placement_dialog(obj) -> None:
 
 
 def open_position_dialog(object_names: list[str]) -> None:
-    """Select the imported body and open VibeCAD's transform / placement UI."""
+    """Select the imported body and open SteveCAD's transform / placement UI."""
     from PySide import QtCore
     import FreeCADGui as Gui
 
@@ -1156,7 +1156,7 @@ def attach_webkit(widget, out_dir: Path) -> bool:
 
 
 def show_catalog_window(out_dir: Path | None = None) -> bool:
-    """Fusion-style catalog: a tool window owned by VibeCAD (works in fullscreen)."""
+    """Fusion-style catalog: a tool window owned by SteveCAD (works in fullscreen)."""
     from PySide import QtCore, QtWidgets
     import FreeCADGui as Gui
 
@@ -1217,7 +1217,7 @@ def show_catalog_window(out_dir: Path | None = None) -> bool:
                 self._attached = True
                 self.status.setText("Connecting to McMaster-Carr…")
                 self._status_timer.start()
-                App.Console.PrintMessage("McMaster catalog attached inside VibeCAD\n")
+                App.Console.PrintMessage("McMaster catalog attached inside SteveCAD\n")
             else:
                 self.status.setText(
                     "Catalog view is not ready yet. If it stays blank, click Catalog again."
@@ -1448,7 +1448,7 @@ def _ensure_import_watcher(session_inbox: Path | None = None):
 
 def run() -> None:
     if not App.GuiUp:
-        raise RuntimeError("McMaster catalog requires the VibeCAD GUI")
+        raise RuntimeError("McMaster catalog requires the SteveCAD GUI")
     close_catalog_panel()
     _stop_catalog_process()
     destination = new_session_inbox()
@@ -1464,7 +1464,7 @@ def run() -> None:
     if mode == "external":
         App.Console.PrintMessage(
             "McMaster-Carr opened in your browser. Download 3-D STEP to your "
-            "Downloads folder and VibeCAD will import it automatically; use "
+            "Downloads folder and SteveCAD will import it automatically; use "
             "Import if you save it somewhere else.\n"
         )
         return
@@ -1476,7 +1476,7 @@ def run() -> None:
 def import_file() -> None:
     """Pick a CAD file and import it without opening the catalog."""
     if not App.GuiUp:
-        raise RuntimeError("Import requires the VibeCAD GUI")
+        raise RuntimeError("Import requires the SteveCAD GUI")
     from PySide import QtWidgets
     import FreeCADGui as Gui
 

@@ -42,18 +42,18 @@ def _mark_timeline_operation(operation):
     _ensure_timeline_property(
         operation,
         "App::PropertyString",
-        "VibeCADTimelineRole",
+        "SteveCADTimelineRole",
         "Document timeline classification",
     )
-    operation.VibeCADTimelineRole = "operation"
-    if "VibeCADTimelineOwner" in operation.PropertiesList:
+    operation.SteveCADTimelineRole = "operation"
+    if "SteveCADTimelineOwner" in operation.PropertiesList:
         _ensure_timeline_property(
             operation,
             "App::PropertyLinkHidden",
-            "VibeCADTimelineOwner",
+            "SteveCADTimelineOwner",
             "Part operation which owns this generated result",
         )
-        operation.VibeCADTimelineOwner = None
+        operation.SteveCADTimelineOwner = None
 
 
 def _mark_timeline_resource(resource, owner):
@@ -67,17 +67,17 @@ def _mark_timeline_resource(resource, owner):
     _ensure_timeline_property(
         resource,
         "App::PropertyString",
-        "VibeCADTimelineRole",
+        "SteveCADTimelineRole",
         "Document timeline classification",
     )
     _ensure_timeline_property(
         resource,
         "App::PropertyLinkHidden",
-        "VibeCADTimelineOwner",
+        "SteveCADTimelineOwner",
         "Part operation which owns this generated result",
     )
-    resource.VibeCADTimelineOwner = owner
-    resource.VibeCADTimelineRole = "resource"
+    resource.SteveCADTimelineOwner = owner
+    resource.SteveCADTimelineRole = "resource"
 
 
 def _set_timeline_editor(operation, editor):
@@ -90,10 +90,10 @@ def _set_timeline_editor(operation, editor):
     _ensure_timeline_property(
         operation,
         "App::PropertyLinkHidden",
-        "VibeCADTimelineEditor",
+        "SteveCADTimelineEditor",
         "Owned implementation object which edits this operation",
     )
-    operation.VibeCADTimelineEditor = editor
+    operation.SteveCADTimelineEditor = editor
 
 
 def _set_timeline_replaced_inputs(operation, inputs):
@@ -123,10 +123,10 @@ def _set_timeline_replaced_inputs(operation, inputs):
     _ensure_timeline_property(
         operation,
         "App::PropertyLinkListHidden",
-        "VibeCADTimelineReplacedInputs",
+        "SteveCADTimelineReplacedInputs",
         "Visible input objects hidden by this operation",
     )
-    operation.VibeCADTimelineReplacedInputs = replaced
+    operation.SteveCADTimelineReplacedInputs = replaced
 
 
 def _mark_body_outputs_as_timeline_resources(output_component, features):
@@ -196,7 +196,7 @@ def _finalize_body_output_timeline(output_component, features):
         resource_owners.extend((body, output_component))
     editor = getattr(
         output_component,
-        "VibeCADTimelineEditor",
+        "SteveCADTimelineEditor",
         None,
     )
     if editor is not None:
@@ -285,7 +285,7 @@ def explodeCompound(
 ):
     """Extract every child of a compound into a separate parametric object.
 
-    ``b_group`` preserves the historical group/document behavior.  VibeCAD's
+    ``b_group`` preserves the historical group/document behavior.  SteveCAD's
     multi-result commands pass ``body_outputs=True`` so every sibling result
     owns an independent Part Design Body and Tip.  ``output_component`` may be
     an existing App::Part in the same document when an operation also needs to

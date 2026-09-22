@@ -59,7 +59,7 @@ class TestSheetFoldSource(unittest.TestCase):
         self.assertIs(fold.BendLine, sketch)
         self.assertEqual(self.doc.UndoCount, undo+1)
         self.assertEqual(Sources.arguments(fold), arguments)
-        self.assertEqual(fold.VibeCADTimelineEditCommand, "SheetMetal_EditSource")
+        self.assertEqual(fold.SteveCADTimelineEditCommand, "SheetMetal_EditSource")
         self.assertEqual(Features.nominal_thickness(fold), 1.6)
         self.assertEqual((source.Shape.exportBrepToString(), sketch.Shape.exportBrepToString()), before)
         self.assertTrue(fold.Shape.isValid())
@@ -109,7 +109,7 @@ class TestSheetFoldSource(unittest.TestCase):
         for actual, expected in zip(sorted((geometry.flat.BoundBox.XLength, geometry.flat.BoundBox.YLength)),
                                     source_size):
             self.assertAlmostEqual(actual, expected, places=4)
-        self.doc.saveAs(str(Path(os.environ["VIBECAD_TEST_OUTPUT"]) / "internal-fold.FCStd"))
+        self.doc.saveAs(str(Path(os.environ["STEVECAD_TEST_OUTPUT"]) / "internal-fold.FCStd"))
 
     def test_upstream_input_hiding_uses_its_document_not_the_active_one(self):
         import SheetMetalTools
@@ -184,7 +184,7 @@ class TestSheetFoldSource(unittest.TestCase):
         flat = Editable.get_state_geometry(sheet).flat
         self.assertTrue(flat.isValid())
         self.assertAlmostEqual(flat.Volume, cut.FlatShape.Volume, places=4)
-        self.doc.saveAs(str(Path(os.environ["VIBECAD_TEST_OUTPUT"]) / "internal-tab.FCStd"))
+        self.doc.saveAs(str(Path(os.environ["STEVECAD_TEST_OUTPUT"]) / "internal-tab.FCStd"))
 
     def test_invalid_fold_inputs_leave_no_objects_or_undo(self):
         import SheetMetalSourceOperations as Sources
@@ -200,7 +200,7 @@ class TestSheetFoldSource(unittest.TestCase):
             self.assertEqual((tuple(self.doc.Objects), self.doc.UndoCount), before)
 
     def test_native_fold_creation_uses_owned_async_dispatch(self):
-        from VibeCADNativeSheetMetalCreateRuntime import NativeSheetMetalCreateRuntime
+        from SteveCADNativeSheetMetalCreateRuntime import NativeSheetMetalCreateRuntime
         source, sketch, arguments = self.fold_input()
         context = self.fixture.context
         ticket = context.state.begin_call(self.doc.Uid, "sheet_metal.create")
@@ -242,8 +242,8 @@ class TestSheetFoldSource(unittest.TestCase):
         self.assertEqual((tuple(self.doc.Objects), self.doc.UndoCount, Sources.capture_revision(self.doc)), before)
 
     def test_native_fold_result_supplies_valid_shared_state_followup(self):
-        from VibeCADNativeSheetMetalCreateRuntime import NativeSheetMetalCreateRuntime
-        from VibeCADProvider import _provider_visible_tool_result
+        from SteveCADNativeSheetMetalCreateRuntime import NativeSheetMetalCreateRuntime
+        from SteveCADProvider import _provider_visible_tool_result
         import SheetMetalEditable as Editable
         source, sketch, arguments = self.fold_input()
         context = self.fixture.context
@@ -251,7 +251,7 @@ class TestSheetFoldSource(unittest.TestCase):
         ticket = context.state.begin_call(self.doc.Uid, "sheet_metal.create")
         self.addCleanup(lambda ticket=ticket: context.state.cancel_mutation(ticket))
         ready = self.fixture.wait(runtime.execute_async(arguments, ticket=ticket))
-        visible = _provider_visible_tool_result({**ready, "ok": True, "_vibecad_native_result": True},
+        visible = _provider_visible_tool_result({**ready, "ok": True, "_stevecad_native_result": True},
                                                 tool_name="sheet_metal.create")
         self.assertFalse(visible["shared_state_created"])
         next_step = visible["next_step"]

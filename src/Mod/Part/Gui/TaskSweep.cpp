@@ -401,61 +401,61 @@ void recordAcceptedSweep(
     const auto* document = sweep.getDocument();
     manager->addLine(Gui::MacroManager::App, "import Part");
     const std::string documentRef = "App.getDocument(" + pythonString(document->getName()) + ")";
-    manager->addLine(Gui::MacroManager::App, ("__vibecad_sweep_doc = " + documentRef).c_str());
+    manager->addLine(Gui::MacroManager::App, ("__stevecad_sweep_doc = " + documentRef).c_str());
     manager->addLine(
         Gui::MacroManager::App,
-        ("__vibecad_sweep = __vibecad_sweep_doc.addObject('Part::Sweep',"
+        ("__stevecad_sweep = __stevecad_sweep_doc.addObject('Part::Sweep',"
          + pythonString(sweep.getNameInDocument()) + ")")
             .c_str()
     );
     manager->addLine(
         Gui::MacroManager::App,
-        ("__vibecad_sweep.Sections = " + pythonObjectList(profiles)).c_str()
+        ("__stevecad_sweep.Sections = " + pythonObjectList(profiles)).c_str()
     );
     if (hasProfileSubElement) {
         manager->addLine(
             Gui::MacroManager::App,
-            ("__vibecad_sweep.ProfileLinks = " + pythonProfileLinks(profiles, profileSubElements)).c_str()
+            ("__stevecad_sweep.ProfileLinks = " + pythonProfileLinks(profiles, profileSubElements)).c_str()
         );
     }
     manager->addLine(
         Gui::MacroManager::App,
-        ("__vibecad_sweep.Spine = " + pythonLinkSub(path, pathSubElements)).c_str()
+        ("__stevecad_sweep.Spine = " + pythonLinkSub(path, pathSubElements)).c_str()
     );
     manager->addLine(
         Gui::MacroManager::App,
-        ("__vibecad_sweep.Solid = " + std::string(sweep.Solid.getValue() ? "True" : "False")).c_str()
+        ("__stevecad_sweep.Solid = " + std::string(sweep.Solid.getValue() ? "True" : "False")).c_str()
     );
     manager->addLine(
         Gui::MacroManager::App,
-        ("__vibecad_sweep.Frenet = " + std::string(sweep.Frenet.getValue() ? "True" : "False")).c_str()
+        ("__stevecad_sweep.Frenet = " + std::string(sweep.Frenet.getValue() ? "True" : "False")).c_str()
     );
     manager->addLine(
         Gui::MacroManager::App,
-        ("__vibecad_sweep.Transition = " + pythonString(sweep.Transition.getValueAsString())).c_str()
+        ("__stevecad_sweep.Transition = " + pythonString(sweep.Transition.getValueAsString())).c_str()
     );
     manager->addLine(
         Gui::MacroManager::App,
-        ("__vibecad_sweep.Linearize = " + std::string(sweep.Linearize.getValue() ? "True" : "False"))
+        ("__stevecad_sweep.Linearize = " + std::string(sweep.Linearize.getValue() ? "True" : "False"))
             .c_str()
     );
     if (parent) {
         manager->addLine(
             Gui::MacroManager::App,
-            ("__vibecad_sweep_parent = " + pythonObjectReference(parent)).c_str()
+            ("__stevecad_sweep_parent = " + pythonObjectReference(parent)).c_str()
         );
-        manager->addLine(Gui::MacroManager::App, "__vibecad_sweep_parent.addObject(__vibecad_sweep)");
+        manager->addLine(Gui::MacroManager::App, "__stevecad_sweep_parent.addObject(__stevecad_sweep)");
         manager->addLine(
             Gui::MacroManager::App,
-            "if hasattr(__vibecad_sweep_parent, 'Tip'): "
-            "__vibecad_sweep_parent.Tip = __vibecad_sweep"
+            "if hasattr(__stevecad_sweep_parent, 'Tip'): "
+            "__stevecad_sweep_parent.Tip = __stevecad_sweep"
         );
     }
-    manager->addLine(Gui::MacroManager::App, "__vibecad_sweep_doc.recompute()");
+    manager->addLine(Gui::MacroManager::App, "__stevecad_sweep_doc.recompute()");
     manager->addLine(
         Gui::MacroManager::App,
-        parent ? "del __vibecad_sweep_parent, __vibecad_sweep, __vibecad_sweep_doc"
-               : "del __vibecad_sweep, __vibecad_sweep_doc"
+        parent ? "del __stevecad_sweep_parent, __stevecad_sweep, __stevecad_sweep_doc"
+               : "del __stevecad_sweep, __stevecad_sweep_doc"
     );
 }
 

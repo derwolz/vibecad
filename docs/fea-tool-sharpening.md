@@ -3,7 +3,7 @@
 ## Objective
 
 Make a correct engineering study the obvious workflow for a person or model that
-knows analysis, not VibeCAD. Start with working Elmer and OpenFOAM foundations;
+knows analysis, not SteveCAD. Start with working Elmer and OpenFOAM foundations;
 then sharpen the human and AI surfaces against real solver runs.
 
 ## Rules
@@ -49,10 +49,10 @@ then sharpen the human and AI surfaces against real solver runs.
 ## Acceptance
 
 A workflow is sharp when both a new user and an unsteered model can start from the
-same prepared geometry, create the intended study without guessing VibeCAD
+same prepared geometry, create the intended study without guessing SteveCAD
 internals, run the real selected solver, understand failures, inspect meaningful
 results, save and reopen the document, and repeat the task without rejected tool
-calls caused by VibeCAD's contract.
+calls caused by SteveCAD's contract.
 
 ## Evidence log
 

@@ -2,7 +2,7 @@
 General:
   UUID: "db767dc3-7a48-4fbe-a284-78181f5f05df"
   Name: "Nickel Alloy 718 (UNS N07718)"
-  Author: "VibeCAD contributors"
+  Author: "SteveCAD contributors"
   License: "LGPL-2.1-or-later"
   SourceURL: "https://www.specialmetals.com/documents/technical-bulletins/inconel/inconel-alloy-718.pdf"
   ReferenceSource: "Special Metals SMC-045, INCONEL alloy 718, September 2007"

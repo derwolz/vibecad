@@ -1186,7 +1186,7 @@ void SubShapeBinder::setLinks(
     }
     if (!isRestoring()
         && PropertyContainer::getPropertyByName(
-            "VibeCADDefinitionId"
+            "SteveCADDefinitionId"
         )) {
         std::map<App::DocumentObject*, std::vector<std::string>>
             exactValues;

@@ -1,7 +1,7 @@
 # SPDX-License-Identifier: LGPL-2.1-or-later
-"""Make McMaster commands visible in VibeCAD (ribbon, toolbar, and Tools menu).
+"""Make McMaster commands visible in SteveCAD (ribbon, toolbar, and Tools menu).
 
-VibeCAD hides the classic workbench combo. A Python workbench alone is
+SteveCAD hides the classic workbench combo. A Python workbench alone is
 invisible. This installer puts Catalog / Import on:
 - a permanent main-window toolbar
 - Tools → McMaster-Carr
@@ -17,9 +17,9 @@ from typing import Any
 ICON = str(Path(__file__).resolve().parent / "icons" / "mcmaster-workbench.svg")
 TOOLBAR_NAME = "McMaster-Carr"
 MENU_NAME = "McMaster-Carr"
-GROUP_NAME = "VibeCADRibbonGroup_McMaster"
-RIBBON_TABS = "VibeCADRibbonTabs"
-RIBBON_PAGE = "VibeCADRibbonPage"
+GROUP_NAME = "SteveCADRibbonGroup_McMaster"
+RIBBON_TABS = "SteveCADRibbonTabs"
+RIBBON_PAGE = "SteveCADRibbonPage"
 TAB_LABEL = "McMaster"
 TAB_DATA = "McMasterWorkbench"
 RIBBON_GROUP_VERSION = 7
@@ -172,7 +172,7 @@ def _iter_ribbon_groups(root: Any) -> list[Any]:
         children = []
     for child in children or []:
         name = str(getattr(child, "objectName", lambda: "")() or "")
-        if name.startswith("VibeCADRibbonGroup_"):
+        if name.startswith("SteveCADRibbonGroup_"):
             groups.append(child)
     return groups
 
@@ -242,7 +242,7 @@ def _discard_ribbon_group(page: Any, group: Any) -> None:
 
 
 def install_ribbon_group(gui: Any, qt_widgets: Any, qt_gui: Any, page: Any) -> bool:
-    """Match native VibeCAD groups: transparent strip, icon-over-label commands."""
+    """Match native SteveCAD groups: transparent strip, icon-over-label commands."""
     leftovers = [
         group
         for group in _iter_ribbon_groups(page)
@@ -293,7 +293,7 @@ def install_ribbon_group(gui: Any, qt_widgets: Any, qt_gui: Any, page: Any) -> b
             button.setToolButtonStyle(style)
         button.setAutoRaise(True)
         button.setToolTip(tooltips.get(command_id, command_id))
-        button.setProperty("VibeCADCommandId", command_id)
+        button.setProperty("SteveCADCommandId", command_id)
         button.setMinimumSize(48, 48)
         button.clicked.connect(_run_command(gui, command_id))
         layout.addWidget(button)
@@ -381,7 +381,7 @@ _timer = None
 
 
 def install_with_retry(max_tries: int = 40, interval_ms: int = 500) -> None:
-    """Keep trying until VibeCAD's native ribbon/main window exists."""
+    """Keep trying until SteveCAD's native ribbon/main window exists."""
 
     global _retry_count, _timer
     from PySide import QtCore
@@ -402,7 +402,7 @@ def install_with_retry(max_tries: int = 40, interval_ms: int = 500) -> None:
             if _timer is not None:
                 _timer.stop()
             _warn(
-                "could not fully hook VibeCAD's ribbon. "
+                "could not fully hook SteveCAD's ribbon. "
                 "Use menu McMaster-Carr → Browse Catalog, or run Macro InsertMcMaster."
             )
 

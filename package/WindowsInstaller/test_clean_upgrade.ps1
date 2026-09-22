@@ -42,14 +42,14 @@ if ($versionParts.Count -ne 3) {
     throw "Release version '$ReleaseVersion' does not contain major.minor.patch."
 }
 $seriesKey = "$($versionParts[0])$($versionParts[1])$($versionParts[2])"
-$appKey = "HKCU:\SOFTWARE\VibeCAD$seriesKey"
-$uninstallKey = "HKCU:\Software\Microsoft\Windows\CurrentVersion\Uninstall\VibeCAD$seriesKey"
+$appKey = "HKCU:\SOFTWARE\SteveCAD$seriesKey"
+$uninstallKey = "HKCU:\Software\Microsoft\Windows\CurrentVersion\Uninstall\SteveCAD$seriesKey"
 
 if ((Test-Path -LiteralPath $appKey) -or (Test-Path -LiteralPath $uninstallKey)) {
     throw "The clean-upgrade smoke test requires a fresh Windows user registry."
 }
 
-$testRoot = Join-Path $env:RUNNER_TEMP "VibeCAD-clean-upgrade-$([guid]::NewGuid().ToString('N'))"
+$testRoot = Join-Path $env:RUNNER_TEMP "SteveCAD-clean-upgrade-$([guid]::NewGuid().ToString('N'))"
 $downloadRoot = Join-Path $testRoot "previous"
 New-Item -ItemType Directory -Path $downloadRoot -Force | Out-Null
 
@@ -72,7 +72,7 @@ try {
             Write-Host "No earlier published build of $ReleaseVersion exists; clean-upgrade smoke test is not applicable."
             exit 0
         }
-        $asset = "VibeCAD-$ReleaseVersion-build$($previousRelease.Build)-Windows-x86_64-installer.exe"
+        $asset = "SteveCAD-$ReleaseVersion-build$($previousRelease.Build)-Windows-x86_64-installer.exe"
         gh release download $previousRelease.Tag --repo $Repository --pattern $asset --dir $downloadRoot
         if ($LASTEXITCODE -ne 0) {
             throw "Could not download $asset from $($previousRelease.Tag)."
@@ -97,18 +97,18 @@ try {
     Set-Content -LiteralPath $marker -Value "stale program file" -Encoding ascii
 
     # This deliberately exercises a normal, manually launched silent installer:
-    # no /VIBECADUPDATE flag and no explicit destination are supplied.
+    # no /STEVECADUPDATE flag and no explicit destination are supplied.
     Invoke-Installer -Path $current -Arguments @("/S", "/CurrentUser")
 
-    $backupRoot = "$installRoot.vibecad-rollback"
+    $backupRoot = "$installRoot.stevecad-rollback"
     if (Test-Path -LiteralPath $marker) {
         throw "The old installation was overlaid; its stale marker remains in the live tree."
     }
     if (-not (Test-Path -LiteralPath (Join-Path $backupRoot "must-not-survive-clean-upgrade.txt"))) {
         throw "The prior installation was not retained as the rollback tree."
     }
-    if (-not (Test-Path -LiteralPath (Join-Path $installRoot "bin\VibeCAD.exe"))) {
-        throw "The replacement installation is missing bin\VibeCAD.exe."
+    if (-not (Test-Path -LiteralPath (Join-Path $installRoot "bin\SteveCAD.exe"))) {
+        throw "The replacement installation is missing bin\SteveCAD.exe."
     }
 
     $identity = Get-ItemProperty -LiteralPath $appKey
@@ -126,7 +126,7 @@ finally {
     if (Test-Path -LiteralPath $appKey) {
         $registeredRoot = [string](Get-ItemProperty -LiteralPath $appKey).'(default)'
     }
-    $uninstaller = if ($registeredRoot) { Join-Path $registeredRoot "Uninstall-VibeCAD.exe" } else { "" }
+    $uninstaller = if ($registeredRoot) { Join-Path $registeredRoot "Uninstall-SteveCAD.exe" } else { "" }
     if ($uninstaller -and (Test-Path -LiteralPath $uninstaller)) {
         try {
             Invoke-Installer -Path $uninstaller -Arguments @("/S", "/CurrentUser")

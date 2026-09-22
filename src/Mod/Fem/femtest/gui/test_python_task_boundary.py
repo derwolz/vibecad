@@ -12,7 +12,7 @@ from femtaskpanels import base_femtaskpanel
 from femviewprovider import view_base_femobject
 
 
-_COMMAND_NAME = "VibeCAD_TestFemPythonTaskBoundary"
+_COMMAND_NAME = "SteveCAD_TestFemPythonTaskBoundary"
 
 
 class _BoundaryTask(base_femtaskpanel._BaseTaskPanel):

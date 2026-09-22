@@ -843,10 +843,10 @@ def _inflate(body: bytes) -> Optional[bytes]:
 
 
 def _try_cad_exchanger(filename, doc, label) -> bool:
-    exe = os.environ.get("VIBECAD_EXCHANGERCONV") or shutil.which("ExchangerConv")
+    exe = os.environ.get("STEVECAD_EXCHANGERCONV") or shutil.which("ExchangerConv")
     if not exe:
         return False
-    with tempfile.TemporaryDirectory(prefix="vibecad-jt-") as tmp:
+    with tempfile.TemporaryDirectory(prefix="stevecad-jt-") as tmp:
         out = os.path.join(tmp, "converted.step")
         deadline = time.monotonic() + 120.0
         commands = [

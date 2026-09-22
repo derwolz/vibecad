@@ -219,4 +219,4 @@ def ensure_commands_registered():
     if Gui.Command.get(name) is None:
         Gui.addCommand(name, _EditCommand())
     for action in Gui.Command.get(name).ensureAction():
-        action.setProperty("VibeCADTimelineOperationEditor", True)
+        action.setProperty("SteveCADTimelineOperationEditor", True)

@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (c) 2026 VibeCAD contributors                               *
+ *   Copyright (c) 2026 SteveCAD contributors                               *
  *   Copyright (c) 2023 Peter McB                                          *
  *   Copyright (c) 2013 Jürgen Riegel <juergen.riegel@web.de>              *
  *                                                                         *

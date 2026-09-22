@@ -193,7 +193,7 @@ bool setEdit(App::DocumentObject* obj, PartDesign::Body* body)
         FC_ERR("invalid object");
         return false;
     }
-    const bool globalDefinition = obj->getPropertyByName("VibeCADDefinitionId")
+    const bool globalDefinition = obj->getPropertyByName("SteveCADDefinitionId")
         && !PartDesign::Body::findBodyOf(obj);
     if (!body && !globalDefinition) {
         body = getBodyFor(obj, false);

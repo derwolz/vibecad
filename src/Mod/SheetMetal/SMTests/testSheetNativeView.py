@@ -24,8 +24,8 @@ class TestSheetNativeView(unittest.TestCase):
         self.context = self.fixture.context
 
     def call(self, representation, obj=None):
-        from VibeCADNativeRegistry import build_native_capability_registry
-        from VibeCADNativeRuntimeRegistry import build_native_runtime_bindings
+        from SteveCADNativeRegistry import build_native_capability_registry
+        from SteveCADNativeRuntimeRegistry import build_native_runtime_bindings
         runtime = build_native_runtime_bindings(self.context, ("sheet_metal.view",))["sheet_metal.view"]
         handler = build_native_capability_registry().implementation("sheet_metal.view").handler
         return handler(SimpleNamespace(runtime=runtime, arguments={
@@ -74,7 +74,7 @@ class TestSheetNativeView(unittest.TestCase):
 
     def check_reopened_view(self, target):
         import SheetMetalEditable as Editable
-        from VibeCADNativeSheetMetalViewRuntime import NativeSheetMetalViewError
+        from SteveCADNativeSheetMetalViewRuntime import NativeSheetMetalViewError
         target_name, sheet_name = target.Name, self.sheet.Name
         with tempfile.TemporaryDirectory() as directory:
             self.model.doc.saveAs(str(Path(directory) / "sheet.FCStd"))
@@ -120,7 +120,7 @@ class TestSheetNativeView(unittest.TestCase):
         self.check_reopened_view(hole)
 
     def test_source_view_repair_preserves_geometry_and_existing_shared_state(self):
-        from VibeCADNativeTargets import NativeTargetError
+        from SteveCADNativeTargets import NativeTargetError
         source = self.model.doc.BaseBend
         before = self.snapshot()
         with patch("SheetMetalPresentation.prepare_pair", side_effect=AssertionError("remesh")), \
@@ -141,7 +141,7 @@ class TestSheetNativeView(unittest.TestCase):
         self.assertEqual(self.snapshot(), before)
 
     def test_invalid_geometry_and_inactive_document_do_not_switch(self):
-        from VibeCADNativeSheetMetalViewRuntime import NativeSheetMetalViewError
+        from SteveCADNativeSheetMetalViewRuntime import NativeSheetMetalViewError
         hole = self.model.edit(lambda: History.create_circle_step(self.sheet, self.model.bend_pick()[2], 4))
         self.model.edit(lambda: setattr(hole, "Radius", 10000))
         old_mode = hole.ViewObject.Proxy.mode
@@ -155,9 +155,9 @@ class TestSheetNativeView(unittest.TestCase):
         self.assertEqual(self.sheet.ViewObject.Proxy.mode, "folded")
 
     def test_live_model_surface_discovers_the_presentation_control(self):
-        from VibeCADNativeCapabilityRegistry import resolve_native_provider_surface
-        from VibeCADNativeRegistry import build_native_capability_registry
-        from VibeCADRibbonSurface import read_active_ribbon_surface
+        from SteveCADNativeCapabilityRegistry import resolve_native_provider_surface
+        from SteveCADNativeRegistry import build_native_capability_registry
+        from SteveCADRibbonSurface import read_active_ribbon_surface
         previous = Gui.activeWorkbench().name()
         self.addCleanup(lambda: Gui.activateWorkbench(previous))
         Gui.activateWorkbench("PartDesignWorkbench")
@@ -169,11 +169,11 @@ class TestSheetNativeView(unittest.TestCase):
 
     def test_native_sheet_workspace_can_reach_assembly_tools_and_return(self):
         from dataclasses import replace
-        from VibeCADNativeCapabilityRegistry import resolve_native_provider_surface
-        from VibeCADNativeRegistry import build_native_capability_registry
-        from VibeCADNativeWorkspaceRuntime import NativeWorkspaceRuntime
-        from VibeCADNativeSurface import NativeSurfaceSnapshot, require_frozen_native_surface
-        from VibeCADRibbonSurface import read_active_ribbon_surface
+        from SteveCADNativeCapabilityRegistry import resolve_native_provider_surface
+        from SteveCADNativeRegistry import build_native_capability_registry
+        from SteveCADNativeWorkspaceRuntime import NativeWorkspaceRuntime
+        from SteveCADNativeSurface import NativeSurfaceSnapshot, require_frozen_native_surface
+        from SteveCADRibbonSurface import read_active_ribbon_surface
         previous = Gui.activeWorkbench().name()
         self.addCleanup(lambda: Gui.activateWorkbench(previous))
         Gui.activateWorkbench("SMWorkbench")
@@ -184,7 +184,7 @@ class TestSheetNativeView(unittest.TestCase):
                 ("assembly", "assemble", {"assembly.create", "assembly.insert", "assembly.joint", "assembly.motion_study"}),
                 ("sheet_metal", "sheet_metal", {"sheet_metal.create", "sheet_metal.edit", "sheet_metal.view"})):
             observed = read_active_ribbon_surface()
-            from VibeCADNativeProviderContext import provider_authorized_native_surface
+            from SteveCADNativeProviderContext import provider_authorized_native_surface
             provider = provider_authorized_native_surface(
                 resolve_native_provider_surface(observed, registry))
             self.assertTrue(provider.available, provider.summary())
@@ -206,14 +206,14 @@ class TestSheetNativeView(unittest.TestCase):
 
     def test_each_ribbon_workspace_retains_an_agent_route_to_other_tools(self):
         from dataclasses import replace
-        from VibeCADNativeCapabilityRegistry import resolve_native_provider_surface
-        from VibeCADNativeProviderContext import (
+        from SteveCADNativeCapabilityRegistry import resolve_native_provider_surface
+        from SteveCADNativeProviderContext import (
             provider_authorized_native_surface, schemas_for_native_provider_surface,
             provider_visible_native_state)
-        from VibeCADNativeRegistry import build_native_capability_registry
-        from VibeCADNativeWorkspaceRuntime import NativeWorkspaceRuntime, WORKBENCH_BY_NATIVE_WORKSPACE
-        from VibeCADNativeWorkspaceSchema import NATIVE_SURFACE_BY_WORKSPACE
-        from VibeCADRibbonSurface import read_active_ribbon_surface
+        from SteveCADNativeRegistry import build_native_capability_registry
+        from SteveCADNativeWorkspaceRuntime import NativeWorkspaceRuntime, WORKBENCH_BY_NATIVE_WORKSPACE
+        from SteveCADNativeWorkspaceSchema import NATIVE_SURFACE_BY_WORKSPACE
+        from SteveCADRibbonSurface import read_active_ribbon_surface
         service = self.context.service
         previous_engine = service.modeling_engine()
         self.addCleanup(lambda: service.select_modeling_engine(previous_engine))
@@ -250,12 +250,12 @@ class TestSheetNativeView(unittest.TestCase):
         from concurrent.futures import Future
         from unittest.mock import Mock
         from SMTests.testProfileCuts import TestProfileCuts
-        from VibeCADNativeModelStructureRuntime import NativeModelStructureRuntime
-        from VibeCADNativeSketchControlRuntime import NativeSketchControlRuntime
-        from VibeCADNativeSheetMetalManufacturingRuntime import NativeSheetMetalManufacturingRuntime
-        from VibeCADNativeWorkspaceRuntime import NativeWorkspaceRuntime
-        from VibeCADRibbonSurface import read_active_ribbon_surface
-        from VibeCADEditState import active_edit_state
+        from SteveCADNativeModelStructureRuntime import NativeModelStructureRuntime
+        from SteveCADNativeSketchControlRuntime import NativeSketchControlRuntime
+        from SteveCADNativeSheetMetalManufacturingRuntime import NativeSheetMetalManufacturingRuntime
+        from SteveCADNativeWorkspaceRuntime import NativeWorkspaceRuntime
+        from SteveCADRibbonSurface import read_active_ribbon_surface
+        from SteveCADEditState import active_edit_state
         import SheetMetalHistoryOperations as Shared
         import SheetMetalRMFGManufacturingGui as Manufacturing
 
@@ -348,8 +348,8 @@ class TestSheetNativeView(unittest.TestCase):
     def deactivated_assembly_sketch_cycle(self, *, remove):
         import SketcherGui
         from PySide import QtWidgets
-        from VibeCADSurfaceAuthority import deactivate_assembly
-        from VibeCADEditState import active_edit_state
+        from SteveCADSurfaceAuthority import deactivate_assembly
+        from SteveCADEditState import active_edit_state
 
         previous = Gui.activeWorkbench().name()
         self.addCleanup(lambda: Gui.activateWorkbench(previous))
@@ -379,11 +379,11 @@ class TestSheetNativeView(unittest.TestCase):
 
     def test_workspace_switch_deactivates_assembly_and_continues_in_both_directions(self):
         from dataclasses import replace
-        import VibeCADGui as VibeGui
-        from VibeCADEditState import active_edit_state
-        from VibeCADNativeSessionFactory import _edit_or_task_active
-        from VibeCADNativeWorkspaceRuntime import NativeWorkspaceRuntime
-        from VibeCADRibbonSurface import read_active_ribbon_surface
+        import SteveCADGui as VibeGui
+        from SteveCADEditState import active_edit_state
+        from SteveCADNativeSessionFactory import _edit_or_task_active
+        from SteveCADNativeWorkspaceRuntime import NativeWorkspaceRuntime
+        from SteveCADRibbonSurface import read_active_ribbon_surface
 
         previous = Gui.activeWorkbench().name()
         self.addCleanup(lambda: Gui.activateWorkbench(previous))

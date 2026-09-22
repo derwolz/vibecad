@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # SPDX-License-Identifier: LGPL-2.1-or-later
 
-"""Resolve canonical VibeCAD version/build release metadata."""
+"""Resolve canonical SteveCAD version/build release metadata."""
 
 from __future__ import annotations
 
@@ -74,7 +74,7 @@ def resolve_release_title(repo_root: Path) -> str:
     """Return the human-facing GitHub release title."""
 
     return (
-        f"VibeCAD {resolve_release_version(repo_root)} "
+        f"SteveCAD {resolve_release_version(repo_root)} "
         f"(Build {resolve_release_build(repo_root)})"
     )
 
@@ -88,7 +88,7 @@ def resolve_release_channel(repo_root: Path) -> str:
 def resolve_artifact_basename(
     repo_root: Path, *, source_sha: str | None = None
 ) -> str:
-    """Return VibeCAD-<release-version>-build<build-number>.
+    """Return SteveCAD-<release-version>-build<build-number>.
 
     ``source_sha`` remains accepted for compatibility with existing callers.
     When supplied it is validated, but source revisions are intentionally not
@@ -98,7 +98,7 @@ def resolve_artifact_basename(
     if source_sha is not None:
         normalize_source_sha(source_sha)
     return (
-        f"VibeCAD-{resolve_release_version(repo_root)}-"
+        f"SteveCAD-{resolve_release_version(repo_root)}-"
         f"build{resolve_release_build(repo_root)}"
     )
 

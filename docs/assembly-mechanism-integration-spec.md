@@ -10,7 +10,7 @@ Related specification:
 
 ## 1. Purpose
 
-VibeCAD must let an AI author a part and determine, with precisely stated
+SteveCAD must let an AI author a part and determine, with precisely stated
 evidence, whether that part can participate in its intended mechanism.
 Requiring the AI to leave Part Design and manually recreate context in Assembly
 is not a sufficient product experience. Copying a small second assembly system
@@ -42,7 +42,7 @@ receive a substitute solver or a restricted fork of Assembly.
    is normalized to the same scenario consumed by Assembly.
 7. A result may say `pass`, `fail`, or `indeterminate`. Lack of a discovered
    collision is not automatically proof of collision-free motion.
-8. VibeCAD reports exactly what was evaluated. It must not use the unqualified
+8. SteveCAD reports exactly what was evaluated. It must not use the unqualified
    statement “this mechanism works.”
 
 ## 3. Goals
@@ -186,7 +186,7 @@ supported product surface is the following.
 
 ### 7.1 Components and occurrences
 
-- Link authored VibeCAD or compatible FreeCAD parts by stable document and
+- Link authored SteveCAD or compatible FreeCAD parts by stable document and
   object identity.
 - Insert bundled standard components, including fasteners.
 - Place, ground, suppress, duplicate, and pattern occurrences.
@@ -286,7 +286,7 @@ BOM behavior.
 - BOM tables.
 - Native Assembly interchange/export only where round-trip behavior is tested.
 
-Unknown mass or inertia stays unknown. VibeCAD must not invent a default mass to
+Unknown mass or inertia stays unknown. SteveCAD must not invent a default mass to
 make a report look complete.
 
 ### 7.9 Later dynamics extension
@@ -373,7 +373,7 @@ internally solved occurrence state.
 The returned `mechanism_verification` output is evaluated after native solve.
 The host independently reloads the authenticated source BREPs and recomputes
 the result before publication. Its persisted
-`vibecad-mechanism-verification-report-v1` contains scenario, solve-report, and
+`stevecad-mechanism-verification-report-v1` contains scenario, solve-report, and
 check hashes; an overall `pass`, `fail`, or `indeterminate` verdict; individual
 declaration results; exact OCCT distance, overlap, interface, and witness
 evidence; the first failure; and an explicit scope:
@@ -652,7 +652,7 @@ conservative interval evaluation:
 Rigid translational and rotational bounds may be derived from joint ranges and
 component bounding radii. Compound and closed-loop motion requires a
 solver-backed conservative bound. If the native solver cannot supply a valid
-bound for a configuration, VibeCAD must not label sampled frames as continuous
+bound for a configuration, SteveCAD must not label sampled frames as continuous
 certification.
 
 An API request may explicitly ask for `sampled` analysis for fast feedback. Its
@@ -702,10 +702,10 @@ but cannot be presented as current.
 
 ## 14. Native FreeCAD changes
 
-VibeCAD should use current native behavior through an adapter first, then move
+SteveCAD should use current native behavior through an adapter first, then move
 generally useful facilities into FreeCAD's native Assembly and Part layers.
 The goal is to improve the authoritative engine, not permanently reproduce it
-inside VibeCAD Python.
+inside SteveCAD Python.
 
 ### 14.1 Required integration boundary
 
@@ -759,7 +759,7 @@ they are generally useful. They must not be buried in
 
 - Existing native methods remain present.
 - New result objects and evaluation sessions are opt-in until characterized.
-- VibeCAD keeps a thin adapter for supported FreeCAD revisions.
+- SteveCAD keeps a thin adapter for supported FreeCAD revisions.
 - Native changes have direct C++ and Python tests independent of VibeScript.
 - No document-property migration occurs without a versioned dual-read path.
 
@@ -786,7 +786,7 @@ patterned without losing individual occurrence paths.
 ### 15.2 Part Design documents
 
 No transient mechanism graph is shown. The published part remains organized by
-Sketches, Features, Bodies, Materials, and Verification according to VibeCAD's
+Sketches, Features, Bodies, Materials, and Verification according to SteveCAD's
 type-grouped tree model. A verification item links to its scenario/report but
 does not become the parent of sketches or features.
 
@@ -1013,8 +1013,8 @@ The owner approved the initial additive Assembly static contract:
 
 1. `api.mechanism_check(assembly, *, requirements=(), contacts=(), label="")`
    and the exact schemas documented in Section 8.
-2. `vibecad-mechanism-static-check-v1` and
-   `vibecad-mechanism-verification-report-v1`.
+2. `stevecad-mechanism-static-check-v1` and
+   `stevecad-mechanism-verification-report-v1`.
 3. No inferred or default static tolerance; every evaluated pair declares its
    tolerance.
 4. The initial `prohibited`, `clearance`, `allowed`, `required`, and `ignored`
@@ -1026,7 +1026,7 @@ The owner must separately approve before public implementation:
 
 1. Continuous-analysis tolerances, resource limits, and any additions to the
    `mechanism_check` signature.
-2. Native FreeCAD changes to upstream versus maintain in VibeCAD adapters.
+2. Native FreeCAD changes to upstream versus maintain in SteveCAD adapters.
 3. Whether verification automatically refreshes in the background or only on
    explicit request.
 4. The Part Design facade's final public schema and publication behavior.

@@ -68,10 +68,10 @@ public:
         AssemblyOccurrence,
         AssemblyMotion,
         AssemblyOperation,
-        // A stable VibeCAD shape publication without a native Body is a
+        // A stable SteveCAD shape publication without a native Body is a
         // generated model output, not a user-authored reference. Appending
         // this role preserves every established Role numeric value.
-        VibeCADOutput,
+        SteveCADOutput,
     };
 
     struct Entry

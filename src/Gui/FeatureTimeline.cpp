@@ -105,13 +105,13 @@ bool timelineStructureProperty(
         std::string_view("Tip"),
         std::string_view("TransformMode"),
         std::string_view("Transformations"),
-        std::string_view("VibeCADPartDesignComponentOccurrenceNames"),
-        std::string_view("VibeCADPartDesignComponentOccurrences"),
-        std::string_view("VibeCADScriptedEngine"),
-        std::string_view("VibeCADScriptedModelId"),
-        std::string_view("VibeCADScriptedOutputKey"),
-        std::string_view("VibeCADScriptedRole"),
-        std::string_view("VibeCADVibeScriptOutputType"),
+        std::string_view("SteveCADPartDesignComponentOccurrenceNames"),
+        std::string_view("SteveCADPartDesignComponentOccurrences"),
+        std::string_view("SteveCADScriptedEngine"),
+        std::string_view("SteveCADScriptedModelId"),
+        std::string_view("SteveCADScriptedOutputKey"),
+        std::string_view("SteveCADScriptedRole"),
+        std::string_view("SteveCADVibeScriptOutputType"),
         std::string_view(App::DocumentTimeline::EditorPropertyName),
         std::string_view(App::DocumentTimeline::OwnerPropertyName),
         std::string_view(App::DocumentTimeline::RolePropertyName),
@@ -239,7 +239,7 @@ ApprovedDocumentTimelineCommand approvedTimelineEditCommand(
     return Gui::approvedDocumentTimelineCommand(
         operation,
         App::DocumentTimeline::EditCommandPropertyName,
-        "VibeCADTimelineOperationEditor",
+        "SteveCADTimelineOperationEditor",
         requireActive
     );
 }
@@ -433,7 +433,7 @@ bool isVisibleTimelineOperation(
         case Role::Sketch:
         case Role::Feature:
         case Role::Geometry:
-        case Role::VibeCADOutput:
+        case Role::SteveCADOutput:
         case Role::Reference:
             return true;
         case Role::Construction:
@@ -823,7 +823,7 @@ public:
         , documentGenerationRole(documentGenerationRole)
         , dropIndicator(new QFrame(viewport()))
     {
-        dropIndicator->setObjectName(QStringLiteral("VibeCADFeatureTimelineDropIndicator"));
+        dropIndicator->setObjectName(QStringLiteral("SteveCADFeatureTimelineDropIndicator"));
         dropIndicator->setFrameShape(QFrame::VLine);
         dropIndicator->setFrameShadow(QFrame::Plain);
         dropIndicator->setLineWidth(2);
@@ -1046,7 +1046,7 @@ FeatureTimeline::FeatureTimeline(QWidget* parent)
     , SelectionObserver(true, ResolveMode::OldStyleElement)
 {
     clearDocumentScope();
-    setObjectName(QStringLiteral("VibeCADFeatureTimeline"));
+    setObjectName(QStringLiteral("SteveCADFeatureTimeline"));
     setAccessibleName(tr("Feature timeline"));
     setAccessibleDescription(tr("Ordered native modeling history for the active document"));
     setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
@@ -1075,7 +1075,7 @@ FeatureTimeline::FeatureTimeline(QWidget* parent)
         return button;
     };
     recomputeButton = makeNavigationButton(
-        QStringLiteral("VibeCADFeatureTimelineRecompute"),
+        QStringLiteral("SteveCADFeatureTimelineRecompute"),
         Gui::BitmapFactory().iconFromTheme(
             "view-refresh",
             style()->standardIcon(QStyle::SP_BrowserReload)
@@ -1084,26 +1084,26 @@ FeatureTimeline::FeatureTimeline(QWidget* parent)
         tr("Recompute the active document")
     );
     previousButton = makeNavigationButton(
-        QStringLiteral("VibeCADFeatureTimelinePrevious"),
+        QStringLiteral("SteveCADFeatureTimelinePrevious"),
         style()->standardIcon(QStyle::SP_MediaSeekBackward),
         tr("Move current model state to previous operation"),
         tr("Move the current model state to the previous operation")
     );
     nextButton = makeNavigationButton(
-        QStringLiteral("VibeCADFeatureTimelineNext"),
+        QStringLiteral("SteveCADFeatureTimelineNext"),
         style()->standardIcon(QStyle::SP_MediaSeekForward),
         tr("Move current model state to next operation"),
         tr("Move the current model state to the next operation")
     );
     endButton = makeNavigationButton(
-        QStringLiteral("VibeCADFeatureTimelineEnd"),
+        QStringLiteral("SteveCADFeatureTimelineEnd"),
         style()->standardIcon(QStyle::SP_MediaSkipForward),
         tr("Move current model state to end"),
         tr("Move the current model state to the end of history")
     );
 
     auto* separator = new QFrame(this);
-    separator->setObjectName(QStringLiteral("VibeCADFeatureTimelineSeparator"));
+    separator->setObjectName(QStringLiteral("SteveCADFeatureTimelineSeparator"));
     separator->setFrameShape(QFrame::VLine);
     separator->setFrameShadow(QFrame::Sunken);
     layout->addWidget(separator);
@@ -1116,7 +1116,7 @@ FeatureTimeline::FeatureTimeline(QWidget* parent)
         this
     );
     timeline = timelineList;
-    timeline->setObjectName(QStringLiteral("VibeCADFeatureTimelineItems"));
+    timeline->setObjectName(QStringLiteral("SteveCADFeatureTimelineItems"));
     timeline->setAccessibleName(tr("Feature timeline operations"));
     timeline->setViewMode(QListView::IconMode);
     timeline->setFlow(QListView::LeftToRight);
@@ -1672,9 +1672,9 @@ void FeatureTimeline::refreshPresentation()
         auto* command = Gui::Application::Instance->commandManager().getCommandByName("Std_Refresh");
         recomputeButton->setEnabled(canChangeHistory() && command && command->canInvoke());
     }
-    if (qEnvironmentVariableIsSet("VIBECAD_RESTORE_DETAIL_TRACE")) {
+    if (qEnvironmentVariableIsSet("STEVECAD_RESTORE_DETAIL_TRACE")) {
         Base::Console().message(
-            "VIBECAD_PROJECTION history total_ms=%lld objects=%zu full=0\n",
+            "STEVECAD_PROJECTION history total_ms=%lld objects=%zu full=0\n",
             static_cast<long long>(elapsed),
             projectedObjects
         );
@@ -2099,9 +2099,9 @@ void FeatureTimeline::rebuild()
             timeline->scrollToItem(stateMarker, QAbstractItemView::EnsureVisible);
         }
         syncSelectionFromGui();
-        if (qEnvironmentVariableIsSet("VIBECAD_RESTORE_DETAIL_TRACE")) {
+        if (qEnvironmentVariableIsSet("STEVECAD_RESTORE_DETAIL_TRACE")) {
             Base::Console().message(
-                "VIBECAD_PROJECTION history total_ms=%lld objects=%zu full=1\n",
+                "STEVECAD_PROJECTION history total_ms=%lld objects=%zu full=1\n",
                 static_cast<long long>(elapsed),
                 projectedObjects
             );
@@ -3240,7 +3240,7 @@ void FeatureTimeline::onTimelineContextMenu(const QPoint& position)
     }
     else {
         auto* currentAction = menu.addAction(tr("Set current model state here"));
-        currentAction->setObjectName(QStringLiteral("VibeCADTimelineSetCurrent"));
+        currentAction->setObjectName(QStringLiteral("SteveCADTimelineSetCurrent"));
         const int operationIndex = item->data(OperationIndexRole).toInt();
         connect(
             currentAction,
@@ -3279,7 +3279,7 @@ void FeatureTimeline::onTimelineContextMenu(const QPoint& position)
             : nullptr;
         if (isDerivedFrom(object, "PartDesign::Body")) {
             auto* activateAction = menu.addAction(tr("Activate Body"));
-            activateAction->setObjectName(QStringLiteral("VibeCADTimelineActivateBody"));
+            activateAction->setObjectName(QStringLiteral("SteveCADTimelineActivateBody"));
             connect(
                 activateAction,
                 &QAction::triggered,
@@ -3297,7 +3297,7 @@ void FeatureTimeline::onTimelineContextMenu(const QPoint& position)
         else if (operationCommand.command
                  || (viewProvider && viewProvider->supportsDocumentTimelineEdit())) {
             auto* editAction = menu.addAction(editor ? tr("Edit Parameters") : tr("Edit"));
-            editAction->setObjectName(QStringLiteral("VibeCADTimelineEdit"));
+            editAction->setObjectName(QStringLiteral("SteveCADTimelineEdit"));
             connect(
                 editAction,
                 &QAction::triggered,
@@ -3346,7 +3346,7 @@ void FeatureTimeline::onTimelineContextMenu(const QPoint& position)
             auto* suppressAction = menu.addAction(
                 suppressible->Suppressed.getValue() ? tr("Unsuppress") : tr("Suppress")
             );
-            suppressAction->setObjectName(QStringLiteral("VibeCADTimelineSuppress"));
+            suppressAction->setObjectName(QStringLiteral("SteveCADTimelineSuppress"));
             connect(
                 suppressAction,
                 &QAction::triggered,
@@ -3368,7 +3368,7 @@ void FeatureTimeline::onTimelineContextMenu(const QPoint& position)
         if (Gui::Application::Instance->commandManager().getCommandByName("Std_Delete")
             && Gui::Application::Instance->commandManager().getCommandByName("Std_Delete")->isActive()) {
             auto* deleteAction = menu.addAction(tr("Delete"));
-            deleteAction->setObjectName(QStringLiteral("VibeCADTimelineDelete"));
+            deleteAction->setObjectName(QStringLiteral("SteveCADTimelineDelete"));
             connect(
                 deleteAction,
                 &QAction::triggered,

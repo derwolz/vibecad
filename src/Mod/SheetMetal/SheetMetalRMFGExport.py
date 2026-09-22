@@ -23,7 +23,7 @@ from SheetMetalRMFGSnapshot import ExportSnapshot
 def export_folded(shape, revision, executable):
     """Detached worker work. The caller checks document currency after completion."""
     child = Path(__file__).with_name("SheetMetalRMFGExportChild.py").resolve(strict=True)
-    with tempfile.TemporaryDirectory(prefix="vibecad-rmfg-export-") as directory:
+    with tempfile.TemporaryDirectory(prefix="stevecad-rmfg-export-") as directory:
         workspace = Path(directory)
         source = workspace/"folded.brep"
         shape.exportBrepDetached(str(source))
@@ -32,7 +32,7 @@ def export_folded(shape, revision, executable):
             for chunk in iter(lambda: stream.read(1024 * 1024), b""):
                 digest.update(chunk)
         (workspace/"request.json").write_text(json.dumps({
-            "schema": "vibecad-rmfg-step-v1", "brep_sha256": digest.hexdigest()}))
+            "schema": "stevecad-rmfg-step-v1", "brep_sha256": digest.hexdigest()}))
         environment = os.environ.copy()
         for variable, name in (("FREECAD_USER_HOME", "home"), ("FREECAD_USER_DATA", "data"),
                                ("FREECAD_USER_TEMP", "tmp"), ("TMPDIR", "tmp"),
@@ -53,7 +53,7 @@ def export_folded(shape, revision, executable):
         if not result_path.is_file() or result_path.stat().st_size > 4096:
             raise RuntimeError("The isolated folded STEP writer returned no usable result")
         result = json.loads(result_path.read_text())
-        if process.returncode != 0 or result.get("schema") != "vibecad-rmfg-step-v1" or result.get("ok") is not True:
+        if process.returncode != 0 or result.get("schema") != "stevecad-rmfg-step-v1" or result.get("ok") is not True:
             raise RuntimeError("The isolated folded STEP writer could not validate the export")
         with (workspace/"folded.step").open("rb") as stream:
             data = stream.read(MAX_STEP_BYTES+1)
@@ -119,7 +119,7 @@ def start_export(sheet, *, expected_revision, exporter=None):
     # Copy the prepared folded solid, irrespective of the active display mode.
     # The worker never receives a document, feature, view, or selected object.
     shape = geometry.folded.copy()
-    from VibeCADIsolatedMeshWorker import freecadcmd_path
+    from SteveCADIsolatedMeshWorker import freecadcmd_path
     executable = freecadcmd_path()
     return ExportRun(sheet, revision, shape, executable, export_folded if exporter is None else exporter)
 

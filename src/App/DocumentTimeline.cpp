@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: LGPL-2.1-or-later
 
 /***************************************************************************
- *   Copyright (c) 2026 VibeCAD contributors                              *
+ *   Copyright (c) 2026 SteveCAD contributors                              *
  *                                                                         *
  *   This file is part of the FreeCAD CAx development system.              *
  *                                                                         *
@@ -80,7 +80,7 @@ PropertyUUID& ensureDesignDefinitionUuid(
         property = definition.addDynamicProperty(
             "App::PropertyUUID",
             name,
-            "VibeCAD Design",
+            "SteveCAD Design",
             description,
             Prop_NoRecompute,
             true,

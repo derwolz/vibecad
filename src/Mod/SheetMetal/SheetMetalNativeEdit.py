@@ -8,9 +8,9 @@ import FreeCAD as App
 
 import SheetMetalHistoryOperations as Shared
 from SheetMetalPresentation import _gui_thread
-from VibeCADNativeMutation import NativeMutationRunner
-from VibeCADNativeRuntimeContext import NativeRuntimeContext
-from VibeCADNativeState import NativeCallTicket, is_structural_property
+from SteveCADNativeMutation import NativeMutationRunner
+from SteveCADNativeRuntimeContext import NativeRuntimeContext
+from SteveCADNativeState import NativeCallTicket, is_structural_property
 
 
 class NativeSheetEditError(RuntimeError):

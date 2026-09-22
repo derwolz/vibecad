@@ -197,7 +197,7 @@ bool TaskDlgDatumParameters::accept()
         }
     }
 
-    if (pcDatum->getPropertyByName("VibeCADDefinitionId")
+    if (pcDatum->getPropertyByName("SteveCADDefinitionId")
         && !pcActiveBody) {
         try {
             std::vector<App::DocumentObject*> references =

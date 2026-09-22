@@ -9,9 +9,9 @@
 	<key>CFBundleGetInfoString</key>
 	<string></string>
 	<key>CFBundleIconFile</key>
-	<string>vibecad.icns</string>
+	<string>stevecad.icns</string>
 	<key>CFBundleIdentifier</key>
-	<string>org.vibecad.VibeCAD</string>
+	<string>org.stevecad.SteveCAD</string>
 	<key>CFBundleInfoDictionaryVersion</key>
 	<string>6.0</string>
 	<key>CFBundleLongVersionString</key>
@@ -21,11 +21,11 @@
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
 	<key>CFBundleShortVersionString</key>
-	<string>VIBECAD_SHORT_VERSION</string>
+	<string>STEVECAD_SHORT_VERSION</string>
 	<key>CFBundleSignature</key>
 	<string>????</string>
 	<key>CFBundleVersion</key>
-	<string>VIBECAD_BUILD_VERSION</string>
+	<string>STEVECAD_BUILD_VERSION</string>
 	<key>CSResourcesFileMapped</key>
 	<true/>
 	<key>NSHumanReadableCopyright</key>

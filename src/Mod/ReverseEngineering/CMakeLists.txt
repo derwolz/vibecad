@@ -12,7 +12,7 @@ set(Reen_Scripts
 
 set(Reen_TestScripts
     ReverseEngineeringTests/__init__.py
-    ReverseEngineeringTests/TestVibeCADRibbonTools.py
+    ReverseEngineeringTests/TestSteveCADRibbonTools.py
 )
 
 if(BUILD_GUI)

@@ -7,17 +7,17 @@ platforms = ["linux-64", "linux-aarch64", "osx-64", "osx-arm64", "win-64"]
 preview = ["pixi-build"]
 
 [package]
-name = "vibecad"
+name = "stevecad"
 version = "26.3.1RC6"
 homepage = "https://freecad.org"
 repository = "https://github.com/FreeCAD/FreeCAD"
-description = "VibeCAD"
+description = "SteveCAD"
 
 [package.build]
 backend = { name = "pixi-build-rattler-build", version = "*" }
 
 [feature.freecad.dependencies]
-vibecad = { path = "." }
+stevecad = { path = "." }
 
 [feature.freecad.target.win-64.dependencies]
 ucrt = "==10.0.20348.0"

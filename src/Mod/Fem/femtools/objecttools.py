@@ -84,12 +84,12 @@ def _timeline_metadata_root(obj, document):
 
         role_exists, role = _timeline_property(
             current,
-            "VibeCADTimelineRole",
+            "SteveCADTimelineRole",
             "App::PropertyString",
         )
         owner_exists, owner = _timeline_property(
             current,
-            "VibeCADTimelineOwner",
+            "SteveCADTimelineOwner",
             "App::PropertyLinkHidden",
         )
         if role_exists and role == "resource":
@@ -127,12 +127,12 @@ def _timeline_owner_chain_contains(obj, ancestor, document):
         visited.add(identity)
         role_exists, role = _timeline_property(
             current,
-            "VibeCADTimelineRole",
+            "SteveCADTimelineRole",
             "App::PropertyString",
         )
         owner_exists, owner = _timeline_property(
             current,
-            "VibeCADTimelineOwner",
+            "SteveCADTimelineOwner",
             "App::PropertyLinkHidden",
         )
         if not role_exists or role != "resource":
@@ -179,7 +179,7 @@ def _ensure_exact_retained_result_graph(solver):
     if not exact_results:
         return "none"
 
-    timeline = document.getObject("VibeCADTimeline")
+    timeline = document.getObject("SteveCADTimeline")
     if timeline is None or timeline.TypeId != "App::DocumentTimeline":
         raise RuntimeError(
             "A retained FEM result has no native document History"
@@ -195,12 +195,12 @@ def _ensure_exact_retained_result_graph(solver):
 
     solver_role_exists, solver_role = _timeline_property(
         solver,
-        "VibeCADTimelineRole",
+        "SteveCADTimelineRole",
         "App::PropertyString",
     )
     solver_owner_exists, solver_owner = _timeline_property(
         solver,
-        "VibeCADTimelineOwner",
+        "SteveCADTimelineOwner",
         "App::PropertyLinkHidden",
     )
     if solver_owner_exists and solver_owner is not None:
@@ -214,7 +214,7 @@ def _ensure_exact_retained_result_graph(solver):
         for result in exact_results:
             role_exists, role = _timeline_property(
                 result,
-                "VibeCADTimelineRole",
+                "SteveCADTimelineRole",
                 "App::PropertyString",
             )
             if (
@@ -234,7 +234,7 @@ def _ensure_exact_retained_result_graph(solver):
             direct_result_roots = tuple(
                 result
                 for result in exact_results
-                if getattr(result, "VibeCADTimelineOwner", None) is solver
+                if getattr(result, "SteveCADTimelineOwner", None) is solver
             )
             if not direct_result_roots or any(
                 not any(
@@ -365,22 +365,22 @@ def _ensure_exact_retained_result_graph(solver):
     # and its outputs as resources of that root.  Normalize only this complete
     # exact block immediately before the atomic adoption call.
     for result in exact_results:
-        if "VibeCADResultSolver" in result.PropertiesList:
-            result.removeProperty("VibeCADResultSolver")
+        if "SteveCADResultSolver" in result.PropertiesList:
+            result.removeProperty("SteveCADResultSolver")
         role_exists, _role = _timeline_property(
             result,
-            "VibeCADTimelineRole",
+            "SteveCADTimelineRole",
             "App::PropertyString",
         )
         if role_exists:
-            result.VibeCADTimelineRole = "operation"
+            result.SteveCADTimelineRole = "operation"
         owner_exists, _owner = _timeline_property(
             result,
-            "VibeCADTimelineOwner",
+            "SteveCADTimelineOwner",
             "App::PropertyLinkHidden",
         )
         if owner_exists:
-            result.VibeCADTimelineOwner = None
+            result.SteveCADTimelineOwner = None
 
     document.adoptExistingTimelineOperationBlock(
         solver,

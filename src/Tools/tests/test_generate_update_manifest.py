@@ -17,7 +17,7 @@ class TestGenerateUpdateManifest(unittest.TestCase):
         (root / "version.json").write_text(
             json.dumps(
                 {
-                    "name": "VibeCAD",
+                    "name": "SteveCAD",
                     "version_major": 26,
                     "version_minor": 3,
                     "version_patch": 1,
@@ -35,14 +35,14 @@ class TestGenerateUpdateManifest(unittest.TestCase):
             assets.mkdir()
             self._repo(root)
             installer = assets / (
-                "VibeCAD-26.3.1-RC3-build17-Windows-x86_64-installer.exe"
+                "SteveCAD-26.3.1-RC3-build17-Windows-x86_64-installer.exe"
             )
             installer.write_bytes(b"signed installer fixture")
             (assets / f"{installer.name}-SHA256.txt").write_text(
                 "ignored checksum sidecar\n", encoding="utf-8"
             )
             appimage = assets / (
-                "VibeCAD-26.3.1-RC3-build17-Linux-x86_64.AppImage"
+                "SteveCAD-26.3.1-RC3-build17-Linux-x86_64.AppImage"
             )
             appimage.write_bytes(b"appimage fixture")
 
@@ -79,7 +79,7 @@ class TestGenerateUpdateManifest(unittest.TestCase):
             assets = root / "assets"
             assets.mkdir()
             self._repo(root, suffix="", build=2)
-            (assets / "VibeCAD-26.3.1-build2-Windows-x86_64.7z").write_bytes(
+            (assets / "SteveCAD-26.3.1-build2-Windows-x86_64.7z").write_bytes(
                 b"portable"
             )
 
@@ -98,10 +98,10 @@ class TestGenerateUpdateManifest(unittest.TestCase):
             assets = root / "assets"
             assets.mkdir()
             self._repo(root)
-            (assets / "VibeCAD-26.3.1-RC3-build17-macOS12-arm64.dmg").write_bytes(
+            (assets / "SteveCAD-26.3.1-RC3-build17-macOS12-arm64.dmg").write_bytes(
                 b"apple silicon dmg"
             )
-            (assets / "VibeCAD-26.3.1-RC3-build17-macOS12-x86_64.dmg").write_bytes(
+            (assets / "SteveCAD-26.3.1-RC3-build17-macOS12-x86_64.dmg").write_bytes(
                 b"intel dmg"
             )
 
@@ -128,7 +128,7 @@ class TestGenerateUpdateManifest(unittest.TestCase):
             assets = root / "assets"
             assets.mkdir()
             self._repo(root)
-            (assets / "VibeCAD-deadbeef1234-26.3.1-RC3-Windows-x86_64.7z").write_bytes(
+            (assets / "SteveCAD-deadbeef1234-26.3.1-RC3-Windows-x86_64.7z").write_bytes(
                 b"legacy"
             )
 
@@ -146,7 +146,7 @@ class TestGenerateUpdateManifest(unittest.TestCase):
             assets = root / "assets"
             assets.mkdir()
             self._repo(root)
-            (assets / "VibeCAD-26.3.1-RC3-build17-Windows-x86_64.7z").write_bytes(
+            (assets / "SteveCAD-26.3.1-RC3-build17-Windows-x86_64.7z").write_bytes(
                 b"portable"
             )
 

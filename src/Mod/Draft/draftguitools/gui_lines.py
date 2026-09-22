@@ -424,14 +424,14 @@ class Wire(Line):
                         for obj in selection
                     )
                     _cmd_list = [
-                        "_vibecad_inputs = draftutils.timeline.visible_inputs(["
+                        "_stevecad_inputs = draftutils.timeline.visible_inputs(["
                         + selected_objects
                         + "])",
                         _cmd,
                     ]
                     _cmd_list.append("Draft.autogroup(wire)")
                     _cmd_list.append(
-                        "draftutils.timeline.accept_outputs([wire], _vibecad_inputs)"
+                        "draftutils.timeline.accept_outputs([wire], _stevecad_inputs)"
                     )
                     _cmd_list.append("FreeCAD.ActiveDocument.recompute()")
 

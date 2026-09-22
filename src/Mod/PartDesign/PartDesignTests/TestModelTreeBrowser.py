@@ -1,6 +1,6 @@
 # SPDX-License-Identifier: LGPL-2.1-or-later
 
-"""GUI regressions for VibeCAD's simplified model browser and Body renderer."""
+"""GUI regressions for SteveCAD's simplified model browser and Body renderer."""
 
 import os
 import tempfile
@@ -41,30 +41,30 @@ VIBESCRIPT_HISTORY_LABEL = "VibeScript Build"
 
 def _tag_scripted_object(obj, *, role, model_id, output_key=""):
     values = {
-        "VibeCADScriptedRole": role,
-        "VibeCADScriptedEngine": "vibescript:partdesign",
-        "VibeCADScriptedModelId": model_id,
-        "VibeCADScriptedOutputKey": output_key,
-        "VibeCADPublishedRevision": "accepted",
+        "SteveCADScriptedRole": role,
+        "SteveCADScriptedEngine": "vibescript:partdesign",
+        "SteveCADScriptedModelId": model_id,
+        "SteveCADScriptedOutputKey": output_key,
+        "SteveCADPublishedRevision": "accepted",
     }
     for name, value in values.items():
         if name not in obj.PropertiesList:
             obj.addProperty(
                 "App::PropertyString",
                 name,
-                "VibeCAD Publication",
+                "SteveCAD Publication",
             )
         setattr(obj, name, value)
 
 
 def _tag_timeline_role(obj, role):
-    if "VibeCADTimelineRole" not in obj.PropertiesList:
+    if "SteveCADTimelineRole" not in obj.PropertiesList:
         obj.addProperty(
             "App::PropertyString",
-            "VibeCADTimelineRole",
-            "VibeCAD History",
+            "SteveCADTimelineRole",
+            "SteveCAD History",
         )
-    obj.VibeCADTimelineRole = role
+    obj.SteveCADTimelineRole = role
 
 
 def _visible_children(item):
@@ -194,7 +194,7 @@ def _is_in_active_scene(obj):
 
 
 def _rewrite_saved_visibility(path, values):
-    """Write an intentionally stale pre-VibeCAD visibility state to an FCStd."""
+    """Write an intentionally stale pre-SteveCAD visibility state to an FCStd."""
     with zipfile.ZipFile(path, "r") as archive:
         entries = [(info, archive.read(info.filename)) for info in archive.infolist()]
 
@@ -450,7 +450,7 @@ class TestModelTreeBrowser(unittest.TestCase):
         self.vibe_result.Shape = Part.makeBox(6, 2, 1)
         self.vibe_body.Tip = self.vibe_result
 
-        from VibeCADVibeScriptDomainPublication import (
+        from SteveCADVibeScriptDomainPublication import (
             PARTDESIGN_HISTORY_PRESENTATION_SCHEMA,
             PROP_PARTDESIGN_HISTORY_PRESENTATION,
         )
@@ -458,7 +458,7 @@ class TestModelTreeBrowser(unittest.TestCase):
         self.vibe_body.addProperty(
             "App::PropertyString",
             PROP_PARTDESIGN_HISTORY_PRESENTATION,
-            "VibeCAD Publication",
+            "SteveCAD Publication",
         )
         setattr(
             self.vibe_body,
@@ -510,8 +510,8 @@ class TestModelTreeBrowser(unittest.TestCase):
         )
         _tag_timeline_role(self.vibe_operation, "operation")
         for property_name, command_name in (
-            ("VibeCADTimelineEditCommand", "VibeCAD_EditScriptedModel"),
-            ("VibeCADTimelineDeleteCommand", "VibeCAD_DeleteScriptedModel"),
+            ("SteveCADTimelineEditCommand", "SteveCAD_EditScriptedModel"),
+            ("SteveCADTimelineDeleteCommand", "SteveCAD_DeleteScriptedModel"),
         ):
             if property_name not in self.vibe_operation.PropertiesList:
                 self.vibe_operation.addProperty(
@@ -870,7 +870,7 @@ class TestModelTreeBrowser(unittest.TestCase):
         self.assertNotEqual(
             _icon_png(body.icon(0)),
             _icon_png(manual_body.icon(0)),
-            "A generated Body must retain its VibeCAD provenance badge",
+            "A generated Body must retain its SteveCAD provenance badge",
         )
 
         operation_visibility = self.vibe_operation.Visibility
@@ -1320,7 +1320,7 @@ class TestModelTreeBrowser(unittest.TestCase):
             self.assertFalse(_snapshot_has_label(_snapshot(operations), label))
             self.assertFalse(_snapshot_has_label(_snapshot(other), label))
 
-    def test_vibecad_outputs_are_badged_and_not_classified_as_references(self):
+    def test_stevecad_outputs_are_badged_and_not_classified_as_references(self):
         model_id = "browser-target-backed-publication"
         target = self.document.addObject(
             "Part::Feature",
@@ -1376,11 +1376,11 @@ class TestModelTreeBrowser(unittest.TestCase):
         document_item, vibe_component, category, generated, references = observed
         self.assertIsNone(_child(references, output.Label))
         self.assertFalse(category.icon(0).isNull())
-        self.assertIn("Created by VibeCAD", generated.toolTip(0))
-        self.assertIn("Created by VibeCAD", vibe_component.toolTip(0))
+        self.assertIn("Created by SteveCAD", generated.toolTip(0))
+        self.assertIn("Created by SteveCAD", vibe_component.toolTip(0))
 
         manual_component = _child(document_item, self.component.Label)
-        self.assertNotIn("Created by VibeCAD", manual_component.toolTip(0))
+        self.assertNotIn("Created by SteveCAD", manual_component.toolTip(0))
         self.assertNotEqual(
             vibe_component.icon(0).cacheKey(),
             manual_component.icon(0).cacheKey(),
@@ -1453,16 +1453,16 @@ class TestModelTreeBrowser(unittest.TestCase):
         ):
             obj.addProperty(
                 "App::PropertyString",
-                "VibeCADVibeScriptOutputType",
-                "VibeCAD Publication",
+                "SteveCADVibeScriptOutputType",
+                "SteveCAD Publication",
             )
-            obj.VibeCADVibeScriptOutputType = output_type
+            obj.SteveCADVibeScriptOutputType = output_type
             obj.addProperty(
                 "App::PropertyString",
-                "VibeCADTimelineRole",
-                "VibeCAD History",
+                "SteveCADTimelineRole",
+                "SteveCAD History",
             )
-            obj.VibeCADTimelineRole = "operation"
+            obj.SteveCADTimelineRole = "operation"
         self.document.recompute()
 
         def assembly_items():
@@ -1588,13 +1588,13 @@ class TestModelTreeBrowser(unittest.TestCase):
         incomplete.Label = "Incomplete Publication Metadata"
         incomplete.LinkedObject = self.profile_alpha
         for name, value in (
-            ("VibeCADScriptedRole", "publication"),
-            ("VibeCADScriptedEngine", "vibescript:partdesign"),
+            ("SteveCADScriptedRole", "publication"),
+            ("SteveCADScriptedEngine", "vibescript:partdesign"),
         ):
             incomplete.addProperty(
                 "App::PropertyString",
                 name,
-                "VibeCAD Publication",
+                "SteveCAD Publication",
             )
             setattr(incomplete, name, value)
 
@@ -1691,7 +1691,7 @@ class TestModelTreeBrowser(unittest.TestCase):
         Gui.Selection.addSelection(self.feature)
         timeline = Gui.getMainWindow().findChild(
             QtGui.QListWidget,
-            "VibeCADFeatureTimelineItems",
+            "SteveCADFeatureTimelineItems",
         )
         self.assertIsNotNone(timeline)
         self.assertTrue(
@@ -1715,22 +1715,22 @@ class TestModelTreeBrowser(unittest.TestCase):
         occurrence.LinkedObject = self.vibe_body
         occurrence.addProperty(
             "App::PropertyString",
-            "VibeCADVibeScriptOutputType",
-            "VibeCAD Publication",
+            "SteveCADVibeScriptOutputType",
+            "SteveCAD Publication",
         )
-        occurrence.VibeCADVibeScriptOutputType = "component_link"
+        occurrence.SteveCADVibeScriptOutputType = "component_link"
         occurrence.addProperty(
             "App::PropertyString",
-            "VibeCADTimelineRole",
-            "VibeCAD History",
+            "SteveCADTimelineRole",
+            "SteveCAD History",
         )
-        occurrence.VibeCADTimelineRole = "internal"
+        occurrence.SteveCADTimelineRole = "internal"
         self.vibe_component.addProperty(
             "App::PropertyStringList",
-            "VibeCADPartDesignComponentOccurrenceNames",
-            "VibeCAD Publication",
+            "SteveCADPartDesignComponentOccurrenceNames",
+            "SteveCAD Publication",
         )
-        self.vibe_component.VibeCADPartDesignComponentOccurrenceNames = [
+        self.vibe_component.SteveCADPartDesignComponentOccurrenceNames = [
             occurrence.Name
         ]
         self.document.recompute()
@@ -2078,7 +2078,7 @@ class TestModelTreeBrowser(unittest.TestCase):
         expected_result_primitives = _primitive_counts(self.vibe_result)
         self.assertGreater(expected_result_primitives[0], 0)
 
-        # Older documents may persist DisplayModeBody="Tip". VibeCAD keeps
+        # Older documents may persist DisplayModeBody="Tip". SteveCAD keeps
         # that public property readable, but it must not reactivate the Body's
         # copied Shape branch alongside the actual Tip child.
         self.vibe_body.ViewObject.DisplayModeBody = "Tip"
@@ -2159,7 +2159,7 @@ class TestModelTreeBrowser(unittest.TestCase):
         Gui.activeView().setActiveObject("pdbody", self.vibe_body)
         timeline = Gui.getMainWindow().findChild(
             QtGui.QListWidget,
-            "VibeCADFeatureTimelineItems",
+            "SteveCADFeatureTimelineItems",
         )
         self.assertIsNotNone(timeline)
 
@@ -2523,7 +2523,7 @@ class TestModelTreeBrowser(unittest.TestCase):
     def test_deferred_restore_does_not_override_sketch_preview(self):
         """Issue #203: queued presentation must respect a live sketch edit."""
 
-        import VibeCADGui as vibe_gui
+        import SteveCADGui as vibe_gui
 
         Gui.activateWorkbench("PartDesignWorkbench")
         Gui.activeView().setActiveObject("pdbody", self.vibe_body)
@@ -2580,7 +2580,7 @@ class TestModelTreeBrowser(unittest.TestCase):
     def test_deferred_restore_keeps_newer_link_visibility(self):
         """Issue #203: a user command after scheduling wins over stale work."""
 
-        import VibeCADGui as vibe_gui
+        import SteveCADGui as vibe_gui
 
         occurrence = self.document.addObject("App::Link", "DeferredVisibilityOccurrence")
         occurrence.LinkedObject = self.vibe_body
@@ -2605,9 +2605,9 @@ class TestModelTreeBrowser(unittest.TestCase):
     def test_deferred_restore_keeps_newer_visibility_edit_modified(self):
         """Issue #203: an opened document must still offer to save a later edit."""
 
-        import VibeCADGui as vibe_gui
+        import SteveCADGui as vibe_gui
 
-        with tempfile.TemporaryDirectory(prefix="vibecad_deferred_visibility_") as directory:
+        with tempfile.TemporaryDirectory(prefix="stevecad_deferred_visibility_") as directory:
             self.vibe_output.Visibility = True
             path = os.path.join(directory, "deferred_visibility.FCStd")
             self.document.saveAs(path)
@@ -2830,13 +2830,13 @@ class TestModelTreeBrowser(unittest.TestCase):
         expected = (True, True, False, False, False, False, False)
         self.assertIsNotNone(_wait_until(lambda: visible_state() == expected))
         self.assertIsNotNone(_wait_until(lambda: _primitive_counts(shown)[0] > 0))
-        with tempfile.TemporaryDirectory(prefix="vibecad_assembly_visibility_") as directory:
+        with tempfile.TemporaryDirectory(prefix="stevecad_assembly_visibility_") as directory:
             path = os.path.join(directory, "assembly.FCStd")
             self.document.saveAs(path)
             self.assertIsNotNone(_wait_until(lambda: self.document.isClosable()))
             App.closeDocument(self.document.Name)
             self.document = App.openDocument(path)
-            from VibeCADGui import _pending_document_render_refreshes
+            from SteveCADGui import _pending_document_render_refreshes
             self.assertIsNotNone(_wait_until(lambda: (
                 not self.document.Restoring
                 and not self.document.Recomputing
@@ -2851,8 +2851,8 @@ class TestModelTreeBrowser(unittest.TestCase):
             self.assertFalse(hidden.Visibility)
 
     def test_assembly_occurrences_do_not_inherit_private_source_presentation(self):
-        import VibeCADScriptedPublication as scripted_publication
-        from VibeCADVibeScriptDomainPublication import restore_partdesign_history_presentation
+        import SteveCADScriptedPublication as scripted_publication
+        from SteveCADVibeScriptDomainPublication import restore_partdesign_history_presentation
 
         source = self.document.addObject("Part::Feature", "PrivateSource")
         source.Shape = Part.makeBox(10, 10, 10)
@@ -2893,7 +2893,7 @@ class TestModelTreeBrowser(unittest.TestCase):
         self.assertEqual(visible_state(), expected)
         self.assertTrue(set(restored["changed_objects"]).isdisjoint(
             {"DirectOccurrence", "NestedOccurrence", "HiddenOccurrence"}))
-        with tempfile.TemporaryDirectory(prefix="vibecad_link_visibility_") as directory:
+        with tempfile.TemporaryDirectory(prefix="stevecad_link_visibility_") as directory:
             path = os.path.join(directory, "assembly.FCStd")
             self.document.saveAs(path)
             self.assertIsNotNone(_wait_until(lambda: not any((
@@ -2902,7 +2902,7 @@ class TestModelTreeBrowser(unittest.TestCase):
                 self.document.PresentationUpdateActive))))
             App.closeDocument(self.document.Name)
             self.document = App.openDocument(path)
-            from VibeCADGui import _pending_document_render_refreshes
+            from SteveCADGui import _pending_document_render_refreshes
             self.assertIsNotNone(_wait_until(lambda: (
                 not self.document.Restoring
                 and not self.document.Recomputing
@@ -3062,7 +3062,7 @@ class TestModelTreeBrowser(unittest.TestCase):
         )
 
         with tempfile.TemporaryDirectory(
-            prefix="vibecad_native_body_visibility_",
+            prefix="stevecad_native_body_visibility_",
         ) as temporary_directory:
             path = os.path.join(temporary_directory, "native_body.FCStd")
             self.document.saveAs(path)
@@ -3088,7 +3088,7 @@ class TestModelTreeBrowser(unittest.TestCase):
             self.assertTrue(_is_in_active_scene(self.reference))
 
     def test_document_restore_repairs_stale_native_history_visibility(self):
-        """A pre-VibeCAD file cannot reopen with two cumulative solids drawn."""
+        """A pre-SteveCAD file cannot reopen with two cumulative solids drawn."""
 
         Gui.activateWorkbench("PartDesignWorkbench")
         final = self.feature_body.newObject(
@@ -3103,7 +3103,7 @@ class TestModelTreeBrowser(unittest.TestCase):
         self.document.recompute()
 
         with tempfile.TemporaryDirectory(
-            prefix="vibecad_native_history_restore_",
+            prefix="stevecad_native_history_restore_",
         ) as temporary_directory:
             path = os.path.join(temporary_directory, "stale_history.FCStd")
             self.document.saveAs(path)
@@ -3184,7 +3184,7 @@ class TestModelTreeBrowser(unittest.TestCase):
         pre_save_roles = _snapshot(pre_save_component)
 
         with tempfile.TemporaryDirectory(
-            prefix="vibecad_body_visibility_",
+            prefix="stevecad_body_visibility_",
         ) as temporary_directory:
             path = os.path.join(temporary_directory, "body.FCStd")
             self.document.saveAs(path)
@@ -3231,7 +3231,7 @@ class TestModelTreeBrowser(unittest.TestCase):
             self.assertIsNotNone(restored, self._snapshot())
             self.assertEqual(restored, pre_save_roles)
 
-            from VibeCADVibeScriptDomainPublication import (
+            from SteveCADVibeScriptDomainPublication import (
                 restore_partdesign_history_presentation,
             )
 
@@ -3261,7 +3261,7 @@ class TestModelTreeBrowser(unittest.TestCase):
             )
 
     def test_legacy_publication_migrates_to_native_body_renderer(self):
-        from VibeCADVibeScriptDomainPublication import (
+        from SteveCADVibeScriptDomainPublication import (
             _LEGACY_PARTDESIGN_HISTORY_PRESENTATION_SCHEMA,
             PROP_PARTDESIGN_HISTORY_PRESENTATION,
             restore_partdesign_history_presentation,
@@ -3287,7 +3287,7 @@ class TestModelTreeBrowser(unittest.TestCase):
         self.assertIs(self.vibe_output.getLinkedObject(), self.vibe_body)
 
     def test_publication_without_body_gets_native_body_and_result(self):
-        from VibeCADVibeScriptDomainPublication import (
+        from SteveCADVibeScriptDomainPublication import (
             PARTDESIGN_HISTORY_PRESENTATION_SCHEMA,
             PROP_PARTDESIGN_HISTORY_PRESENTATION,
             restore_partdesign_history_presentation,
@@ -3630,10 +3630,10 @@ class TestMeshGroupBrowser(unittest.TestCase):
         meshes.Label = "Meshes"
         meshes.addProperty(
             "App::PropertyString",
-            "VibeCADTreeRole",
+            "SteveCADTreeRole",
             "Tree",
         )
-        meshes.VibeCADTreeRole = "meshes"
+        meshes.SteveCADTreeRole = "meshes"
 
         imported = self.document.addObject("Mesh::Feature", "ImportedMesh")
         imported.Label = "Imported Mesh"
@@ -3767,15 +3767,15 @@ class TestConsumedBodyBrowser(unittest.TestCase):
         self._assert_parts(expected)
         target, tool, upstream = (self.document.getObject(name) for name in names)
         combine = self.document.getObject("Combine")
-        timeline = self.document.getObject("VibeCADTimeline")
+        timeline = self.document.getObject("SteveCADTimeline")
         end = len(timeline.Operations)
         # Use the actual history command: changing Position alone does not
         # apply suppression, restore publications, or request a tree refresh.
         previous = Gui.getMainWindow().findChild(
-            self.widgets.QToolButton, "VibeCADFeatureTimelinePrevious"
+            self.widgets.QToolButton, "SteveCADFeatureTimelinePrevious"
         )
         finish = Gui.getMainWindow().findChild(
-            self.widgets.QToolButton, "VibeCADFeatureTimelineEnd"
+            self.widgets.QToolButton, "SteveCADFeatureTimelineEnd"
         )
         self.assertIsNotNone(previous)
         self.assertIsNotNone(finish)

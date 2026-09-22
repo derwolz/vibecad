@@ -82,8 +82,8 @@ class TestSheetSourceCreation(unittest.TestCase):
         self.assertEqual(flange.baseObject, (source, arguments["subelements"]))
         self.assertEqual(source.Shape.exportBrepToString(), parent)
         self.assertEqual(self.doc.UndoCount, undo+1)
-        self.assertEqual(flange.VibeCADTimelineRole, "operation")
-        self.assertEqual(flange.VibeCADTimelineEditCommand, "SheetMetal_EditSource")
+        self.assertEqual(flange.SteveCADTimelineRole, "operation")
+        self.assertEqual(flange.SteveCADTimelineEditCommand, "SheetMetal_EditSource")
         self.assertEqual(flange.ViewObject.Proxy.claimChildren(), [source])
         self.assertEqual(Sources.arguments(flange), arguments)
         self.assertEqual(result["source_geometry"]["thickness_mm"], 1.6)
@@ -163,7 +163,7 @@ class TestSheetSourceCreation(unittest.TestCase):
                                   source.Shape.exportBrepToString()), before)
 
     def test_native_flange_request_uses_the_registered_async_source_path(self):
-        from VibeCADNativeSheetMetalCreateRuntime import NativeSheetMetalCreateRuntime
+        from SteveCADNativeSheetMetalCreateRuntime import NativeSheetMetalCreateRuntime
         source, arguments = self.flange_input()
         ticket = self.context.state.begin_call(self.doc.Uid, "sheet_metal.create")
         self.addCleanup(lambda: self.context.state.cancel_mutation(ticket))
@@ -250,8 +250,8 @@ class TestSheetSourceCreation(unittest.TestCase):
         self.assertTrue(result["assistant_undo_available"])
         self.assertTrue(obj.Shape.isValid())
         self.assertEqual(float(obj.height), 25)
-        self.assertEqual(obj.VibeCADTimelineRole, "operation")
-        self.assertEqual(obj.VibeCADTimelineEditCommand, "SheetMetal_EditSource")
+        self.assertEqual(obj.SteveCADTimelineRole, "operation")
+        self.assertEqual(obj.SteveCADTimelineEditCommand, "SheetMetal_EditSource")
         self.assertEqual(obj.ViewObject.Proxy.claimChildren(), [])
         self.assertGreater(result["source_geometry"]["volume_mm3"], 0)
         self.context.undo_ledger.undo_latest(ticket=self.context.state.begin_call(self.doc.Uid, "native.undo"),
@@ -297,8 +297,8 @@ class TestSheetSourceCreation(unittest.TestCase):
     def test_flat_native_height_edit_changes_flange_and_preserves_base_length(self):
         import SheetMetalEditable as Editable
         import SheetMetalHistoryOperations as Shared
-        from VibeCADNativeRegistry import build_native_capability_registry
-        from VibeCADNativeRuntimeRegistry import build_native_runtime_bindings
+        from SteveCADNativeRegistry import build_native_capability_registry
+        from SteveCADNativeRuntimeRegistry import build_native_runtime_bindings
         source, sheet = self.shared_base()
         Shared.switch(sheet, "flat")
         original_hash = sheet.PreparedInputHash
@@ -415,7 +415,7 @@ class TestSheetSourceCreation(unittest.TestCase):
             self.assertEqual(Shared.inspect(sheet)["parameters"]["height"]["value"], 33)
             self.assertAlmostEqual(sheet.Shape.BoundBox.ZLength, 33)
             self.assertTrue(sheet.FlatShape.isValid())
-            self.assertEqual(sheet.VibeCADTimelineEditCommand, "SheetMetal_EditParameters")
+            self.assertEqual(sheet.SteveCADTimelineEditCommand, "SheetMetal_EditParameters")
             # Restored solids retain their dimensions. The next actual edit
             # rebuilds transient mapping through the same asynchronous path.
             prepared = Shared.prepare(sheet, {"operation": "set_parameters", "changes": {"height": 34}},
@@ -430,13 +430,13 @@ class TestSheetSourceCreation(unittest.TestCase):
         from dataclasses import replace
         import SheetMetalEditable as Editable
         import SheetMetalHistoryOperations as Shared
-        from VibeCADNativeCapabilityRegistry import resolve_native_provider_surface
-        from VibeCADNativeProviderContext import provider_authorized_native_surface
-        from VibeCADNativeDispatch import NativeTurnDispatcher
-        from VibeCADNativeRegistry import build_native_capability_registry
-        from VibeCADNativeRuntimeRegistry import build_native_runtime_bindings
-        from VibeCADNativeTurn import NativeTurnSnapshot
-        from VibeCADRibbonSurface import read_active_ribbon_surface
+        from SteveCADNativeCapabilityRegistry import resolve_native_provider_surface
+        from SteveCADNativeProviderContext import provider_authorized_native_surface
+        from SteveCADNativeDispatch import NativeTurnDispatcher
+        from SteveCADNativeRegistry import build_native_capability_registry
+        from SteveCADNativeRuntimeRegistry import build_native_runtime_bindings
+        from SteveCADNativeTurn import NativeTurnSnapshot
+        from SteveCADRibbonSurface import read_active_ribbon_surface
 
         source, sheet = self.shared_base()
         center = Editable.get_prepared(sheet).flat_face.CenterOfMass
@@ -448,7 +448,7 @@ class TestSheetSourceCreation(unittest.TestCase):
         definition = sheet.Definition
         before_hash = hole.PreparedInputHash
         before_volume = hole.Shape.Volume
-        source_history = (sheet.VibeCADTimelineEditCommand, hole.VibeCADTimelineEditCommand)
+        source_history = (sheet.SteveCADTimelineEditCommand, hole.SteveCADTimelineEditCommand)
         previous = Gui.activeWorkbench().name()
         self.addCleanup(lambda: Gui.activateWorkbench(previous))
         Gui.activateWorkbench("AssemblyWorkbench")
@@ -485,7 +485,7 @@ class TestSheetSourceCreation(unittest.TestCase):
         self.assertAlmostEqual(occurrence.Shape.Volume, before_volume)
         self.assertEqual(hole.PreparedInputHash, before_hash)
         self.assertEqual(sheet.Definition, definition)
-        self.assertEqual((sheet.VibeCADTimelineEditCommand, hole.VibeCADTimelineEditCommand), source_history)
+        self.assertEqual((sheet.SteveCADTimelineEditCommand, hole.SteveCADTimelineEditCommand), source_history)
         self.assertIs(hole.BaseSheet, sheet)
         self.assertIs(sheet.SourceFace[0], source)
         # Editing the original shared chain must update the occurrence without
@@ -629,7 +629,7 @@ class TestSheetSourceCreation(unittest.TestCase):
         obj = self.doc.getObject(self.wait(future)["object_name"])
         self.assertIs(obj.getParentGeoFeatureGroup(), container)
         self.assertEqual(obj.baseObject, (source, [face]))
-        self.assertEqual(list(obj.VibeCADTimelineReplacedInputs), [source])
+        self.assertEqual(list(obj.SteveCADTimelineReplacedInputs), [source])
         self.assertEqual(obj.ViewObject.Proxy.claimChildren(), [source])
         self.assertFalse(source.Visibility)
         history = self.history(obj)
@@ -671,7 +671,7 @@ class TestSheetSourceCreation(unittest.TestCase):
         self.assertTrue(caught.exception.parameters_committed)
         obj = self.doc.getObject(caught.exception.object_name)
         self.assertEqual(float(obj.height), 25)
-        self.assertEqual(obj.VibeCADTimelineEditCommand, "SheetMetal_EditSource")
+        self.assertEqual(obj.SteveCADTimelineEditCommand, "SheetMetal_EditSource")
         self.assertIsNone(self.context.state.completed_mutation_receipt(ticket))
         repair = caught.exception.failure()["repair"]
         self.assertIn("does not replace", repair)
@@ -681,8 +681,8 @@ class TestSheetSourceCreation(unittest.TestCase):
     def test_failed_source_can_be_discarded_through_existing_model_history(self):
         from dataclasses import replace
         import SheetMetalNativeEdit
-        from VibeCADNativeModelHistoryRuntime import NativeModelHistoryRuntime
-        from VibeCADRibbonSurface import read_active_ribbon_surface
+        from SteveCADNativeModelHistoryRuntime import NativeModelHistoryRuntime
+        from SteveCADRibbonSurface import read_active_ribbon_surface
 
         with patch("SheetMetalSourceFeatures._validate_shape", side_effect=RuntimeError("Bad solid")):
             _ticket, future = self.start()
@@ -772,8 +772,8 @@ class TestSheetSourceCreation(unittest.TestCase):
             self.doc = self.model.doc = App.openDocument(filename)
             self.model.settle()
             obj = self.doc.getObject(name)
-            self.assertEqual(obj.VibeCADTimelineRole, "operation")
-            self.assertEqual(obj.VibeCADTimelineEditCommand, "SheetMetal_EditSource")
+            self.assertEqual(obj.SteveCADTimelineRole, "operation")
+            self.assertEqual(obj.SteveCADTimelineEditCommand, "SheetMetal_EditSource")
             self.assertIs(obj.ViewObject.Proxy.Object, obj)
             panel = SourceGui.SourcePanel(obj)
             self.assertIs(panel.source, obj)
@@ -824,8 +824,8 @@ class TestSheetSourceCreation(unittest.TestCase):
         self.assertEqual(float(obj.height), 34)
 
     def test_registered_source_variants_create_valid_sources_without_mcp(self):
-        from VibeCADNativeRegistry import build_native_capability_registry
-        from VibeCADNativeRuntimeRegistry import build_native_runtime_bindings
+        from SteveCADNativeRegistry import build_native_capability_registry
+        from SteveCADNativeRuntimeRegistry import build_native_runtime_bindings
         def inputs():
             sketch = self.doc.addObject("Sketcher::SketchObject", "ToolProfile")
             sketch.addGeometry(Part.LineSegment(App.Vector(), App.Vector(40, 0)), False)
@@ -860,7 +860,7 @@ class TestSheetSourceCreation(unittest.TestCase):
                 self.assertEqual(result["operation"], arguments["operation"])
                 self.assertEqual(self.doc.UndoCount, undo+1)
                 self.assertTrue(result["assistant_undo_available"])
-                self.assertEqual(obj.VibeCADTimelineEditCommand, "SheetMetal_EditSource")
+                self.assertEqual(obj.SteveCADTimelineEditCommand, "SheetMetal_EditSource")
                 if arguments["operation"] == "base_from_sketch":
                     self.assertIs(obj.BendSketch, sketch)
                 elif arguments["operation"] == "from_solid":

@@ -74,7 +74,7 @@ class TestSheetNativeEdit(unittest.TestCase):
         self.assertAlmostEqual(self.sheet.Shape.Volume, before, places=6)
 
     def test_missing_folded_region_can_be_repaired_before_any_mutation(self):
-        from VibeCADNativeSheetMetalEditRuntime import (
+        from SteveCADNativeSheetMetalEditRuntime import (
             NativeSheetMetalEditRuntime, NativeSheetMetalEditRequestError)
         region, folded, _ = self.model.bend_pick()
         runtime = NativeSheetMetalEditRuntime(self.context)
@@ -188,7 +188,7 @@ class TestSheetNativeEdit(unittest.TestCase):
         self.assertEqual(self.model.doc.UndoCount, undo+1)
         step = self.model.doc.getObject(failure["object_name"])
         self.assertIsNotNone(step)
-        self.assertEqual(step.VibeCADTimelineEditCommand, "SheetMetal_EditHistoryCut")
+        self.assertEqual(step.SteveCADTimelineEditCommand, "SheetMetal_EditHistoryCut")
         self.assert_no_receipt(ticket)
 
     def test_queue_failure_does_not_issue_a_receipt_or_discard_the_cut(self):

@@ -28,7 +28,7 @@ def run(workspace):
     result = workspace/"result.json"
     try:
         request = json.loads((workspace/"request.json").read_text())
-        if request.get("schema") != "vibecad-rmfg-step-v1":
+        if request.get("schema") != "stevecad-rmfg-step-v1":
             raise ValueError("Unsupported folded export request")
         source = workspace/"folded.brep"
         digest = hashlib.sha256()
@@ -54,7 +54,7 @@ def run(workspace):
             "step_sha256": hashlib.sha256(target.read_bytes()).hexdigest()}))
         return 0
     except Exception as error:
-        result.write_text(json.dumps({"ok": False, "schema": "vibecad-rmfg-step-v1",
+        result.write_text(json.dumps({"ok": False, "schema": "stevecad-rmfg-step-v1",
                                       "message": str(error)[:320]}))
         return 1
 

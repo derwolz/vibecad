@@ -50,8 +50,8 @@ class TestSheetNativeCreation(unittest.TestCase):
         self.assertEqual(sheet.SourceFace, (self.source, [self.face]))
         self.model.assert_valid_pair()
         self.assertFalse(self.source.Visibility)
-        self.assertEqual(sheet.VibeCADTimelineEditCommand, "SheetMetal_EditParameters")
-        self.assertEqual(sheet.VibeCADTimelineRole, "operation")
+        self.assertEqual(sheet.SteveCADTimelineEditCommand, "SheetMetal_EditParameters")
+        self.assertEqual(sheet.SteveCADTimelineRole, "operation")
         receipt = state.completed_mutation_receipt(ticket)
         self.assertEqual(receipt.created[0].object_name, sheet.Name)
         self.assertEqual(receipt.revision_after, state.current_revision(doc.Uid))
@@ -79,8 +79,8 @@ class TestSheetNativeCreation(unittest.TestCase):
         self.assertIsNone(self.context.state.completed_mutation_receipt(ticket))
 
     def test_registered_creation_binding_uses_the_exact_source_and_shared_state(self):
-        from VibeCADNativeRegistry import build_native_capability_registry
-        from VibeCADNativeRuntimeRegistry import build_native_runtime_bindings
+        from SteveCADNativeRegistry import build_native_capability_registry
+        from SteveCADNativeRuntimeRegistry import build_native_runtime_bindings
         registry = build_native_capability_registry()
         runtime = build_native_runtime_bindings(self.context, ("sheet_metal.create",))["sheet_metal.create"]
         ticket = self.context.state.begin_call(self.model.doc.Uid, "sheet_metal.create")

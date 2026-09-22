@@ -1,7 +1,7 @@
 # SPDX-License-Identifier: LGPL-2.1-or-later
 """Measure saved-sheet display in a fresh, disposable GUI process.
 
-Set VIBECAD_SHEET_BENCHMARK_SOURCE to a saved document and VIBECAD_TEST_OUTPUT
+Set STEVECAD_SHEET_BENCHMARK_SOURCE to a saved document and STEVECAD_TEST_OUTPUT
 to a private artifact directory, then launch this macro with a private profile.
 The probe copies the source; it never saves a document. It measures initial
 open, reopen with Fit All while meshes are pending, and another plain reopen.
@@ -20,12 +20,12 @@ import FreeCADGui as Gui
 from PySide import QtCore, QtWidgets
 
 
-output = Path(os.environ["VIBECAD_TEST_OUTPUT"])
+output = Path(os.environ["STEVECAD_TEST_OUTPUT"])
 output.mkdir(parents=True, exist_ok=True)
 source = output / "probe-sheet.FCStd"
 if App.listDocuments() or source.exists():
     raise RuntimeError("Use a fresh diagnostic process and output directory")
-shutil.copy2(os.environ["VIBECAD_SHEET_BENCHMARK_SOURCE"], source)
+shutil.copy2(os.environ["STEVECAD_SHEET_BENCHMARK_SOURCE"], source)
 cycle = 0
 document = None
 opened = ready_at = None

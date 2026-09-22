@@ -31,7 +31,7 @@ class TestSheetReferenceFaces(unittest.TestCase):
     def test_end_face_cannot_be_prepared_as_stock_with_the_requested_gauge(self):
         # This is the exact Face1 chosen in the failed ordinary-prompt run.
         old = SheetGeometry.prepare(self.shape, 0, self.calculator)
-        Path(os.environ["VIBECAD_TEST_OUTPUT"], "end-face-evidence.json").write_text(json.dumps({
+        Path(os.environ["STEVECAD_TEST_OUTPUT"], "end-face-evidence.json").write_text(json.dumps({
             "source_thickness": float(self.source.thickness),
             "inferred_thickness": old.mapping.thickness,
             "normal": list(old.normal),

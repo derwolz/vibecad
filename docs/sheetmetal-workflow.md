@@ -7,7 +7,7 @@ a published release.
 ## Scope
 
 1. Reuse upstream SheetMetal geometry and retain existing commands, documents,
-   SendCutSend presets, and VibeCAD ownership/threading/performance fixes.
+   SendCutSend presets, and SteveCAD ownership/threading/performance fixes.
 2. Maintain one editable sheet definition with folded and flat representations.
    Edits in either mode update the same feature history, including cuts crossing
    bends, holes, flanges, bend parameters, material, and thickness.
@@ -91,7 +91,7 @@ operations; create/edit the shared features in either representation; validate
 both results; and export/quote the intended revision. They must not implement a
 second geometry path or rely on generated Python to approximate a ribbon action.
 
-Integrate with VibeCAD's native capability discovery, typed schemas, selection
+Integrate with SteveCAD's native capability discovery, typed schemas, selection
 resolution, transaction/Undo handling, and asynchronous completion reporting.
 Keep ordinary public tools and existing ribbon surfaces compatible. Use expected
 revision and exact owner checks to reject stale edits. Switching presentation
@@ -381,7 +381,7 @@ runtime binding construction, no-change reads, stale pages, document isolation,
 suppression and failed geometry. The combined native suite passed 53 tests; the
 six inspection checks passed again after the final visibility addition. The full
 strict Release build passed with 12 jobs, along with 51 Python registry/schema/
-integration checks and a separate VibeCAD packaging check.
+integration checks and a separate SteveCAD packaging check.
 Native assistant edits,
 full Sheet Metal surface action mapping, and ordinary-prompt sharpening remain
 pending. This read capability is an implementation increment, not completion of
@@ -1031,7 +1031,7 @@ Assembly while switching back, automatic continuation, all ribbon tool surfaces,
 and placed sheet occurrences retaining their editable history. Exact checks:
 
 ```sh
-python3 -m pytest -q src/Mod/VibeCAD/vibecad_tests/test_native_surface_authority.py src/Mod/VibeCAD/vibecad_tests/test_native_workspace_schema.py src/Mod/VibeCAD/vibecad_tests/test_native_surface_continuation.py src/Mod/VibeCAD/vibecad_tests/test_edit_state.py
+python3 -m pytest -q src/Mod/SteveCAD/stevecad_tests/test_native_surface_authority.py src/Mod/SteveCAD/stevecad_tests/test_native_workspace_schema.py src/Mod/SteveCAD/stevecad_tests/test_native_surface_continuation.py src/Mod/SteveCAD/stevecad_tests/test_edit_state.py
 cmake --build "$BUILD" --parallel 12
 python src/Mod/SheetMetal/SMTests/run_native.py --build "$BUILD" --output "$ARTIFACTS" SMTests.testSheetNativeView SMTests.testSheetSourceCreation.TestSheetSourceCreation.test_native_assembly_places_a_linked_sheet_and_keeps_its_editable_history
 ```
@@ -1220,7 +1220,7 @@ and next-turn tool availability. Once SheetMetal is active, that extra guidance
 is absent. Existing result fields and inspection behavior remain intact.
 
 Successful workspace switches also return a `message` explaining that the
-current turn should end and VibeCAD will continue automatically with the destination
+current turn should end and SteveCAD will continue automatically with the destination
 tools. The existing `workspace` and `next_turn_required` fields remain unchanged.
 No provider-specific prompt, forced call, hidden retry or new argument was added.
 
@@ -1237,13 +1237,13 @@ state. The source test checks that provider projection retains the guidance.
 
 ```sh
 python3 -m pytest -q \
-  src/Mod/VibeCAD/vibecad_tests/test_native_sheetmetal_inspect_schema.py \
-  src/Mod/VibeCAD/vibecad_tests/test_native_sheetmetal_provider.py \
-  src/Mod/VibeCAD/vibecad_tests/test_native_sheetmetal_preparation.py \
-  src/Mod/VibeCAD/vibecad_tests/test_native_sheetmetal_surface.py \
-  src/Mod/VibeCAD/vibecad_tests/test_native_workspace_schema.py \
-  src/Mod/VibeCAD/vibecad_tests/test_native_capability_registry.py \
-  src/Mod/VibeCAD/vibecad_tests/test_native_surface_continuation.py
+  src/Mod/SteveCAD/stevecad_tests/test_native_sheetmetal_inspect_schema.py \
+  src/Mod/SteveCAD/stevecad_tests/test_native_sheetmetal_provider.py \
+  src/Mod/SteveCAD/stevecad_tests/test_native_sheetmetal_preparation.py \
+  src/Mod/SteveCAD/stevecad_tests/test_native_sheetmetal_surface.py \
+  src/Mod/SteveCAD/stevecad_tests/test_native_workspace_schema.py \
+  src/Mod/SteveCAD/stevecad_tests/test_native_capability_registry.py \
+  src/Mod/SteveCAD/stevecad_tests/test_native_surface_continuation.py
 python src/Mod/SheetMetal/SMTests/run_native.py --build "$BUILD" --output "$ARTIFACTS" \
   SMTests.testSheetNativeInspect SMTests.testSheetNativeView
 ```
@@ -1316,15 +1316,15 @@ gap; no Printing implementation change is included here.
 
 ```sh
 python3 -m pytest -q \
-  src/Mod/VibeCAD/vibecad_tests/test_native_workspace_schema.py \
-  src/Mod/VibeCAD/vibecad_tests/test_native_surface_continuation.py \
-  src/Mod/VibeCAD/vibecad_tests/test_native_capability_registry.py \
-  src/Mod/VibeCAD/vibecad_tests/test_native_sheetmetal_surface.py \
-  src/Mod/VibeCAD/vibecad_tests/test_native_sheetmetal_preparation.py \
-  src/Mod/VibeCAD/vibecad_tests/test_native_drawing_provider_state.py \
-  src/Mod/VibeCAD/vibecad_tests/test_native_manufacture_provider_scope.py \
-  src/Mod/VibeCAD/vibecad_tests/test_native_turn.py \
-  src/Mod/VibeCAD/vibecad_tests/test_native_common_runtime.py
+  src/Mod/SteveCAD/stevecad_tests/test_native_workspace_schema.py \
+  src/Mod/SteveCAD/stevecad_tests/test_native_surface_continuation.py \
+  src/Mod/SteveCAD/stevecad_tests/test_native_capability_registry.py \
+  src/Mod/SteveCAD/stevecad_tests/test_native_sheetmetal_surface.py \
+  src/Mod/SteveCAD/stevecad_tests/test_native_sheetmetal_preparation.py \
+  src/Mod/SteveCAD/stevecad_tests/test_native_drawing_provider_state.py \
+  src/Mod/SteveCAD/stevecad_tests/test_native_manufacture_provider_scope.py \
+  src/Mod/SteveCAD/stevecad_tests/test_native_turn.py \
+  src/Mod/SteveCAD/stevecad_tests/test_native_common_runtime.py
 python src/Mod/SheetMetal/SMTests/run_native.py --build "$BUILD" --output "$ARTIFACTS" \
   SMTests.testSheetNativeView
 ```
@@ -1368,9 +1368,9 @@ python src/Mod/SheetMetal/SMTests/run_native.py --build "$BUILD" --output "$ARTI
   SMTests.testSheetSourceFeatures SMTests.testSheetSourceCreation \
   SMTests.testSheetSourceForms SMTests.testSheetReferenceFaces
 python3 -m pytest -q \
-  src/Mod/VibeCAD/vibecad_tests/test_native_sheetmetal_surface.py \
-  src/Mod/VibeCAD/vibecad_tests/test_native_sheetmetal_provider.py \
-  src/Mod/VibeCAD/vibecad_tests/test_native_sheetmetal_preparation.py
+  src/Mod/SteveCAD/stevecad_tests/test_native_sheetmetal_surface.py \
+  src/Mod/SteveCAD/stevecad_tests/test_native_sheetmetal_provider.py \
+  src/Mod/SteveCAD/stevecad_tests/test_native_sheetmetal_preparation.py
 ```
 
 Ribbon and provider exposure are the next increment. This source operation adds
@@ -1400,12 +1400,12 @@ both workspace-switch directions, frozen form selection and cached views.
 ```sh
 cmake --build "$BUILD" --parallel 12
 python3 -m pytest -q \
-  src/Mod/VibeCAD/vibecad_tests/test_native_sheetmetal_surface.py \
-  src/Mod/VibeCAD/vibecad_tests/test_native_sheetmetal_provider.py \
-  src/Mod/VibeCAD/vibecad_tests/test_native_sheetmetal_preparation.py \
-  src/Mod/VibeCAD/vibecad_tests/test_native_workspace_schema.py \
-  src/Mod/VibeCAD/vibecad_tests/test_native_surface_continuation.py \
-  src/Mod/VibeCAD/vibecad_tests/test_native_capability_registry.py
+  src/Mod/SteveCAD/stevecad_tests/test_native_sheetmetal_surface.py \
+  src/Mod/SteveCAD/stevecad_tests/test_native_sheetmetal_provider.py \
+  src/Mod/SteveCAD/stevecad_tests/test_native_sheetmetal_preparation.py \
+  src/Mod/SteveCAD/stevecad_tests/test_native_workspace_schema.py \
+  src/Mod/SteveCAD/stevecad_tests/test_native_surface_continuation.py \
+  src/Mod/SteveCAD/stevecad_tests/test_native_capability_registry.py
 python src/Mod/SheetMetal/SMTests/run_native.py --build "$BUILD" --output "$ARTIFACTS" \
   SMTests.testSheetSourceForms SMTests.testSheetNativeView \
   SMTests.testSheetSourceCreation.TestSheetSourceCreation.test_registered_source_variants_create_valid_sources_without_mcp
@@ -1432,7 +1432,7 @@ geometry oracle itself remains unchanged; old failed artifacts are retained.
 ```sh
 python src/Mod/SheetMetal/SMTests/run_native.py --build "$BUILD" --output "$ARTIFACTS" \
   SMTests.testLiveSheetArtifacts
-VIBECAD_SHEET_PROMPT_MODEL=gpt-5.6-terra VIBECAD_SHEET_PROMPT_AUTH=chatgpt \
+STEVECAD_SHEET_PROMPT_MODEL=gpt-5.6-terra STEVECAD_SHEET_PROMPT_AUTH=chatgpt \
 python src/Mod/SheetMetal/SMTests/run_native.py --build "$BUILD" --output "$LIVE_ARTIFACTS" \
   SMTests.live_sheet_flange_prompt
 ```
@@ -1503,7 +1503,7 @@ cmake --build "$BUILD" --parallel 12
 python src/Mod/SheetMetal/SMTests/run_native.py --build "$BUILD" --output "$ARTIFACTS" \
   SMTests.testSheetFoldSource SMTests.testSheetSourceCreation \
   SMTests.testSheetSourceFeatures SMTests.testSheetSourceForms SMTests.testSheetOperations
-VIBECAD_COLD_RESTORE_FIXTURE="$ARTIFACTS/internal-fold.FCStd" \
+STEVECAD_COLD_RESTORE_FIXTURE="$ARTIFACTS/internal-fold.FCStd" \
 python src/Mod/SheetMetal/SMTests/run_native.py --build "$BUILD" --output "$RESTORE_ARTIFACTS" \
   SMTests.testSheetColdRestore.TestFoldColdRestore
 ```
@@ -1527,12 +1527,12 @@ warnings as errors and **12 jobs**, **2 focused installed tests in 3.741 s**, an
 
 ```sh
 python3 -m pytest -q \
-  src/Mod/VibeCAD/vibecad_tests/test_native_sheetmetal_surface.py \
-  src/Mod/VibeCAD/vibecad_tests/test_native_sheetmetal_provider.py \
-  src/Mod/VibeCAD/vibecad_tests/test_native_sheetmetal_preparation.py \
-  src/Mod/VibeCAD/vibecad_tests/test_native_workspace_schema.py \
-  src/Mod/VibeCAD/vibecad_tests/test_native_surface_continuation.py \
-  src/Mod/VibeCAD/vibecad_tests/test_native_capability_registry.py
+  src/Mod/SteveCAD/stevecad_tests/test_native_sheetmetal_surface.py \
+  src/Mod/SteveCAD/stevecad_tests/test_native_sheetmetal_provider.py \
+  src/Mod/SteveCAD/stevecad_tests/test_native_sheetmetal_preparation.py \
+  src/Mod/SteveCAD/stevecad_tests/test_native_workspace_schema.py \
+  src/Mod/SteveCAD/stevecad_tests/test_native_surface_continuation.py \
+  src/Mod/SteveCAD/stevecad_tests/test_native_capability_registry.py
 cmake --build "$BUILD" --parallel 12
 python src/Mod/SheetMetal/SMTests/run_native.py --build "$BUILD" --output "$ARTIFACTS" \
   SMTests.testSheetFoldSource SMTests.testSheetSourceForms SMTests.testSheetNativeView \
@@ -1572,7 +1572,7 @@ addresses that path. No owner preview is ready yet.
 python src/Mod/SheetMetal/SMTests/run_native.py --build "$BUILD" --output "$GEOMETRY_ARTIFACTS" \
   SMTests.testSheetFoldSource \
   SMTests.testSheetSourceForms.TestSheetSourceForms.test_internal_fold_ribbon_freezes_sheet_skin_and_sketch_selection
-VIBECAD_SHEET_PROMPT_MODEL=gpt-5.6-terra VIBECAD_SHEET_PROMPT_AUTH=chatgpt \
+STEVECAD_SHEET_PROMPT_MODEL=gpt-5.6-terra STEVECAD_SHEET_PROMPT_AUTH=chatgpt \
 python src/Mod/SheetMetal/SMTests/run_native.py --build "$BUILD" --output "$LIVE_ARTIFACTS" \
   SMTests.live_sheet_fold_prompt.LiveSheetFoldPrompt
 ```
@@ -1600,14 +1600,14 @@ trips; the geometry algorithms and view-switching path are unchanged.
 
 ```sh
 python3 -m pytest -q \
-  src/Mod/VibeCAD/vibecad_tests/test_native_sheetmetal_surface.py \
-  src/Mod/VibeCAD/vibecad_tests/test_native_sheetmetal_provider.py \
-  src/Mod/VibeCAD/vibecad_tests/test_native_sheetmetal_preparation.py \
-  src/Mod/VibeCAD/vibecad_tests/test_native_capability_registry.py
+  src/Mod/SteveCAD/stevecad_tests/test_native_sheetmetal_surface.py \
+  src/Mod/SteveCAD/stevecad_tests/test_native_sheetmetal_provider.py \
+  src/Mod/SteveCAD/stevecad_tests/test_native_sheetmetal_preparation.py \
+  src/Mod/SteveCAD/stevecad_tests/test_native_capability_registry.py
 cmake --build "$BUILD" --parallel 12
 python src/Mod/SheetMetal/SMTests/run_native.py --build "$BUILD" --output "$ARTIFACTS" \
   SMTests.testSheetFoldSource.TestSheetFoldSource.test_native_fold_result_supplies_valid_shared_state_followup
-VIBECAD_SHEET_PROMPT_MODEL=gpt-5.6-terra VIBECAD_SHEET_PROMPT_AUTH=chatgpt \
+STEVECAD_SHEET_PROMPT_MODEL=gpt-5.6-terra STEVECAD_SHEET_PROMPT_AUTH=chatgpt \
 python src/Mod/SheetMetal/SMTests/run_native.py --build "$BUILD" --output "$LIVE_ARTIFACTS" \
   SMTests.live_sheet_fold_prompt.LiveSheetFoldPrompt
 ```
@@ -1640,10 +1640,10 @@ deterministic provider with real session, dispatcher, GUI and geometry code.
 
 ```sh
 python3 -m pytest -q \
-  src/Mod/VibeCAD/vibecad_tests/test_native_session.py \
-  src/Mod/VibeCAD/vibecad_tests/test_native_surface_continuation.py \
-  src/Mod/VibeCAD/vibecad_tests/test_native_dispatch.py \
-  src/Mod/VibeCAD/vibecad_tests/test_native_mutation.py
+  src/Mod/SteveCAD/stevecad_tests/test_native_session.py \
+  src/Mod/SteveCAD/stevecad_tests/test_native_surface_continuation.py \
+  src/Mod/SteveCAD/stevecad_tests/test_native_dispatch.py \
+  src/Mod/SteveCAD/stevecad_tests/test_native_mutation.py
 cmake --build "$BUILD" --parallel 12
 python src/Mod/SheetMetal/SMTests/run_native.py --build "$BUILD" --output "$ARTIFACTS" \
   SMTests.testSheetNativeRecovery SMTests.testSheetNativeEdit \
@@ -1687,7 +1687,7 @@ their commands are recorded in `src/Mod/SheetMetal/SMTests/README.md`.
 cmake --build "$BUILD" --parallel 12
 python src/Mod/SheetMetal/SMTests/run_native.py --build "$BUILD" --output "$FIXTURE_ARTIFACTS" \
   SMTests.testSheetFoldSource.TestSheetFoldSource.test_internal_tab_uses_relief_history_without_bending_the_surrounding_plate
-VIBECAD_COLD_RESTORE_FIXTURE="$FIXTURE_ARTIFACTS/internal-tab.FCStd" \
+STEVECAD_COLD_RESTORE_FIXTURE="$FIXTURE_ARTIFACTS/internal-tab.FCStd" \
 python src/Mod/SheetMetal/SMTests/run_native.py --build "$BUILD" --output "$RESTORE_ARTIFACTS" \
   SMTests.testSheetColdRestore.TestTabColdRestore
 python src/Mod/SheetMetal/SMTests/run_native.py --build "$BUILD" --output "$REGRESSION_ARTIFACTS" \
@@ -1759,7 +1759,7 @@ reported failures under investigation; no feature-complete claim is made here.
 cmake --build "$BUILD" --parallel 12
 python src/Mod/SheetMetal/SMTests/run_native.py --build "$BUILD" --output "$ARTIFACTS" \
   SMTests.testSheetFoldSource SMTests.testSheetNativeInspect
-VIBECAD_SHEET_PROMPT_MODEL=gpt-5.6-terra VIBECAD_SHEET_PROMPT_AUTH=chatgpt \
+STEVECAD_SHEET_PROMPT_MODEL=gpt-5.6-terra STEVECAD_SHEET_PROMPT_AUTH=chatgpt \
 python src/Mod/SheetMetal/SMTests/run_native.py --build "$BUILD" --output "$LIVE_ARTIFACTS" \
   SMTests.live_sheet_tab_prompt.LiveSheetTabPrompt
 ```
@@ -1832,12 +1832,12 @@ messages and unchanged input payloads. They do not establish that a live model
 will complete the tab. The ongoing Qwen run uses its original immutable runtime.
 
 ```sh
-PYTHONPATH=src/Mod/VibeCAD python -m pytest -q \
-  src/Mod/VibeCAD/vibecad_tests/test_native_sketch_batch.py \
+PYTHONPATH=src/Mod/SteveCAD python -m pytest -q \
+  src/Mod/SteveCAD/stevecad_tests/test_native_sketch_batch.py \
   -k 'explains_how_to_repair or explains_required_point_selector'
 # Before implementation: 4 failed, 8 deselected (2.90 s).
-PYTHONPATH=src/Mod/VibeCAD python -m pytest -q \
-  src/Mod/VibeCAD/vibecad_tests/test_native_sketch_batch.py
+PYTHONPATH=src/Mod/SteveCAD python -m pytest -q \
+  src/Mod/SteveCAD/stevecad_tests/test_native_sketch_batch.py
 # After implementation: 12 passed (2.72 s).
 ```
 
@@ -1893,13 +1893,13 @@ Red/green evidence:
   the full integrated suite and ordinary Qwen tab probe remain separate gates.
 
 ```sh
-PYTHONPATH=src/Mod/VibeCAD python -m pytest -q \
-  src/Mod/VibeCAD/vibecad_tests/test_native_surface_continuation.py
-PYTHONPATH=src/Mod/VibeCAD python -m pytest -q \
-  src/Mod/VibeCAD/vibecad_tests/test_native_surface_continuation.py \
-  src/Mod/VibeCAD/vibecad_tests/test_native_session.py \
-  src/Mod/VibeCAD/vibecad_tests/test_native_workspace_schema.py \
-  src/Mod/VibeCAD/vibecad_tests/test_native_sheetmetal_provider.py
+PYTHONPATH=src/Mod/SteveCAD python -m pytest -q \
+  src/Mod/SteveCAD/stevecad_tests/test_native_surface_continuation.py
+PYTHONPATH=src/Mod/SteveCAD python -m pytest -q \
+  src/Mod/SteveCAD/stevecad_tests/test_native_surface_continuation.py \
+  src/Mod/SteveCAD/stevecad_tests/test_native_session.py \
+  src/Mod/SteveCAD/stevecad_tests/test_native_workspace_schema.py \
+  src/Mod/SteveCAD/stevecad_tests/test_native_sheetmetal_provider.py
 python src/Mod/SheetMetal/SMTests/run_native.py --build "$BUILD" --output "$ARTIFACTS" \
   SMTests.testSheetNativeView
 # Live cabinet replay uses the preserved private reproduction and a copied file:
@@ -1955,15 +1955,15 @@ The complete source/dispatch/recovery check passed **38 tests in 163.716 seconds
 with normal exit. The fresh unchanged SM-P05 Terra run subsequently passed **1 test in 283.784 seconds** with normal exit. Its 42 calls included three corrected pre-mutation rejections; it left no failed fold feature. The oracle verified relief volume, both valid solids, stock bounds, stationary surrounding material, exact editable source/sketch history and final flat view.
 
 ```sh
-PYTHONPATH=src/Mod/VibeCAD python -m pytest -q \
-  src/Mod/VibeCAD/vibecad_tests/test_native_dispatch.py -k missing_fold_fields
-PYTHONPATH=src/Mod/VibeCAD python -m pytest -q \
-  src/Mod/VibeCAD/vibecad_tests/test_native_dispatch.py \
-  src/Mod/VibeCAD/vibecad_tests/test_native_sheetmetal_provider.py \
-  src/Mod/VibeCAD/vibecad_tests/test_native_sketch_batch.py
+PYTHONPATH=src/Mod/SteveCAD python -m pytest -q \
+  src/Mod/SteveCAD/stevecad_tests/test_native_dispatch.py -k missing_fold_fields
+PYTHONPATH=src/Mod/SteveCAD python -m pytest -q \
+  src/Mod/SteveCAD/stevecad_tests/test_native_dispatch.py \
+  src/Mod/SteveCAD/stevecad_tests/test_native_sheetmetal_provider.py \
+  src/Mod/SteveCAD/stevecad_tests/test_native_sketch_batch.py
 python src/Mod/SheetMetal/SMTests/run_native.py --build "$BUILD" --output "$ARTIFACTS" \
   SMTests.testSheetSourceCreation SMTests.testSheetNativeDispatch SMTests.testSheetNativeRecovery
-VIBECAD_SHEET_PROMPT_MODEL=gpt-5.6-terra VIBECAD_SHEET_PROMPT_AUTH=chatgpt \
+STEVECAD_SHEET_PROMPT_MODEL=gpt-5.6-terra STEVECAD_SHEET_PROMPT_AUTH=chatgpt \
   python "$HANDOFF_RUNNER" --build "$BUILD" --output "$ARTIFACTS" \
   SMTests.live_sheet_tab_prompt.LiveSheetTabPrompt
 ```
@@ -2022,13 +2022,13 @@ Red/green evidence for this correction:
   ordinary prompt and unchanged geometry oracle.
 
 ```sh
-PYTHONPATH=src/Mod/VibeCAD python -m pytest -q \
-  src/Mod/VibeCAD/vibecad_tests/test_native_dispatch.py -k compact_sketch
-PYTHONPATH=src/Mod/VibeCAD python -m pytest -q \
-  src/Mod/VibeCAD/vibecad_tests/test_native_dispatch.py \
-  src/Mod/VibeCAD/vibecad_tests/test_native_sketch_provider_surface.py \
-  src/Mod/VibeCAD/vibecad_tests/test_native_sheetmetal_surface.py \
-  src/Mod/VibeCAD/vibecad_tests/test_native_surface_continuation.py
+PYTHONPATH=src/Mod/SteveCAD python -m pytest -q \
+  src/Mod/SteveCAD/stevecad_tests/test_native_dispatch.py -k compact_sketch
+PYTHONPATH=src/Mod/SteveCAD python -m pytest -q \
+  src/Mod/SteveCAD/stevecad_tests/test_native_dispatch.py \
+  src/Mod/SteveCAD/stevecad_tests/test_native_sketch_provider_surface.py \
+  src/Mod/SteveCAD/stevecad_tests/test_native_sheetmetal_surface.py \
+  src/Mod/SteveCAD/stevecad_tests/test_native_surface_continuation.py
 python src/Mod/SheetMetal/SMTests/run_native.py --build "$BUILD" --output "$ARTIFACTS" \
   SMTests.testSheetNativeRecovery SMTests.testSheetNativeDispatch SMTests.testSheetNativeView
 python src/Mod/SheetMetal/SMTests/run_native.py --build "$BUILD" --output "$ARTIFACTS" \
@@ -2038,7 +2038,7 @@ python src/Mod/SheetMetal/SMTests/run_native.py --build "$BUILD" --output "$ARTI
 
 After the obsolete private probes stopped, the original strict runtime was
 verified unused, its source mirror was refreshed, and the normal build completed
-successfully with `--parallel 12` (exit 0). Its installed SheetMetal/VibeCAD Python
+successfully with `--parallel 12` (exit 0). Its installed SheetMetal/SteveCAD Python
 modules byte-match the current source. A new full per-test document-ownership
 audit is running on that rebuilt runtime, while the current Qwen case uses a
 separate immutable runtime.
@@ -2066,19 +2066,19 @@ The regression first failed on the missing guidance: **2 failed, 1 passed,
 so its outcome does not establish the effectiveness of this new guidance.
 The focused native recovery/dispatch/view check also passed **17 tests in
 73.989 seconds**, with normal exit, in an isolated strict Release runtime whose
-top-level SheetMetal and VibeCAD Python modules byte-match the current source.
+top-level SheetMetal and SteveCAD Python modules byte-match the current source.
 
 ```sh
-PYTHONPATH=src/Mod/VibeCAD python -m pytest -q \
-  src/Mod/VibeCAD/vibecad_tests/test_native_dispatch.py \
+PYTHONPATH=src/Mod/SteveCAD python -m pytest -q \
+  src/Mod/SteveCAD/stevecad_tests/test_native_dispatch.py \
   -k 'mixed_line_fields or pattern_properties or explicit_omission_counts'
-PYTHONPATH=src/Mod/VibeCAD python -m pytest -q \
-  src/Mod/VibeCAD/vibecad_tests/test_native_dispatch.py
-PYTHONPATH=src/Mod/VibeCAD python -m pytest -q \
-  src/Mod/VibeCAD/vibecad_tests/test_native_dispatch.py \
-  src/Mod/VibeCAD/vibecad_tests/test_native_sketch_provider_surface.py \
-  src/Mod/VibeCAD/vibecad_tests/test_native_sheetmetal_surface.py \
-  src/Mod/VibeCAD/vibecad_tests/test_native_surface_continuation.py
+PYTHONPATH=src/Mod/SteveCAD python -m pytest -q \
+  src/Mod/SteveCAD/stevecad_tests/test_native_dispatch.py
+PYTHONPATH=src/Mod/SteveCAD python -m pytest -q \
+  src/Mod/SteveCAD/stevecad_tests/test_native_dispatch.py \
+  src/Mod/SteveCAD/stevecad_tests/test_native_sketch_provider_surface.py \
+  src/Mod/SteveCAD/stevecad_tests/test_native_sheetmetal_surface.py \
+  src/Mod/SteveCAD/stevecad_tests/test_native_surface_continuation.py
 ```
 
 
@@ -2090,7 +2090,7 @@ calls only; GPU frame time is excluded.
 
 After that suite released the runtime, the final argument-guidance source and
 tests were copied into the build mirror and the normal strict Release build
-completed with `--parallel 12` (exit 0). Installed top-level SheetMetal and VibeCAD
+completed with `--parallel 12` (exit 0). Installed top-level SheetMetal and SteveCAD
 Python modules byte-match current source. This last change has the separate
 59-unit/17-native evidence above; the 346-test run preceded it. The unchanged
 Qwen probe is still running in its separate runtime.
@@ -2145,14 +2145,14 @@ python src/Mod/SheetMetal/SMTests/run_native.py \
   --build "$BUILD" --output "$ARTIFACTS" \
   SMTests.testSheetProfileHistory SMTests.testSheetFoldSource \
   PartDesignTests.TestModelTreeBrowser.TestModelTreeBrowser.test_hidden_source_and_mixed_assembly_occurrences_survive_save_reopen
-PYTHONPATH=src/Mod/VibeCAD python -m pytest -q \
-  src/Mod/VibeCAD/vibecad_tests/test_document_restore_rendering.py \
-  src/Mod/VibeCAD/vibecad_tests/test_partdesign_history_presentation.py \
-  src/Mod/VibeCAD/vibecad_tests/test_set_view_visibility.py \
-  src/Mod/VibeCAD/vibecad_tests/test_native_surface_continuation.py \
-  src/Mod/VibeCAD/vibecad_tests/test_native_dispatch.py \
-  src/Mod/VibeCAD/vibecad_tests/test_native_sketch_provider_surface.py \
-  src/Mod/VibeCAD/vibecad_tests/test_native_sheetmetal_surface.py
+PYTHONPATH=src/Mod/SteveCAD python -m pytest -q \
+  src/Mod/SteveCAD/stevecad_tests/test_document_restore_rendering.py \
+  src/Mod/SteveCAD/stevecad_tests/test_partdesign_history_presentation.py \
+  src/Mod/SteveCAD/stevecad_tests/test_set_view_visibility.py \
+  src/Mod/SteveCAD/stevecad_tests/test_native_surface_continuation.py \
+  src/Mod/SteveCAD/stevecad_tests/test_native_dispatch.py \
+  src/Mod/SteveCAD/stevecad_tests/test_native_sketch_provider_surface.py \
+  src/Mod/SteveCAD/stevecad_tests/test_native_sheetmetal_surface.py
 ```
 
 The strict Release build uses warnings as errors and completed with exit 0.
@@ -2207,19 +2207,19 @@ Two new regressions reproduced the TypeError before implementation. The final
 unit selection passed **53 tests in 0.51 seconds**:
 
 ```sh
-PYTHONPATH=src/Mod/VibeCAD python -m pytest -q \
-  src/Mod/VibeCAD/vibecad_tests/test_native_parameters_snapshot.py \
-  src/Mod/VibeCAD/vibecad_tests/test_native_snapshot.py \
-  src/Mod/VibeCAD/vibecad_tests/test_native_assembly_bom.py \
-  src/Mod/VibeCAD/vibecad_tests/test_native_assembly_provider_state.py \
-  src/Mod/VibeCAD/vibecad_tests/test_native_surface_continuation.py
+PYTHONPATH=src/Mod/SteveCAD python -m pytest -q \
+  src/Mod/SteveCAD/stevecad_tests/test_native_parameters_snapshot.py \
+  src/Mod/SteveCAD/stevecad_tests/test_native_snapshot.py \
+  src/Mod/SteveCAD/stevecad_tests/test_native_assembly_bom.py \
+  src/Mod/SteveCAD/stevecad_tests/test_native_assembly_provider_state.py \
+  src/Mod/SteveCAD/stevecad_tests/test_native_surface_continuation.py
 cmake --build "$BUILD" --parallel 12
 python "$GUI_GATE_RUNNER" \
-  src/Mod/VibeCAD/vibecad_tests/native_assembly_bom_gui_integration.py \
-  VIBECAD_NATIVE_ASSEMBLY_BOM_GUI_OK --build "$BUILD" --output "$BOM_ARTIFACTS"
+  src/Mod/SteveCAD/stevecad_tests/native_assembly_bom_gui_integration.py \
+  STEVECAD_NATIVE_ASSEMBLY_BOM_GUI_OK --build "$BUILD" --output "$BOM_ARTIFACTS"
 python "$GUI_GATE_RUNNER" \
-  src/Mod/VibeCAD/vibecad_tests/native_parameters_gui_integration.py \
-  VIBECAD_NATIVE_PARAMETERS_GUI_OK --build "$BUILD" --output "$PARAMETERS_ARTIFACTS"
+  src/Mod/SteveCAD/stevecad_tests/native_parameters_gui_integration.py \
+  STEVECAD_NATIVE_PARAMETERS_GUI_OK --build "$BUILD" --output "$PARAMETERS_ARTIFACTS"
 ```
 
 Both compiled-GUI gates passed with normal exit. The private gate launcher uses
@@ -2279,10 +2279,10 @@ python src/Mod/SheetMetal/SMTests/run_native.py \
 python src/Mod/SheetMetal/SMTests/run_native.py \
   --build "$BUILD" --output "$WORKSPACE_ARTIFACTS" \
   SMTests.testSheetNativeView
-PYTHONPATH=src/Mod/VibeCAD python -m pytest -q \
-  src/Mod/VibeCAD/vibecad_tests/test_native_workspace_schema.py \
-  src/Mod/VibeCAD/vibecad_tests/test_native_surface_authority.py \
-  src/Mod/VibeCAD/vibecad_tests/test_native_surface_continuation.py
+PYTHONPATH=src/Mod/SteveCAD python -m pytest -q \
+  src/Mod/SteveCAD/stevecad_tests/test_native_workspace_schema.py \
+  src/Mod/SteveCAD/stevecad_tests/test_native_surface_authority.py \
+  src/Mod/SteveCAD/stevecad_tests/test_native_surface_continuation.py
 cmake --build "$BUILD" --parallel 12
 ```
 

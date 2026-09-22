@@ -14,7 +14,7 @@
 %bcond_without debug_info
 
 
-Name:           vibecad
+Name:           stevecad
 Epoch:          1
 Version:        26.3.1~RC6
 Release:        1%{?dist}

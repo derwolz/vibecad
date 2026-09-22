@@ -34,7 +34,7 @@ class TestFeatureBasePlacement(unittest.TestCase):
         self.document.UndoMode = True
         Gui.activateView("Gui::View3DInventor", True)
         self._temporary_directory = tempfile.TemporaryDirectory(
-            prefix="vibecad-featurebase-placement-"
+            prefix="stevecad-featurebase-placement-"
         )
         self._process_events()
 
@@ -144,7 +144,7 @@ class TestFeatureBasePlacement(unittest.TestCase):
         self.assertIsNone(clone.getParentGeoFeatureGroup())
         self.assertIsNone(clone.BaseFeature)
         self.assertEqual(clone.ResultOperation, "New Bodies")
-        self.assertEqual(clone.OutputBodyIds, [str(clone_body.VibeCADBodyId)])
+        self.assertEqual(clone.OutputBodyIds, [str(clone_body.SteveCADBodyId)])
         self.assertEqual(
             clone_body.Tip.TypeId,
             "PartDesign::DesignBodyPublication",
@@ -342,7 +342,7 @@ class TestFeatureBasePlacement(unittest.TestCase):
         clone_name = clone.Name
         identities = (
             str(clone.OperationId),
-            str(clone_body.VibeCADBodyId),
+            str(clone_body.SteveCADBodyId),
             str(clone_body.Tip.CurrentState.BodyStateId),
         )
         self._round_trip("BodyClonePlacement.FCStd")
@@ -356,7 +356,7 @@ class TestFeatureBasePlacement(unittest.TestCase):
         self.assertEqual(
             (
                 str(reopened_clone.OperationId),
-                str(reopened_body.VibeCADBodyId),
+                str(reopened_body.SteveCADBodyId),
                 str(reopened_body.Tip.CurrentState.BodyStateId),
             ),
             identities,

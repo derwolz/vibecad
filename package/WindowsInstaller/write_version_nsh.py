@@ -45,10 +45,10 @@ def render_version_defines(version, *, suffix: str, build: str, year: int) -> st
     import re as regex
 
     if not regex.fullmatch(r"[A-Za-z0-9.-]*", suffix):
-        raise ValueError(f"Unsafe VibeCAD version suffix: {suffix!r}")
+        raise ValueError(f"Unsafe SteveCAD version suffix: {suffix!r}")
     build_number = int(build)
     if build_number < 0:
-        raise ValueError("VibeCAD build number must be non-negative")
+        raise ValueError("SteveCAD build number must be non-negative")
     rank, order_known = release_rank(suffix)
     return f'''\
 !define COPYRIGHT_YEAR {year}

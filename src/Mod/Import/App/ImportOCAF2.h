@@ -74,7 +74,7 @@ struct ImportExport ImportOCAFOptions
     bool expandCompound = false;
     // Generic OCAF callers retain their historical behavior unless they
     // explicitly opt in. STEP entry points load the user preference, whose
-    // VibeCAD default is enabled.
+    // SteveCAD default is enabled.
     bool importSolidBodies = false;
     int mode = 0;
 };

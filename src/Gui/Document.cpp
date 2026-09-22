@@ -2013,7 +2013,7 @@ void Document::drainDeferredViewProviderWork()
 void Document::slotNewObject(const App::DocumentObject& Obj)
 {
     const bool traceRestore = d->_pcDocument->testStatus(App::Document::Status::Restoring)
-        && qEnvironmentVariableIsSet("VIBECAD_RESTORE_DETAIL_TRACE");
+        && qEnvironmentVariableIsSet("STEVECAD_RESTORE_DETAIL_TRACE");
     const auto traceStart = std::chrono::steady_clock::now();
     auto providerTypeReady = traceStart;
     auto providerCreated = traceStart;
@@ -2132,7 +2132,7 @@ void Document::slotNewObject(const App::DocumentObject& Obj)
         const auto total = elapsed(traceStart, end);
         if (total >= 20) {
             Base::Console().message(
-                "VIBECAD_RESTORE_DETAIL new_view_provider object=%s stored_type=%s "
+                "STEVECAD_RESTORE_DETAIL new_view_provider object=%s stored_type=%s "
                 "type_lookup_ms=%lld create_ms=%lld attach_ms=%lld update_ms=%lld "
                 "publish_ms=%lld remainder_ms=%lld total_ms=%lld\n",
                 Obj.getNameInDocument(),
@@ -3451,7 +3451,7 @@ void Document::Restore(Base::XMLReader& reader)
  */
 void Document::RestoreDocFile(Base::Reader& reader)
 {
-    const bool traceRestore = qEnvironmentVariableIsSet("VIBECAD_RESTORE_DETAIL_TRACE");
+    const bool traceRestore = qEnvironmentVariableIsSet("STEVECAD_RESTORE_DETAIL_TRACE");
     const auto restoreStarted = std::chrono::steady_clock::now();
     // We must create an XML parser to read from the input stream
     auto localreader = std::make_shared<GuiRestoreReader>(reader);
@@ -3527,7 +3527,7 @@ void Document::RestoreDocFile(Base::Reader& reader)
                 ).count();
                 if (elapsed >= 20) {
                     Base::Console().message(
-                        "VIBECAD_RESTORE_DETAIL restore_view index=%d count=%d name=%s "
+                        "STEVECAD_RESTORE_DETAIL restore_view index=%d count=%d name=%s "
                         "elapsed_ms=%lld\n",
                         i + 1,
                         Cnt,
@@ -3570,7 +3570,7 @@ void Document::RestoreDocFile(Base::Reader& reader)
             std::chrono::steady_clock::now() - restoreStarted
         ).count();
         Base::Console().message(
-            "VIBECAD_RESTORE_DETAIL gui_document elapsed_ms=%lld\n",
+            "STEVECAD_RESTORE_DETAIL gui_document elapsed_ms=%lld\n",
             static_cast<long long>(elapsed)
         );
     }

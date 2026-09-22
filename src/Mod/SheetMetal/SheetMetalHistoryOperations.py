@@ -10,9 +10,9 @@ import SheetMetalEditable as Editable
 import SheetMetalCutHistory as History
 import SheetMetalOperations as Operations
 from SheetMetalPresentation import _gui_thread
-from VibeCADNativeArguments import strict_variant_arguments
-from VibeCADNativeMutation import NativeMutationDraft, run_human_mutation
-from VibeCADNativeTargets import object_identity
+from SteveCADNativeArguments import strict_variant_arguments
+from SteveCADNativeMutation import NativeMutationDraft, run_human_mutation
+from SteveCADNativeTargets import object_identity
 
 
 _FIELDS = {**Operations._FIELDS,
@@ -100,7 +100,7 @@ def _history_summary(state, root, steps):
             "timeline_index": indices.get(obj),
             "active": document.isObjectUsableAtCurrentTimelinePosition(obj),
             "suppressed": bool(getattr(obj, "Suppressed", False)),
-            "editor_command": getattr(obj, "VibeCADTimelineEditCommand", None),
+            "editor_command": getattr(obj, "SteveCADTimelineEditCommand", None),
         }
         if isinstance(obj.Proxy, History.ProfileCutFeature):
             try:

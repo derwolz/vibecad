@@ -1,0 +1,5099 @@
+# SPDX-License-Identifier: LGPL-2.1-or-later
+
+"""Native FreeCAD integration gate for the production Assembly domain API."""
+
+from __future__ import annotations
+
+# Import FreeCAD before other module globals. Its embedded-module
+# initialization mutates the importing frame in some built configurations.
+import FreeCAD as App  # noqa: F401
+
+import copy
+import hashlib
+import json
+import math
+from pathlib import Path
+import shutil
+import sys
+import tempfile
+import threading
+
+MODULE_ROOT = Path(__file__).resolve().parent.parent
+if str(MODULE_ROOT) not in sys.path:
+    sys.path.insert(0, str(MODULE_ROOT))
+
+from SteveCADComponentCatalog import (  # noqa: E402
+    capture_component_catalog,
+    search_captured_component_catalog,
+)
+from SteveCADCore import SteveCADService  # noqa: E402
+from SteveCADMechanismGeometry import (  # noqa: E402
+    DYNAMIC_COLLISION_TRACE_SCHEMA,
+    DynamicCollisionEvaluator,
+    MechanismGeometryError,
+    STATIC_MECHANISM_EVIDENCE_SCHEMA,
+    STATIC_PAIR_EVIDENCE_SCHEMA,
+    evaluate_dynamic_collisions,
+    measure_static_component_pairs,
+    measure_static_mechanism_pairs,
+    summarize_dynamic_collision_frames,
+)
+from SteveCADModelingSurface import resolve_modeling_surface  # noqa: E402
+from SteveCADVibeScriptDomainPublication import (  # noqa: E402
+    PROP_INPUT_OBJECTS,
+    PROP_MECHANISM_ASSEMBLY_OUTPUT,
+    PROP_MECHANISM_STATIC_CHECK,
+    PROP_MECHANISM_VERIFICATION_REPORT,
+    PROP_OUTPUT_TYPE,
+    delete_live_program,
+    mark_programs_stale_from_source,
+    publish_candidate,
+)
+from SteveCADVibeScriptDomainRuntime import (  # noqa: E402
+    accept_candidate,
+    capture_inspection_state,
+    capture_reference_inputs,
+    complete_inspection,
+    execute_candidate,
+    finalize_candidate,
+    finish_delete,
+    prepare_candidate,
+    prepare_delete,
+    retain_candidate,
+    validate_candidate,
+)
+from SteveCADVibeScriptDomains import (  # noqa: E402
+    PROP_PROGRAM_DOMAIN,
+    PROP_PROGRAM_ID,
+    PROP_PROGRAM_OUTPUT,
+    PROP_PROGRAM_REVISION,
+    PROP_PROGRAM_WORKBENCH,
+    complete_domain_context,
+    domain_context_snapshot,
+    get_vibescript_pack,
+)
+from vibescript_assembly_worker import (  # noqa: E402
+    AssemblyCandidateError,
+    configure_assembly_references,
+    validate_and_solve_assembly,
+)
+from vibescript_domain_api import create_domain_api  # noqa: E402
+from vibescript_part_worker import part_shape_facts  # noqa: E402
+
+
+def _reference_schema() -> dict:
+    return {
+        "type": "object",
+        "x-stevecad-reference": True,
+        "properties": {
+            "document_uid": {"type": "string", "minLength": 1},
+            "object_name": {"type": "string", "minLength": 1},
+            "document_path": {"type": "string", "minLength": 1},
+        },
+        "required": ["document_uid", "object_name"],
+        "additionalProperties": False,
+    }
+
+
+def _placement_matrix_values(placement) -> list[float]:
+    matrix = placement.toMatrix()
+    return [
+        float(getattr(matrix, name))
+        for name in (
+            "A11",
+            "A12",
+            "A13",
+            "A14",
+            "A21",
+            "A22",
+            "A23",
+            "A24",
+            "A31",
+            "A32",
+            "A33",
+            "A34",
+            "A41",
+            "A42",
+            "A43",
+            "A44",
+        )
+    ]
+
+
+def _assert_timeline_resource_block(timeline, resource, owner) -> tuple[int, int]:
+    operations = list(timeline.Operations)
+    resource_index = operations.index(resource)
+    owner_index = operations.index(owner)
+    assert owner_index == resource_index + 1
+    return resource_index, owner_index
+
+
+def _assert_timeline_resource_sequence(timeline, resources, owner) -> tuple[int, int]:
+    operations = list(timeline.Operations)
+    owner_index = operations.index(owner)
+    begin = owner_index - len(resources)
+    assert begin >= 0
+    block = operations[begin:owner_index]
+    assert len(block) == len(resources)
+    assert all(
+        any(actual is expected for actual in block)
+        for expected in resources
+    )
+    assert all(
+        str(resource.SteveCADTimelineRole) == "resource"
+        and resource.SteveCADTimelineOwner is owner
+        and resource.getTypeIdOfProperty("SteveCADTimelineOwner")
+        == "App::PropertyLinkHidden"
+        for resource in resources
+    )
+    assert str(owner.SteveCADTimelineRole) == "operation"
+    return begin, owner_index
+
+
+def _assert_timeline_operation(timeline, operation) -> int:
+    operations = list(timeline.Operations)
+    operation_index = operations.index(operation)
+    assert str(operation.SteveCADTimelineRole) == "operation"
+    if "SteveCADTimelineOwner" in operation.PropertiesList:
+        assert operation.SteveCADTimelineOwner is None
+    return operation_index
+
+
+class _Service:
+    def __init__(self, document, project_root: Path) -> None:
+        self.document = document
+        self.project_root = project_root
+
+    def _active_document(self):
+        return self.document
+
+    @staticmethod
+    def active_workbench_name() -> str:
+        return "AssemblyWorkbench"
+
+    @staticmethod
+    def modeling_engine() -> str:
+        return "vibescript"
+
+    @staticmethod
+    def provider_document_revision() -> str:
+        return "assembly-production-revision"
+
+    def project_scope_snapshot(self) -> dict:
+        return {"root": str(self.project_root)}
+
+    def provider_working_set(self) -> dict:
+        targets = []
+        for name in ("SourceBase", "SourceArm", "NativeSubassembly"):
+            obj = self.document.getObject(name)
+            if obj is not None:
+                targets.append(
+                    {"name": obj.Name, "label": obj.Label, "type_id": obj.TypeId}
+                )
+        return {"target_count": len(targets), "targets": targets}
+
+    @staticmethod
+    def selection_summary() -> dict:
+        return {"selection": []}
+
+    @staticmethod
+    def _partdesign_body_for_feature(_obj):
+        return None
+
+
+class _ReferenceCaptureService(_Service):
+    """Use the production event-cache methods in a bounded native fixture."""
+
+    _vibescript_object_identity = staticmethod(
+        SteveCADService._vibescript_object_identity
+    )
+    _vibescript_reference_dependencies = (
+        SteveCADService._vibescript_reference_dependencies
+    )
+    capture_vibescript_reference_shape = (
+        SteveCADService.capture_vibescript_reference_shape
+    )
+    store_vibescript_reference_artifact = (
+        SteveCADService.store_vibescript_reference_artifact
+    )
+
+    def __init__(self, document, project_root: Path) -> None:
+        super().__init__(document, project_root)
+        self._vibescript_reference_cache_lock = threading.RLock()
+        self._vibescript_reference_snapshots = {}
+
+    @staticmethod
+    def active_workbench_name() -> str:
+        return "PartDesignWorkbench"
+
+
+def _document_objects(document) -> list[dict[str, str]]:
+    return [
+        {
+            "name": str(obj.Name),
+            "label": str(obj.Label),
+            "type_id": str(obj.TypeId),
+        }
+        for obj in document.Objects
+    ]
+
+
+def _assert_gui_joint_view_providers(document) -> None:
+    if not App.GuiUp:
+        return
+
+    import JointObject
+
+    for obj in document.Objects:
+        if str(getattr(obj, PROP_OUTPUT_TYPE, "") or "") != "joint":
+            continue
+        proxy = obj.ViewObject.Proxy
+        if isinstance(getattr(obj, "Proxy", None), JointObject.GroundedJoint):
+            assert isinstance(proxy, JointObject.ViewProviderGroundedJoint), (
+                obj.Name,
+                type(proxy).__name__,
+            )
+            assert hasattr(proxy, "app_obj"), obj.Name
+            continue
+        assert isinstance(proxy, JointObject.ViewProviderJoint), (
+            obj.Name,
+            type(proxy).__name__,
+        )
+        assert hasattr(proxy, "switch_JCS1"), obj.Name
+        assert hasattr(proxy, "switch_JCS2"), obj.Name
+        proxy.redrawJointPlacements(obj)
+
+
+def _candidate_capture(base: dict, *, operation: str, tool_name: str, arguments: dict) -> dict:
+    return {
+        **base,
+        "operation": operation,
+        "tool_name": tool_name,
+        "arguments": arguments,
+    }
+
+
+def _prepare_and_execute(captured: dict, service: _Service):
+    prepared = prepare_candidate(captured)
+    if prepared.get("reference_requirements") and not prepared.get("finalized"):
+        prepared = finalize_candidate(
+            prepared,
+            capture_reference_inputs(service, prepared),
+        )
+    execution = execute_candidate(prepared, cancellation_check=None)
+    return prepared, execution
+
+
+def _run_candidate(captured: dict, service: _Service):
+    prepared, execution = _prepare_and_execute(captured, service)
+    assert execution.get("ok") is True, execution
+    validated = validate_candidate(prepared, execution)
+    retain_candidate(prepared, status="validated")
+    publication = publish_candidate(service, prepared, validated)
+    _assert_gui_joint_view_providers(service._active_document())
+    accepted = accept_candidate(prepared, publication)
+    assert accepted["model_state"]["status"] == "accepted"
+    assert accepted["model_state"]["accepted_is_current"] is True
+    assert accepted["model_state"]["next_write_expected_revision"] == accepted[
+        "working_revision"
+    ]
+    assert "verification_call" not in accepted["model_state"]
+    return prepared, execution, publication, accepted
+
+
+def _exercise_worker_result_tamper_rejection(
+    prepared: dict, execution: dict
+) -> list[str]:
+    """Prove the host independently reauthorizes plausible worker metadata."""
+
+    def output(payload: dict, name: str) -> dict:
+        return next(item for item in payload["outputs"] if item["name"] == name)
+
+    cases = []
+
+    changed_kind = copy.deepcopy(execution)
+    output(changed_kind, "Hinge")["assembly_data"]["kind"] = "fixed"
+    cases.append(("joint_kind", changed_kind, "changed kind after source evaluation"))
+
+    changed_anchor = copy.deepcopy(execution)
+    changed_anchor_joint = output(changed_anchor, "Hinge")
+    for connector_collection in (
+        changed_anchor_joint["assembly_data"]["connectors"],
+        changed_anchor_joint["connector_frames"],
+    ):
+        connector_collection[0]["anchor"] = "Vertex999"
+        connector_collection[0]["native_reference"]["subelements"][1] = "Vertex999"
+    cases.append(("connector_anchor", changed_anchor, "resolved the wrong anchor"))
+
+    changed_readback = copy.deepcopy(execution)
+    output(changed_readback, "Hinge")["assembly_data"]["native_readback"][
+        "native_type"
+    ] = "Fixed"
+    cases.append(("native_readback", changed_readback, "native property readback disagrees"))
+
+    changed_graph = copy.deepcopy(execution)
+    output(changed_graph, "Model")["definition"]["properties"]["components"][0][
+        "properties"
+    ]["label"] = "Tampered Base"
+    cases.append(
+        (
+            "assembly_graph",
+            changed_graph,
+            "does not match its returned definition",
+        )
+    )
+
+    changed_summary = copy.deepcopy(execution)
+    changed_summary["assembly_validation"]["component_placements"]["Arm"][
+        "matrix"
+    ][3] += 1.0
+    cases.append(
+        (
+            "validation_summary",
+            changed_summary,
+            "validation field 'component_placements' is inconsistent",
+        )
+    )
+
+    changed_delta = copy.deepcopy(execution)
+    output(changed_delta, "Arm")["assembly_data"][
+        "authored_to_solved_delta"
+    ]["translation_distance_mm"] += 1.0
+    cases.append(
+        (
+            "placement_delta",
+            changed_delta,
+            "authored-to-solved delta.translation_distance_mm disagrees",
+        )
+    )
+
+    changed_dependencies = copy.deepcopy(execution)
+    fake_issue = {
+        "code": "missing_collinear_slider",
+        "joint_output": "Hinge",
+        "joint_type": "screw",
+        "component_outputs": ["Base", "Arm"],
+        "available_slider_outputs": [],
+        "requirement": "tampered",
+        "suggestion": "tampered",
+    }
+    output(changed_dependencies, "Diagnostics")["diagnostics"][
+        "joint_dependency_issues"
+    ] = [fake_issue]
+    changed_dependencies["assembly_validation"]["joint_dependency_issues"] = [
+        fake_issue
+    ]
+    cases.append(
+        (
+            "joint_dependencies",
+            changed_dependencies,
+            "does not match the returned joint graph",
+        )
+    )
+
+    rejected = []
+    for name, payload, message in cases:
+        try:
+            validate_candidate(prepared, payload)
+        except ValueError as exc:
+            assert message in str(exc), (name, str(exc))
+            rejected.append(name)
+        else:
+            raise AssertionError(f"Host accepted tampered Assembly result {name!r}.")
+    return rejected
+
+
+def _worker_output(name: str, value) -> dict:
+    return {
+        "name": name,
+        "type": value.output_type,
+        "definition": value.to_payload(),
+    }
+
+
+def _tag_v2_output(obj, *, program_id: str, domain: str, output_name: str) -> None:
+    values = {
+        PROP_PROGRAM_ID: program_id,
+        PROP_PROGRAM_DOMAIN: domain,
+        PROP_PROGRAM_WORKBENCH: (
+            "AssemblyWorkbench" if domain == "assembly" else "PartWorkbench"
+        ),
+        PROP_PROGRAM_REVISION: "f" * 64,
+        PROP_PROGRAM_OUTPUT: output_name,
+    }
+    for name, value in values.items():
+        obj.addProperty("App::PropertyString", name, "SteveCAD")
+        setattr(obj, name, value)
+
+
+def _exercise_provider_context(root: Path, pack) -> dict:
+    """Exercise the resolved Assembly-only provider context and its hard bounds."""
+
+    import FreeCAD as App
+    import Part
+    import SteveCADScriptedPublication as scripted_publication
+
+    document = App.newDocument("VibeScriptAssemblyContext")
+    try:
+        model_root = document.addObject("App::Part", "LegacyScriptedModel")
+        scripted_publication.tag_object(
+            model_root,
+            role=scripted_publication.ROLE_MODEL,
+            engine="vibescript",
+            model_id="legacy-context-model",
+        )
+        scripted_publication.ensure_string_property(
+            model_root,
+            scripted_publication.PROP_INTERFACES,
+        )
+        model_root.SteveCADPublishedInterfaces = json.dumps(
+            {
+                "HingeMount": {
+                    "output": "Arm",
+                    "resolved": {
+                        "subelements": ["Face1"],
+                        "geometry": [{"geometry_type": "plane"}],
+                    },
+                }
+            },
+            sort_keys=True,
+        )
+        published = model_root.newObject("Part::Feature", "PublishedArm")
+        published.Shape = Part.makeCylinder(3, 30)
+        scripted_publication.tag_object(
+            published,
+            role=scripted_publication.ROLE_PUBLICATION,
+            engine="vibescript",
+            model_id="legacy-context-model",
+            output_key="Arm",
+            revision="e" * 64,
+        )
+
+        v2_output = document.addObject("Part::Feature", "AssemblyV2Output")
+        v2_output.Shape = Part.makeBox(8, 8, 8)
+        _tag_v2_output(
+            v2_output,
+            program_id="a" * 32,
+            domain="assembly",
+            output_name="Component",
+        )
+        foreign_output = document.addObject("Part::Feature", "ForeignPartOutput")
+        foreign_output.Shape = Part.makeBox(7, 7, 7)
+        _tag_v2_output(
+            foreign_output,
+            program_id="b" * 32,
+            domain="part",
+            output_name="Solid",
+        )
+        face_only = document.addObject("Part::Feature", "FaceOnly")
+        face_only.Shape = Part.makePlane(6, 6)
+        for index in range(24):
+            obj = document.addObject("Part::Feature", f"NativeComponent{index:02d}")
+            obj.Shape = Part.makeBox(4 + index, 5, 6)
+        document.recompute()
+
+        service = _Service(document, root)
+        expected_surface_id = resolve_modeling_surface(
+            "AssemblyWorkbench", "vibescript"
+        ).surface_id
+        snapshot = domain_context_snapshot(service, "assembly")
+        assert snapshot["surface_id"] == expected_surface_id
+        assert snapshot["contract"]["api_exports"] == list(pack.api_exports)
+        assert snapshot["native_program_count"] == 1
+        raw_candidates = snapshot["assembly_component_shapes"]
+        expected_shape_objects = sum(
+            1 for obj in document.Objects if getattr(obj, "Shape", None) is not None
+        )
+        assert expected_shape_objects >= 28
+        assert raw_candidates["object_count"] == expected_shape_objects
+        assert raw_candidates["objects_truncated"] is True
+        assert raw_candidates["objects_omitted"] == expected_shape_objects - 24
+        assert len(raw_candidates["objects"]) == 24
+
+        context = complete_domain_context(snapshot)
+        json.dumps(context, allow_nan=False)
+        assert context["domain"] == "assembly"
+        assert context["workbench"] == "AssemblyWorkbench"
+        assert context["surface_id"] == expected_surface_id
+        assert context["program_count"] == 1
+        assert [item["program_id"] for item in context["programs"]] == ["a" * 32]
+        candidates = context["component_candidates"]
+        assert candidates["object_limit"] == 24
+        assert candidates["objects_truncated"] is True
+        assert candidates["objects_omitted"] == expected_shape_objects - 24
+        by_name = {item["name"]: item for item in candidates["objects"]}
+        semantic = by_name["PublishedArm"]
+        assert semantic["eligible_component_shape"] is True
+        assert semantic["requires_semantic_interfaces"] is True
+        assert semantic["transient_topology"] is True
+        assert semantic["published_interfaces"] == [
+            {
+                "interface_name": "HingeMount",
+                "subelements": ["Face1"],
+                "geometry_types": ["plane"],
+            }
+        ]
+        assert by_name["AssemblyV2Output"]["transient_topology"] is True
+        assert by_name["AssemblyV2Output"]["requires_semantic_interfaces"] is False
+        assert by_name["FaceOnly"]["eligible_component_shape"] is False
+        assert "at least one solid" in by_name["FaceOnly"]["ineligible_reason"]
+        assert semantic["reference"] == {
+            "document_uid": str(document.Uid),
+            "object_name": "PublishedArm",
+        }
+        assert "part_document_shapes" not in context
+        return {
+            "component_count": candidates["object_count"],
+            "component_limit": candidates["object_limit"],
+            "components_omitted": candidates["objects_omitted"],
+            "semantic_interfaces": ["HingeMount"],
+        }
+    finally:
+        App.closeDocument(document.Name)
+
+
+def _exercise_native_joint_matrix(root: Path, pack) -> dict[str, int]:
+    """Construct every native joint type through the exact production graph API."""
+
+    import FreeCAD as App
+    import Part
+
+    reference_root = root / "joint-type-references"
+    reference_root.mkdir()
+    shapes = {
+        "Box": Part.makeBox(10, 8, 6),
+        "Cylinder": Part.makeCylinder(4, 12),
+    }
+    entries = []
+    for name, shape in shapes.items():
+        path = reference_root / f"{name}.brep"
+        shape.exportBrep(str(path))
+        entries.append(
+            {
+                "document_uid": "joint-matrix",
+                "object_name": name,
+                "label": name,
+                "type_id": "Part::Feature",
+                "shape_type": str(shape.ShapeType),
+                "brep_sha256": hashlib.sha256(path.read_bytes()).hexdigest(),
+                "artifact_path": path.name,
+                "facts": part_shape_facts(shape, max_subelements=32),
+            }
+        )
+    configure_assembly_references(reference_root, entries)
+    selection_shapes = {}
+    for name in shapes:
+        reloaded = Part.Shape()
+        reloaded.importBrep(str(reference_root / f"{name}.brep"))
+        selection_shapes[name] = reloaded
+    line_edge = next(
+        index
+        for index, edge in enumerate(selection_shapes["Box"].Edges, start=1)
+        if "line" in type(edge.Curve).__name__.lower()
+    )
+    circle_edge = next(
+        index
+        for index, edge in enumerate(selection_shapes["Cylinder"].Edges, start=1)
+        if "circle" in type(edge.Curve).__name__.lower()
+    )
+    line_vertex = next(
+        index
+        for index, vertex in enumerate(selection_shapes["Box"].Vertexes, start=1)
+        if selection_shapes["Box"].Edges[line_edge - 1].Vertexes[0].isSame(vertex)
+    )
+    api = create_domain_api(pack.domain, pack.api_exports, pack.output_types)
+    joint_arguments = {
+        "fixed": {},
+        "revolute": {"angle_limits_degrees": [None, 120]},
+        "cylindrical": {
+            "length_limits_mm": [-20, None],
+            "angle_limits_degrees": [None, 180],
+        },
+        "slider": {"length_limits_mm": [None, 20]},
+        "ball": {},
+        "distance": {"distance_mm": -8},
+        "parallel": {},
+        "perpendicular": {},
+        "angle": {"angle_degrees": 35},
+        "rack_pinion": {"pitch_radius_mm": -4},
+        "screw": {"thread_pitch_mm": -2},
+        "gears": {"radius1_mm": 4, "radius2_mm": 8},
+        "belt": {"radius1_mm": 4, "radius2_mm": 8},
+    }
+    observed: dict[str, int] = {}
+    for index, (kind, arguments) in enumerate(joint_arguments.items()):
+        document = App.newDocument(f"AssemblyJointMatrix{index}")
+        try:
+            first_ref = {"document_uid": "joint-matrix", "object_name": "Box"}
+            second_name = "Cylinder" if kind == "rack_pinion" else "Box"
+            second_ref = {"document_uid": "joint-matrix", "object_name": second_name}
+            base = api.component(first_ref, grounded=True, label="Base")
+            moving = api.component(second_ref, placement=[15, 0, 0], label="Moving")
+            if kind == "rack_pinion":
+                first_connector = api.connector(base, f"Edge{line_edge}")
+                second_connector = api.connector(moving, f"Edge{circle_edge}")
+            elif kind == "fixed":
+                first_connector = api.connector(moving)
+                second_connector = api.connector(
+                    base,
+                    f"Edge{line_edge}",
+                    anchor=f"Vertex{line_vertex}",
+                )
+            else:
+                first_connector = api.connector(
+                    base,
+                )
+                second_connector = api.connector(moving)
+            joint = api.joint(
+                kind,
+                first_connector,
+                second_connector,
+                label=f"{kind} joint",
+                **arguments,
+            )
+            model = api.assembly([base, moving], [joint], label=f"{kind} assembly")
+            diagnostics = api.solve(model, require_solved=False)
+            result = {
+                "Model": model,
+                "Base": base,
+                "Moving": moving,
+                "Joint": joint,
+                "Diagnostics": diagnostics,
+            }
+            outputs = [_worker_output(name, value) for name, value in result.items()]
+            validation = validate_and_solve_assembly(document, result, outputs)
+            joint_data = next(
+                item["assembly_data"] for item in outputs if item["name"] == "Joint"
+            )
+            assert joint_data["native_type"] in __import__("JointObject").JointTypes
+            assert joint_data["native_readback"]["native_type"] == joint_data["native_type"]
+            assert len(joint_data["connectors"]) == 2
+            assert all(item["native_reference"]["component"] for item in joint_data["connectors"])
+            if kind == "fixed":
+                component_native_names = {
+                    item["name"]: item["assembly_data"]["native_name"]
+                    for item in outputs
+                    if item["type"] == "component_link"
+                }
+                assert [
+                    item["native_reference"]["component"]
+                    for item in joint_data["connectors"]
+                ] == [
+                    component_native_names["Moving"],
+                    component_native_names["Base"],
+                ]
+                second_frame = joint_data["connectors"][1]
+                assert second_frame["anchor"] == f"Vertex{line_vertex}"
+                assert second_frame["native_reference"]["subelements"] == [
+                    f"Edge{line_edge}",
+                    f"Vertex{line_vertex}",
+                ]
+            issues = list(validation["joint_dependency_issues"])
+            if kind in {"rack_pinion", "screw"}:
+                assert [item["code"] for item in issues] == [
+                    "missing_collinear_slider"
+                ]
+                assert issues[0]["joint_type"] == kind
+            else:
+                assert issues == []
+            observed[kind] = int(validation["solver_code"])
+        finally:
+            App.closeDocument(document.Name)
+    assert set(observed) == set(joint_arguments)
+    assert observed["revolute"] == 0, observed
+    assert all(code == 0 for code in observed.values()), observed
+    return observed
+
+
+def _exercise_coupled_joint_dependencies(root: Path, pack) -> dict[str, int]:
+    """Require the native Slider relationship used by RackPinion and Screw."""
+
+    import FreeCAD as App
+    import Part
+
+    reference_root = root / "coupled-joint-references"
+    reference_root.mkdir()
+    shapes = {
+        "Base": Part.makeBox(12, 10, 8),
+        "Rack": Part.makeBox(20, 4, 4),
+        "Pinion": Part.makeCylinder(4, 8),
+    }
+    entries = []
+    for name, shape in shapes.items():
+        path = reference_root / f"{name}.brep"
+        shape.exportBrep(str(path))
+        entries.append(
+            {
+                "document_uid": "coupled-joints",
+                "object_name": name,
+                "label": name,
+                "type_id": "Part::Feature",
+                "shape_type": str(shape.ShapeType),
+                "brep_sha256": hashlib.sha256(path.read_bytes()).hexdigest(),
+                "artifact_path": path.name,
+                "facts": part_shape_facts(shape, max_subelements=32),
+            }
+        )
+    configure_assembly_references(reference_root, entries)
+    line_edges = {
+        name: next(
+            index
+            for index, edge in enumerate(shape.Edges, start=1)
+            if "line" in type(edge.Curve).__name__.lower()
+        )
+        for name, shape in shapes.items()
+        if name != "Pinion"
+    }
+    circle_edge = next(
+        index
+        for index, edge in enumerate(shapes["Pinion"].Edges, start=1)
+        if "circle" in type(edge.Curve).__name__.lower()
+    )
+    api = create_domain_api(pack.domain, pack.api_exports, pack.output_types)
+
+    def source(name: str) -> dict[str, str]:
+        return {"document_uid": "coupled-joints", "object_name": name}
+
+    invalid_document = App.newDocument("AssemblyMissingSliderDependency")
+    try:
+        base = api.component(source("Base"), grounded=True)
+        rack = api.component(source("Rack"))
+        pinion = api.component(source("Pinion"))
+        coupling = api.joint(
+            "rack_pinion",
+            api.connector(rack, f"Edge{line_edges['Rack']}"),
+            api.connector(pinion, f"Edge{circle_edge}"),
+            pitch_radius_mm=4,
+        )
+        model = api.assembly([base, rack, pinion], [coupling])
+        diagnostics = api.solve(model)
+        result = {
+            "Model": model,
+            "Base": base,
+            "Rack": rack,
+            "Pinion": pinion,
+            "Coupling": coupling,
+            "Diagnostics": diagnostics,
+        }
+        try:
+            validate_and_solve_assembly(
+                invalid_document,
+                result,
+                [_worker_output(name, value) for name, value in result.items()],
+            )
+        except AssemblyCandidateError as exc:
+            assert exc.details["stage"] == "joint_dependency_preflight"
+            issue = exc.details["issues"][0]
+            assert issue["code"] == "missing_slider"
+            assert issue["joint_output"] == "Coupling"
+            assert "api.joint('slider'" in issue["suggestion"]
+            assert invalid_document.Objects == []
+        else:
+            raise AssertionError("A required RackPinion Slider dependency was omitted.")
+    finally:
+        App.closeDocument(invalid_document.Name)
+
+    observed = {}
+    for kind in ("rack_pinion", "screw"):
+        document = App.newDocument(f"AssemblyCoupled{kind}")
+        try:
+            base = api.component(source("Base"), grounded=True, label="Base")
+            moving = api.component(source("Rack"), label="Moving")
+            if kind == "rack_pinion":
+                driven = api.component(source("Pinion"), label="Pinion")
+                base_connector = api.connector(base, f"Edge{line_edges['Base']}")
+                moving_connector = api.connector(moving, f"Edge{line_edges['Rack']}")
+                slider = api.joint("slider", base_connector, moving_connector)
+                coupling = api.joint(
+                    kind,
+                    api.connector(moving, f"Edge{line_edges['Rack']}"),
+                    api.connector(driven, f"Edge{circle_edge}"),
+                    pitch_radius_mm=-4,
+                )
+                components = [base, moving, driven]
+                result = {
+                    "Model": None,
+                    "Base": base,
+                    "Moving": moving,
+                    "Driven": driven,
+                    "Slider": slider,
+                    "Coupling": coupling,
+                    "Diagnostics": None,
+                }
+            else:
+                slider = api.joint(
+                    "slider",
+                    api.connector(base),
+                    api.connector(moving),
+                )
+                coupling = api.joint(
+                    kind,
+                    api.connector(base),
+                    api.connector(moving),
+                    thread_pitch_mm=-2,
+                )
+                components = [base, moving]
+                result = {
+                    "Model": None,
+                    "Base": base,
+                    "Moving": moving,
+                    "Slider": slider,
+                    "Coupling": coupling,
+                    "Diagnostics": None,
+                }
+            model = api.assembly(components, [slider, coupling])
+            diagnostics = api.solve(model)
+            result["Model"] = model
+            result["Diagnostics"] = diagnostics
+            outputs = [_worker_output(name, value) for name, value in result.items()]
+            validation = validate_and_solve_assembly(document, result, outputs)
+            assert validation["joint_dependency_issues"] == []
+            assert validation["solver_code"] == 0, validation
+            observed[kind] = int(validation["solver_code"])
+        finally:
+            App.closeDocument(document.Name)
+    return observed
+
+
+def _exercise_semantic_connectors(root: Path, pack) -> dict:
+    """Prove regenerating sources require and retain semantic connector identity."""
+
+    import FreeCAD as App
+    import Part
+
+    reference_root = root / "semantic-connector-references"
+    reference_root.mkdir()
+    shapes = {
+        "NativeBase": Part.makeBox(20, 16, 8),
+        "ScriptedArm": Part.makeCylinder(3, 30),
+    }
+    entries = []
+    for name, shape in shapes.items():
+        path = reference_root / f"{name}.brep"
+        shape.exportBrep(str(path))
+        entry = {
+            "document_uid": "semantic-connectors",
+            "object_name": name,
+            "label": name,
+            "type_id": "Part::Feature",
+            "shape_type": str(shape.ShapeType),
+            "brep_sha256": hashlib.sha256(path.read_bytes()).hexdigest(),
+            "artifact_path": path.name,
+            "facts": part_shape_facts(shape, max_subelements=32),
+        }
+        if name == "ScriptedArm":
+            entry.update(
+                {
+                    "source_kind": "scripted_publication",
+                    "transient_topology": True,
+                    "requires_semantic_interfaces": True,
+                    "published_interfaces": {
+                        "HingeMount": {
+                            "model_id": "semantic-model",
+                            "publication_name": "Arm",
+                            "output_key": "Arm",
+                            "subelements": ["Face1"],
+                            "geometry": [{"geometry_type": "plane"}],
+                        },
+                        "RotationAxis": {
+                            "model_id": "semantic-model",
+                            "publication_name": "Arm",
+                            "output_key": "Arm",
+                            "selection": {
+                                "type": "frame",
+                                "origin": [2.0, 3.0, 4.0],
+                                "axis_direction": [1.0, 0.0, 0.0],
+                                "x_direction": [0.0, 0.0, 1.0],
+                            },
+                            "subelements": [],
+                            "geometry": [],
+                            "connector_frame": {
+                                "schema": "stevecad-connector-frame-v1",
+                                "origin_mm": [2.0, 3.0, 4.0],
+                                "x_direction": [0.0, 0.0, 1.0],
+                                "axis_direction": [1.0, 0.0, 0.0],
+                                "matrix": [
+                                    0.0,
+                                    0.0,
+                                    1.0,
+                                    2.0,
+                                    0.0,
+                                    -1.0,
+                                    0.0,
+                                    3.0,
+                                    1.0,
+                                    0.0,
+                                    0.0,
+                                    4.0,
+                                    0.0,
+                                    0.0,
+                                    0.0,
+                                    1.0,
+                                ],
+                            },
+                            "connector": {
+                                "kind": "axis",
+                                "allowed_joints": ["fixed"],
+                            },
+                        }
+                    },
+                }
+            )
+        entries.append(entry)
+    configure_assembly_references(reference_root, entries)
+    api = create_domain_api(pack.domain, pack.api_exports, pack.output_types)
+
+    def graph(selection):
+        base = api.component(
+            {
+                "document_uid": "semantic-connectors",
+                "object_name": "NativeBase",
+            },
+            grounded=True,
+            label="Base",
+        )
+        arm = api.component(
+            {
+                "document_uid": "semantic-connectors",
+                "object_name": "ScriptedArm",
+            },
+            placement=[0, 0, 8],
+            label="Arm",
+        )
+        hinge = api.joint(
+            "fixed",
+            api.connector(base),
+            api.connector(arm, selection),
+            label="Semantic mount",
+        )
+        model = api.assembly([base, arm], [hinge], label="Semantic Assembly")
+        diagnostics = api.solve(model)
+        result = {
+            "Model": model,
+            "Base": base,
+            "Arm": arm,
+            "Hinge": hinge,
+            "Diagnostics": diagnostics,
+        }
+        return result, [_worker_output(name, value) for name, value in result.items()]
+
+    for selection in ("origin", "Face1"):
+        document = App.newDocument("AssemblySemanticRejected")
+        try:
+            result, outputs = graph(selection)
+            try:
+                validate_and_solve_assembly(document, result, outputs)
+            except AssemblyCandidateError as exc:
+                assert exc.details["stage"] == "connector_selection"
+                assert exc.details["component_output"] == "Arm"
+                assert exc.details["available_interfaces"] == [
+                    "HingeMount",
+                    "RotationAxis",
+                ]
+                assert "published_interface" in str(exc)
+            else:
+                raise AssertionError(
+                    f"Transient scripted connector selection {selection!r} was accepted."
+                )
+        finally:
+            App.closeDocument(document.Name)
+
+    document = App.newDocument("AssemblySemanticUnknown")
+    try:
+        result, outputs = graph(
+            {"type": "published_interface", "interface_name": "MissingMount"}
+        )
+        try:
+            validate_and_solve_assembly(document, result, outputs)
+        except AssemblyCandidateError as exc:
+            assert exc.details["stage"] == "connector_selection"
+            assert exc.details["available_interfaces"] == [
+                "HingeMount",
+                "RotationAxis",
+            ]
+            assert "does not exist" in str(exc)
+        else:
+            raise AssertionError("A missing semantic Assembly interface was accepted.")
+    finally:
+        App.closeDocument(document.Name)
+
+    document = App.newDocument("AssemblySemanticAccepted")
+    try:
+        result, outputs = graph(
+            {"type": "published_interface", "interface_name": "HingeMount"}
+        )
+        validation = validate_and_solve_assembly(document, result, outputs)
+        assert validation["solver_code"] == 0, validation
+        joint = next(item for item in outputs if item["name"] == "Hinge")
+        connector = joint["assembly_data"]["connectors"][1]
+        assert joint["assembly_data"]["compatibility"]["validation"] == (
+            "native_joint_connector_validation"
+        )
+        assert connector["element"] == "Face1"
+        assert connector["geometry_type"] == "plane"
+        assert connector["semantic_selection"] == {
+            "type": "published_interface",
+            "interface_name": "HingeMount",
+            "model_id": "semantic-model",
+            "publication_name": "Arm",
+            "output_key": "Arm",
+        }
+        retained_interface = connector["semantic_selection"]
+    finally:
+        App.closeDocument(document.Name)
+
+    document = App.newDocument("AssemblySemanticFrameAccepted")
+    try:
+        result, outputs = graph(
+            {"type": "published_interface", "interface_name": "RotationAxis"}
+        )
+        validation = validate_and_solve_assembly(document, result, outputs)
+        assert validation["solver_code"] == 0, validation
+        joint = next(item for item in outputs if item["name"] == "Hinge")
+        connector = joint["assembly_data"]["connectors"][1]
+        assert joint["assembly_data"]["compatibility"]["validation"] == (
+            "explicit_connector_contract"
+        )
+        assert joint["assembly_data"]["compatibility"]["contracts"] == [
+            None,
+            {"kind": "axis", "allowed_joints": ["fixed"]},
+        ]
+        assert connector["element"] == ""
+        assert connector["geometry_type"] == "component_frame"
+        frame = connector["interface_frame"]
+        assert frame["position_mm"] == [2.0, 3.0, 4.0]
+        assert all(
+            math.isclose(actual, expected, abs_tol=1.0e-12)
+            for actual, expected in zip(
+                [frame["matrix"][2], frame["matrix"][6], frame["matrix"][10]],
+                [1.0, 0.0, 0.0],
+                strict=True,
+            )
+        )
+        assert connector["semantic_selection"]["interface_name"] == "RotationAxis"
+        return {
+            "rejected_transient_selections": ["origin", "Face1"],
+            "retained_interface": retained_interface,
+            "retained_frame_interface": connector["semantic_selection"],
+        }
+    finally:
+        App.closeDocument(document.Name)
+
+
+def _exercise_transient_geometry_connectors(root: Path, pack) -> dict:
+    """Resolve copy-ready queries without persisting transient FaceN names."""
+
+    import FreeCAD as App
+    import Part
+
+    reference_root = root / "transient-geometry-connector-references"
+    reference_root.mkdir()
+    shape = Part.makeCylinder(10.0, 20.0)
+    entries = []
+    for name in ("LegacyBase", "LegacyRotor"):
+        path = reference_root / f"{name}.brep"
+        shape.exportBrep(str(path))
+        entries.append(
+            {
+                "document_uid": "transient-geometry-connectors",
+                "object_name": name,
+                "label": name,
+                "type_id": "Part::Feature",
+                "shape_type": str(shape.ShapeType),
+                "brep_sha256": hashlib.sha256(path.read_bytes()).hexdigest(),
+                "artifact_path": path.name,
+                "facts": part_shape_facts(shape, max_subelements=32),
+                "source_kind": "vibescript_partdesign",
+                "transient_topology": True,
+                "requires_semantic_interfaces": False,
+                "published_interfaces": {},
+            }
+        )
+    configure_assembly_references(reference_root, entries)
+    api = create_domain_api(pack.domain, pack.api_exports, pack.output_types)
+    source = lambda name: {
+        "document_uid": "transient-geometry-connectors",
+        "object_name": name,
+    }
+    base = api.component(source("LegacyBase"), grounded=True)
+    rotor = api.component(source("LegacyRotor"))
+    selection = {
+        "type": "query",
+        "element_type": "face",
+        "expected_count": 1,
+        "geometry_type": "Cylinder",
+        "radius": 10.0,
+        "radius_tolerance": 1.0e-6,
+        "near_point": [0.0, 0.0, 10.0],
+        "max_distance": 1.0e-6,
+    }
+    hinge = api.joint(
+        "revolute",
+        api.connector(base, selection),
+        api.connector(rotor, selection),
+    )
+    model = api.assembly([base, rotor], [hinge])
+    diagnostics = api.solve(model)
+    result = {
+        "Model": model,
+        "Base": base,
+        "Rotor": rotor,
+        "Hinge": hinge,
+        "Diagnostics": diagnostics,
+    }
+    outputs = [_worker_output(name, value) for name, value in result.items()]
+    document = App.newDocument("AssemblyTransientGeometryConnector")
+    try:
+        validation = validate_and_solve_assembly(document, result, outputs)
+        assert validation["solver_code"] == 0, validation
+        joint = next(item for item in outputs if item["name"] == "Hinge")
+        connectors = joint["assembly_data"]["connectors"]
+        assert [item["element"] for item in connectors] == ["Face1", "Face1"]
+        semantic_selections = [item["semantic_selection"] for item in connectors]
+        retained_selection = {**selection, "near_point": (0.0, 0.0, 10.0)}
+        assert semantic_selections == [
+            {"type": "geometry_query", "query": retained_selection},
+            {"type": "geometry_query", "query": retained_selection},
+        ], semantic_selections
+        return {
+            "selection": selection,
+            "resolved_elements": [item["element"] for item in connectors],
+        }
+    finally:
+        App.closeDocument(document.Name)
+
+
+def _source_text(
+    label: str = "Production Assembly",
+    *,
+    hinge_statement: str | None = None,
+    require_solved: bool = True,
+) -> str:
+    hinge = hinge_statement or (
+        "hinge = api.joint('revolute', api.connector(base), api.connector(arm), "
+        "angle_limits_degrees=[-90,90], label='Hinge')"
+    )
+    return (
+        "base = api.component(inputs['base'], grounded=True, label='Base')\n"
+        "arm = api.component(inputs['arm'], placement=[0,0,inputs['arm_z']], label='Arm')\n"
+        "module = api.component(inputs['module'], placement=[40,0,0], label='Module')\n"
+        f"{hinge}\n"
+        "mount = api.joint('fixed', api.connector(base), api.connector(module), "
+        "label='Module Mount')\n"
+        f"model = api.assembly([base,arm,module], [hinge,mount], label={label!r})\n"
+        f"diagnostics = api.solve(model, require_solved={require_solved!r})\n"
+        "result = {'Model':model, 'Base':base, 'Arm':arm, 'Module':module, "
+        "'Hinge':hinge, 'Mount':mount, 'Diagnostics':diagnostics}\n"
+    )
+
+
+def _simulation_source(
+    formula: str = "initialValue + pi/2*time",
+    *,
+    collision_mode: str = "full",
+) -> str:
+    return (
+        "base = api.component(inputs['base'], grounded=True, label='Base')\n"
+        "arm = api.component(inputs['arm'], label='Arm')\n"
+        "hinge = api.joint('revolute', api.connector(base), api.connector(arm), "
+        "label='Hinge')\n"
+        "model = api.assembly([base,arm], [hinge], label='Driven Assembly')\n"
+        "diagnostics = api.solve(model)\n"
+        f"drive = api.motion(hinge, {formula!r}, label='Hinge Drive')\n"
+        "simulation = api.simulation(model, [drive], start_time_s=0, "
+        "end_time_s=0.1, time_step_s=0.02, error_tolerance=1e-6, "
+        f"frames_per_second=30, collision_mode={collision_mode!r}, "
+        "label='Kinematic Trace')\n"
+        "result = {'Model':model, 'Base':base, 'Arm':arm, 'Hinge':hinge, "
+        "'Drive':drive, 'Simulation':simulation, 'Diagnostics':diagnostics}\n"
+    )
+
+
+def _collision_frames(
+    placements: list[tuple[list[float], list[float]]],
+) -> list[dict]:
+    return [
+        {
+            "frame_index": index,
+            "frame_kind": "input" if index == 0 else "solver_output",
+            "nominal_time_s": None if index == 0 else float(index - 1),
+            "component_placements": {
+                "First": {
+                    "position_mm": first,
+                    "rotation_xyzw": [0.0, 0.0, 0.0, 1.0],
+                },
+                "Second": {
+                    "position_mm": second,
+                    "rotation_xyzw": [0.0, 0.0, 0.0, 1.0],
+                },
+            },
+        }
+        for index, (first, second) in enumerate(placements)
+    ]
+
+
+def _exercise_dynamic_collision_geometry() -> dict:
+    """Prove collisions, clear poses, and compact trace intervals."""
+
+    import Part
+    from SteveCADMechanismGeometry import _disjoint_surface_job_batches
+
+    surface_jobs = [
+        (1, "A", "B"),
+        (2, "A", "C"),
+        (3, "B", "C"),
+        (4, "C", "D"),
+        (5, "A", "D"),
+        (6, "B", "D"),
+    ]
+    surface_batches = _disjoint_surface_job_batches(surface_jobs)
+    assert [job for batch in surface_batches for job in batch] != []
+    assert sorted(
+        job for batch in surface_batches for job in batch
+    ) == surface_jobs
+    assert all(
+        len({name for _index, first, second in batch for name in (first, second)})
+        == 2 * len(batch)
+        for batch in surface_batches
+    )
+
+    first = Part.makeBox(10, 10, 10)
+    second = Part.makeBox(10, 10, 10)
+    evaluator = DynamicCollisionEvaluator({"First": first, "Second": second})
+    forked_evaluator = evaluator.fork()
+    assert all(
+        not evaluator._shapes[name].isPartner(forked_evaluator._shapes[name])
+        for name in evaluator.component_names
+    )
+    clear = [0.0, 0.0, 0.0], [30.0, 0.0, 0.0]
+    overlap = [0.0, 0.0, 0.0], [5.0, 0.0, 0.0]
+    result = evaluate_dynamic_collisions(
+        {"First": first, "Second": second},
+        _collision_frames([clear, clear, overlap, overlap, clear]),
+    )
+    summary = result["summary"]
+    assert summary["schema"] == DYNAMIC_COLLISION_TRACE_SCHEMA
+    assert summary["status"] == "complete"
+    assert summary["collision_mesh_linear_deflection_mm"] == 0.05
+    assert summary["collision_mesh_angular_deflection_radians"] == 0.5
+    assert summary["collision_free"] is False
+    assert summary["evaluated_frame_count"] == 4
+    assert summary["colliding_frame_count"] == 2
+    assert summary["colliding_pair_count"] == 1
+    pair = summary["pairs"][0]
+    assert pair["first_collision_frame"] == 2
+    assert pair["last_collision_frame"] == 3
+    assert pair["maximum_interference_volume_mm3"] == 0.0
+    assert pair["interference_volume_complete"] is False
+    assert len(pair["intervals"]) == 1
+    interval = pair["intervals"][0]
+    assert interval["first_frame"] == 2
+    assert interval["first_time_s"] == 1.0
+    assert interval["last_frame"] == 3
+    assert interval["last_time_s"] == 2.0
+    assert interval["maximum_interference_volume_mm3"] == 0.0
+    assert interval["interference_volume_complete"] is False
+    assert interval["worst_frame"] == 2
+    assert interval["worst_time_s"] == 1.0
+    clear_result = evaluate_dynamic_collisions(
+        {"First": first, "Second": second},
+        _collision_frames([clear, clear, clear]),
+    )["summary"]
+    assert clear_result["collision_free"] is True
+    assert clear_result["colliding_pair_count"] == 0
+    nested_clear_result = evaluate_dynamic_collisions(
+        {
+            "First": Part.makeCylinder(10.0, 10.0).cut(
+                Part.makeCylinder(8.0, 10.0)
+            ),
+            "Second": Part.makeCylinder(5.0, 10.0),
+        },
+        _collision_frames([clear, clear]),
+    )["summary"]
+    assert nested_clear_result["analysis_complete"] is True
+    assert nested_clear_result["collision_free"] is True
+    warning_summary = summarize_dynamic_collision_frames(
+        ["First", "Second"],
+        [
+            {
+                "frame_index": 1,
+                "nominal_time_s": 0.0,
+                "collisions": [],
+            }
+        ],
+        evaluation_warnings=[
+            {
+                "code": "COLLISION_ANALYSIS_INCOMPLETE",
+                "stage": "simulation_collision",
+                "message": "Injected geometry-engine failure",
+            }
+        ],
+    )
+    assert warning_summary["status"] == "incomplete"
+    assert warning_summary["analysis_complete"] is False
+    assert warning_summary["collision_free"] is False
+    assert warning_summary["warning_count"] == 1
+    shared_definition_result = evaluate_dynamic_collisions(
+        {"First": first.copy(), "Second": first.copy()},
+        _collision_frames([clear, clear, overlap]),
+        definition_keys={
+            "First": "shared-test-definition",
+            "Second": "shared-test-definition",
+        },
+    )
+    assert shared_definition_result["summary"]["collision_free"] is False
+    assert (
+        shared_definition_result["evaluation"]["unique_collision_mesh_count"]
+        == 1
+    )
+    rigid_result = evaluate_dynamic_collisions(
+        {"First": first, "Second": second},
+        _collision_frames(
+            [
+                clear,
+                overlap,
+                ([100.0, 0.0, 0.0], [105.0, 0.0, 0.0]),
+            ]
+        ),
+        rigid_pairs=[("First", "Second")],
+    )
+    assert rigid_result["summary"]["colliding_frame_count"] == 2
+    assert rigid_result["evaluation"]["rigid_pair_count"] == 1
+    assert rigid_result["evaluation"]["surface_proximity_count"] == 1
+    excluded_result = evaluate_dynamic_collisions(
+        {"First": first, "Second": second},
+        _collision_frames([clear, overlap, overlap]),
+        excluded_pairs=[("First", "Second")],
+    )
+    assert excluded_result["summary"]["collision_free"] is True
+    assert excluded_result["evaluation"]["excluded_pair_count"] == 1
+    assert excluded_result["evaluation"]["exact_common_count"] == 0
+    contained_result = evaluate_dynamic_collisions(
+        {"First": first, "Second": Part.makeSphere(2.0)},
+        _collision_frames(
+            [
+                ([0.0, 0.0, 0.0], [30.0, 0.0, 0.0]),
+                ([0.0, 0.0, 0.0], [5.0, 5.0, 5.0]),
+            ]
+        ),
+    )
+    assert contained_result["summary"]["collision_free"] is False
+    assert contained_result["summary"]["interference_volume_complete"] is False
+    assert contained_result["evaluation"]["containment_collision_count"] == 1
+    assert contained_result["evaluation"]["exact_common_count"] == 0
+
+    with tempfile.TemporaryDirectory(prefix="stevecad-collision-step-") as directory:
+        step_path = Path(directory) / "imported-collision-shape.step"
+        second.exportStep(str(step_path))
+        imported = Part.read(str(step_path))
+        imported_result = evaluate_dynamic_collisions(
+            {"First": first, "Second": imported},
+            _collision_frames(
+                [
+                    ([0.0, 0.0, 0.0], [30.0, 0.0, 0.0]),
+                    ([0.0, 0.0, 0.0], [5.0, 0.0, 0.0]),
+                ]
+            ),
+        )
+    assert imported_result["summary"]["collision_free"] is False
+    assert imported_result["summary"]["colliding_pair_count"] == 1
+    assert imported_result["summary"]["interference_volume_complete"] is False
+    assert imported_result["evaluation"]["surface_proximity_count"] == 1
+    return {
+        "colliding_pair": [pair["first_component"], pair["second_component"]],
+        "first_collision_frame": pair["first_collision_frame"],
+        "maximum_interference_volume_mm3": pair["maximum_interference_volume_mm3"],
+        "collision_free_control": True,
+        "fixed_pair_evaluated_once": True,
+        "fixed_group_pair_excluded": True,
+        "exact_containment_shortcut": True,
+        "imported_step_collision_detected": True,
+    }
+
+
+def _exercise_exact_link_reference_capture(root: Path) -> dict:
+    """Prove repeated App::Link occurrences share one exact staged definition."""
+
+    import Part
+
+    document = App.newDocument("VibeScriptExactLinkReferenceCapture")
+    source = document.addObject("Part::Feature", "ImportedMotorDefinition")
+    source.Shape = Part.makeBox(56.95, 56.95, 105.7)
+    links = []
+    for index, placement in enumerate(
+        (
+            App.Placement(App.Vector(0.0, 0.0, 0.0), App.Rotation()),
+            App.Placement(
+                App.Vector(75.0, 20.0, 130.0),
+                App.Rotation(App.Vector(0.0, 1.0, 0.0), 90.0),
+            ),
+            App.Placement(
+                App.Vector(-40.0, 15.0, 260.0),
+                App.Rotation(App.Vector(1.0, 0.0, 0.0), -35.0),
+            ),
+        ),
+        start=1,
+    ):
+        link = document.addObject("App::Link", f"MotorOccurrence{index}")
+        link.LinkedObject = source
+        link.LinkTransform = True
+        link.Placement = placement
+        links.append(link)
+    document.recompute()
+
+    pack = get_vibescript_pack("PartDesignWorkbench")
+    assert pack is not None
+    service = _ReferenceCaptureService(document, root)
+    prepared = {
+        "pack": pack,
+        "program_id": "exact-link-reference-probe",
+        "document_name": str(document.Name),
+        "document_uid": str(document.Uid),
+        "document_revision": "assembly-production-revision",
+        "surface": resolve_modeling_surface(
+            "PartDesignWorkbench", "vibescript"
+        ).summary(),
+        "reference_requirements": [
+            {
+                "document_uid": str(document.Uid),
+                "object_name": str(link.Name),
+            }
+            for link in links
+        ],
+    }
+    snapshots = capture_reference_inputs(service, prepared)
+    assert len(snapshots) == 3
+    assert len({item["_reference_cache_token"] for item in snapshots}) == 1
+    assert all(
+        item["detached_shape"] is snapshots[0]["detached_shape"]
+        for item in snapshots[1:]
+    )
+    assert math.isclose(
+        float(snapshots[0]["detached_shape"].Volume),
+        float(source.Shape.Volume),
+        rel_tol=1.0e-12,
+        abs_tol=1.0e-12,
+    )
+    for link, snapshot in zip(links, snapshots, strict=True):
+        assert snapshot["_reference_shape_placement_matrix"] == (
+            _placement_matrix_values(link.Shape.Placement)
+        )
+    App.closeDocument(document.Name)
+    return {
+        "occurrence_count": len(links),
+        "shared_definition_count": 1,
+        "exact_native_placement_count": len(snapshots),
+    }
+
+
+def _exercise_simulation_lifecycle(root: Path, pack) -> dict:
+    """Create, regenerate, retain, reopen, and delete a native kinematic trace."""
+
+    import FreeCAD as App
+    import Part
+
+    document = App.newDocument("VibeScriptAssemblySimulation")
+    source_base = document.addObject("Part::Feature", "SimulationBase")
+    source_base.Shape = Part.makeBox(20, 20, 8)
+    source_arm = document.addObject("Part::Feature", "SimulationArm")
+    source_arm.Shape = Part.makeBox(30, 4, 4)
+    document.recompute()
+    references = {
+        "base": {"document_uid": str(document.Uid), "object_name": source_base.Name},
+        "arm": {"document_uid": str(document.Uid), "object_name": source_arm.Name},
+    }
+    input_schema = {
+        "type": "object",
+        "properties": {"base": _reference_schema(), "arm": _reference_schema()},
+        "required": ["base", "arm"],
+        "additionalProperties": False,
+    }
+    expected_outputs = [
+        {"name": "Model", "type": "assembly"},
+        {"name": "Base", "type": "component_link"},
+        {"name": "Arm", "type": "component_link"},
+        {"name": "Hinge", "type": "joint"},
+        {"name": "Drive", "type": "motion"},
+        {"name": "Simulation", "type": "simulation"},
+        {"name": "Diagnostics", "type": "solver_diagnostics"},
+    ]
+    base_capture = {
+        "pack": pack,
+        "project_root": str(root),
+        "document_name": str(document.Name),
+        "document_uid": str(document.Uid),
+        "document_revision": "assembly-production-revision",
+        "document_objects": _document_objects(document),
+        "surface": resolve_modeling_surface("AssemblyWorkbench", "vibescript").summary(),
+        "freecad_home": str(Path(App.getHomePath()).resolve()),
+        "timeout_seconds": 60.0,
+        "memory_limit_bytes": 2 * 1024 * 1024 * 1024,
+    }
+    create_capture = _candidate_capture(
+        base_capture,
+        operation="create_program",
+        tool_name="vibescript.assembly.create_program",
+        arguments={
+            "program_name": "Native Kinematic Simulation",
+            "source": _simulation_source(),
+            "input_schema": input_schema,
+            "inputs": references,
+            "expected_outputs": expected_outputs,
+        },
+    )
+    service = _Service(document, root)
+    prepared, execution = _prepare_and_execute(create_capture, service)
+    assert execution.get("ok") is True, execution
+    summary = execution["assembly_validation"]["simulation"]
+    assert summary["native_code"] == 0
+    assert summary["frame_count"] == 7
+    assert summary["pose_count"] == 14
+    collision = summary["collision_summary"]
+    assert collision["status"] == "complete"
+    assert collision["collision_free"] is False
+    assert collision["colliding_pair_count"] == 1
+    assert collision["colliding_frame_count"] == 6
+    assert collision["worst_collision"]["maximum_interference_volume_mm3"] == 0.0
+    assert collision["worst_collision"]["interference_volume_complete"] is False
+    observation = summary["motion_observations"][0]
+    assert observation["motion_output"] == "Drive"
+    assert observation["joint_output"] == "Hinge"
+    assert observation["motion_type"] == "angular"
+    assert observation["maximum_relative_rotation_degrees"] > 8.9
+
+    playback_capture = _candidate_capture(
+        base_capture,
+        operation="create_program",
+        tool_name="vibescript.assembly.create_program",
+        arguments={
+            "program_name": "Native Kinematic Playback Only",
+            "source": _simulation_source(collision_mode="off"),
+            "input_schema": input_schema,
+            "inputs": references,
+            "expected_outputs": expected_outputs,
+        },
+    )
+    _playback_prepared, playback_execution = _prepare_and_execute(
+        playback_capture,
+        service,
+    )
+    assert playback_execution.get("ok") is True, playback_execution
+    playback_collision = playback_execution["assembly_validation"]["simulation"][
+        "collision_summary"
+    ]
+    assert playback_collision["evaluation_mode"] == "off"
+    assert playback_collision["status"] == "not_checked"
+    assert playback_collision["analysis_complete"] is False
+    assert playback_collision["collision_free"] is False
+    assert playback_collision["evaluated_frame_count"] == 0
+    assert playback_collision["requested_frame_count"] == 6
+
+    changed_motion = copy.deepcopy(execution)
+    changed_motion_item = next(
+        item for item in changed_motion["outputs"] if item["name"] == "Drive"
+    )
+    changed_motion_item["assembly_data"]["formula"] = "time"
+    try:
+        validate_candidate(prepared, changed_motion)
+    except ValueError as exc:
+        assert "metadata was altered" in str(exc)
+    else:
+        raise AssertionError("Host accepted altered Assembly motion metadata.")
+    changed_trace = copy.deepcopy(execution)
+    changed_trace_item = next(
+        item for item in changed_trace["outputs"] if item["name"] == "Simulation"
+    )
+    changed_trace_item["artifact_sha256"] = "0" * 64
+    try:
+        validate_candidate(prepared, changed_trace)
+    except ValueError as exc:
+        assert "trace identity changed" in str(exc)
+    else:
+        raise AssertionError("Host accepted an altered Assembly trace digest.")
+
+    validated = validate_candidate(prepared, execution)
+    retain_candidate(prepared, status="validated")
+    publication = publish_candidate(service, prepared, validated)
+    accepted = accept_candidate(prepared, publication)
+    identities = {
+        name: details["object_name"] for name, details in accepted["live_outputs"].items()
+    }
+    drive = document.getObject(identities["Drive"])
+    simulation = document.getObject(identities["Simulation"])
+    hinge = document.getObject(identities["Hinge"])
+    assert drive.TypeId == "App::FeaturePython"
+    assert type(drive.Proxy).__name__ == "AssemblyMotionProxy"
+    assert drive.Joint[0] is hinge
+    assert drive.MotionType == "Angular"
+    assert drive.Formula == "initialValue + pi/2*time"
+    assert simulation.TypeId == "App::FeaturePython"
+    assert type(simulation.Proxy).__name__ == "AssemblySimulationProxy"
+    assert list(simulation.Group) == [drive]
+    assert simulation.SteveCADFrameCount == 7
+    assert simulation.SteveCADPoseCount == 14
+    assert simulation.SteveCADCollisionFree is False
+    assert simulation.SteveCADCollidingPairCount == 1
+    assert simulation.SteveCADCollidingFrameCount == 6
+    assert simulation.SteveCADInterferenceVolumeComplete is False
+    assert float(simulation.SteveCADWorstInterferenceVolume.Value) == 0.0
+    assert len(json.loads(simulation.SteveCADSimulationTracePreview)) == 3
+    retained_trace = (
+        Path(accepted["attempt_directory"])
+        / "outputs"
+        / "assembly-simulation-trace.json"
+    )
+    assert retained_trace.is_file()
+    assert hashlib.sha256(retained_trace.read_bytes()).hexdigest() == (
+        simulation.SteveCADTraceSHA256
+    )
+    inspection = complete_inspection(
+        capture_inspection_state(
+            service,
+            "vibescript.assembly.inspect_program",
+            prepared["program_id"],
+        )
+    )
+    assert inspection["ok"] is True
+    assert inspection["model_state"]["status"] == "accepted_current"
+    assert inspection["model_state"]["accepted_is_current"] is True
+    assert inspection["model_state"]["next_write_expected_revision"] == accepted[
+        "working_revision"
+    ]
+    inspected_outputs = {
+        item["name"]: item
+        for item in inspection["program"]["live_state"]["outputs"]
+    }
+    assert inspected_outputs["Diagnostics"]["accepted_state"]["validation"][
+        "status"
+    ] == "solved"
+    inspected_simulation = inspected_outputs["Simulation"]["accepted_state"]
+    assert inspected_simulation["validation"]["native_code"] == 0
+    assert inspected_simulation["validation"]["frame_count"] == 7
+    assert len(inspected_simulation["trace_preview"]) == 3
+
+    reconfigure_capture = _candidate_capture(
+        base_capture,
+        operation="edit_source",
+        tool_name="vibescript.assembly.edit_source",
+        arguments={
+            "program_id": prepared["program_id"],
+            "expected_revision": accepted["working_revision"],
+            "source": create_capture["arguments"]["source"].replace(
+                "initialValue + pi/2*time",
+                "initialValue + pi*time",
+            ),
+        },
+    )
+    _reconfigured, reconfigured_execution, reconfigured_publication, accepted = (
+        _run_candidate(reconfigure_capture, service)
+    )
+    assert reconfigured_publication["created_objects"] == []
+    assert document.getObject(identities["Drive"]) is drive
+    assert document.getObject(identities["Simulation"]) is simulation
+    assert drive.Formula == "initialValue + pi*time"
+    assert reconfigured_execution["assembly_validation"]["simulation"][
+        "motion_observations"
+    ][0]["maximum_relative_rotation_degrees"] > 17.9
+
+    failed_capture = _candidate_capture(
+        base_capture,
+        operation="edit_source",
+        tool_name="vibescript.assembly.edit_source",
+        arguments={
+            "program_id": prepared["program_id"],
+            "expected_revision": accepted["working_revision"],
+            "source": (
+                create_capture["arguments"]["source"]
+                .replace(
+                    "initialValue + pi/2*time",
+                    "initialValue + pi*time",
+                )
+                .replace("initialValue + pi*time", "initialValue + 0*time")
+            ),
+        },
+    )
+    failed_prepared, failed_execution = _prepare_and_execute(failed_capture, service)
+    assert failed_execution.get("ok") is False
+    assert failed_execution["failure_code"] == "DOMAIN_CANDIDATE_FAILED"
+    assert "produced no measurable angular movement" in failed_execution["error"]
+    failed_details = failed_execution["observed"]["details"]
+    assert failed_details["stage"] == "simulation_motion_effect"
+    assert failed_details["motion_output"] == "Drive"
+    assert failed_details["joint_output"] == "Hinge"
+    assert "zero multiplier" in failed_details["correction"]
+    retain_candidate(failed_prepared, status="failed", failure=failed_execution)
+    assert drive.Formula == "initialValue + pi*time"
+    assert simulation.SteveCADVibeScriptRevision == accepted["accepted_revision"]
+    failed_inspection = complete_inspection(
+        capture_inspection_state(
+            service,
+            "vibescript.assembly.inspect_program",
+            prepared["program_id"],
+        )
+    )
+    assert failed_inspection["model_state"]["status"] == (
+        "working_candidate_not_accepted"
+    )
+    assert failed_inspection["model_state"]["accepted_live_state_preserved"] is True
+    assert failed_inspection["model_state"]["next_write_expected_revision"] == (
+        failed_prepared["revision"]
+    )
+
+    recovery_capture = _candidate_capture(
+        base_capture,
+        operation="edit_source",
+        tool_name="vibescript.assembly.edit_source",
+        arguments={
+            "program_id": prepared["program_id"],
+            "expected_revision": failed_prepared["revision"],
+            "source": create_capture["arguments"]["source"].replace(
+                "initialValue + pi/2*time",
+                "initialValue + pi*time",
+            ),
+        },
+    )
+    _recovered, _execution, recovery_publication, accepted = _run_candidate(
+        recovery_capture, service
+    )
+    assert recovery_publication["created_objects"] == []
+
+    path = root / "assembly-simulation.FCStd"
+    document.saveAs(str(path))
+    App.closeDocument(document.Name)
+    reopened = App.openDocument(str(path))
+    assert reopened is not None
+    service.document = reopened
+    reopened_drive = reopened.getObject(identities["Drive"])
+    reopened_simulation = reopened.getObject(identities["Simulation"])
+    assert reopened_drive is not None and reopened_simulation is not None
+    assert type(reopened_drive.Proxy).__name__ == "AssemblyMotionProxy"
+    assert type(reopened_simulation.Proxy).__name__ == "AssemblySimulationProxy"
+    assert reopened_drive.Formula == "initialValue + pi*time"
+    assert list(reopened_simulation.Group) == [reopened_drive]
+    assert len(json.loads(reopened_simulation.SteveCADSimulationTracePreview)) == 3
+    assert reopened_simulation.SteveCADCollisionFree is False
+    assert reopened_simulation.SteveCADCollidingPairCount == 1
+
+    reopened_base = {
+        **base_capture,
+        "document_name": str(reopened.Name),
+        "document_uid": str(reopened.Uid),
+        "document_objects": _document_objects(reopened),
+    }
+    delete_capture = {
+        **reopened_base,
+        "operation": "delete_program",
+        "tool_name": "vibescript.assembly.delete_program",
+        "arguments": {
+            "program_id": prepared["program_id"],
+            "expected_revision": accepted["working_revision"],
+            "reason": "Assembly simulation lifecycle complete",
+        },
+    }
+    prepared_delete = prepare_delete(delete_capture)
+    deletion = delete_live_program(service, prepared_delete)
+    deleted = finish_delete(prepared_delete, deletion)
+    assert deleted["ok"] is True
+    assert reopened.getObject("SimulationBase") is not None
+    assert reopened.getObject("SimulationArm") is not None
+    assert not any(
+        str(getattr(obj, PROP_PROGRAM_ID, "") or "") == prepared["program_id"]
+        for obj in reopened.Objects
+    )
+    App.closeDocument(reopened.Name)
+    return {
+        "program_id": prepared["program_id"],
+        "frame_count": summary["frame_count"],
+        "pose_count": summary["pose_count"],
+        "collision_free": collision["collision_free"],
+        "colliding_pair_count": collision["colliding_pair_count"],
+        "initial_rotation_degrees": observation[
+            "maximum_relative_rotation_degrees"
+        ],
+        "stable_outputs": identities,
+        "tamper_rejections": ["motion_metadata", "trace_digest"],
+        "zero_motion_failure_stage": failed_details["stage"],
+    }
+
+
+def _exploded_source(transform_z: int = 20, radial: str = "[base,arm]") -> str:
+    return (
+        "base = api.component(inputs['part'], grounded=True, label='Base')\n"
+        "center = api.component(inputs['part'], placement=[15,0,0], "
+        "grounded=True, label='Center')\n"
+        "arm = api.component(inputs['part'], placement=[30,0,0], "
+        "grounded=True, label='Arm')\n"
+        "model = api.assembly([base,center,arm], [], label='Exploded Assembly')\n"
+        "diagnostics = api.solve(model)\n"
+        "exploded = api.exploded_view(model, ["
+        f"{{'components':[arm], 'transform':[0,0,{transform_z}]}}, "
+        f"{{'components':{radial}, 'radial_distance_mm':10}}"
+        "], label='Service Explosion')\n"
+        "result = {'Model':model, 'Base':base, 'Center':center, 'Arm':arm, "
+        "'Exploded':exploded, 'Diagnostics':diagnostics}\n"
+    )
+
+
+def _exercise_exploded_view_lifecycle(root: Path, pack) -> dict:
+    """Prove native view semantics, stable moves, repair evidence, and reopen."""
+
+    import FreeCAD as App
+    import Part
+
+    document = App.newDocument("VibeScriptAssemblyExplodedView")
+    source = document.addObject("Part::Feature", "ExplodedPart")
+    source.Shape = Part.makeBox(10, 10, 10)
+    source.Placement = App.Placement(App.Vector(2, 3, 4), App.Rotation())
+    document.recompute()
+    reference = {
+        "document_uid": str(document.Uid),
+        "object_name": str(source.Name),
+    }
+    input_schema = {
+        "type": "object",
+        "properties": {"part": _reference_schema()},
+        "required": ["part"],
+        "additionalProperties": False,
+    }
+    expected_outputs = [
+        {"name": "Model", "type": "assembly"},
+        {"name": "Base", "type": "component_link"},
+        {"name": "Center", "type": "component_link"},
+        {"name": "Arm", "type": "component_link"},
+        {"name": "Exploded", "type": "exploded_view"},
+        {"name": "Diagnostics", "type": "solver_diagnostics"},
+    ]
+    base_capture = {
+        "pack": pack,
+        "project_root": str(root),
+        "document_name": str(document.Name),
+        "document_uid": str(document.Uid),
+        "document_revision": "assembly-production-revision",
+        "document_objects": _document_objects(document),
+        "surface": resolve_modeling_surface("AssemblyWorkbench", "vibescript").summary(),
+        "freecad_home": str(Path(App.getHomePath()).resolve()),
+        "timeout_seconds": 60.0,
+        "memory_limit_bytes": 2 * 1024 * 1024 * 1024,
+    }
+    create_capture = _candidate_capture(
+        base_capture,
+        operation="create_program",
+        tool_name="vibescript.assembly.create_program",
+        arguments={
+            "program_name": "Native Exploded View",
+            "source": _exploded_source(),
+            "input_schema": input_schema,
+            "inputs": {"part": reference},
+            "expected_outputs": expected_outputs,
+        },
+    )
+    service = _Service(document, root)
+    prepared, execution = _prepare_and_execute(create_capture, service)
+    assert execution.get("ok") is True, execution
+    summaries = execution["assembly_validation"]["exploded_views"]
+    assert summaries == [
+        {
+            "exploded_view_output": "Exploded",
+            "move_count": 2,
+            "component_reference_count": 3,
+            "moved_component_outputs": ["Arm", "Base"],
+            "line_count": 3,
+            "assembly_bounds": summaries[0]["assembly_bounds"],
+        }
+    ]
+    view_item = next(
+        item for item in execution["outputs"] if item["name"] == "Exploded"
+    )
+    view_data = view_item["assembly_data"]
+    assert view_data["schema"] == "stevecad-assembly-exploded-view-v1"
+    assert view_data["line_count"] == 3
+    assert [move["kind"] for move in view_data["moves"]] == ["normal", "radial"]
+    assert view_data["moves"][0]["changed_component_outputs"] == ["Arm"]
+    assert view_data["moves"][1]["changed_component_outputs"] == ["Base", "Arm"]
+    assert all(
+        line["length_mm"] > 0
+        for move in view_data["moves"]
+        for line in move["line_segments"]
+    )
+
+    tamper_cases = []
+    changed_line = copy.deepcopy(execution)
+    changed_line_view = next(
+        item for item in changed_line["outputs"] if item["name"] == "Exploded"
+    )
+    changed_line_view["assembly_data"]["moves"][0]["line_segments"][0][
+        "end_mm"
+    ][2] += 1.0
+    tamper_cases.append(("line_endpoint", changed_line, "independently derived"))
+    changed_final = copy.deepcopy(execution)
+    changed_final_view = next(
+        item for item in changed_final["outputs"] if item["name"] == "Exploded"
+    )
+    changed_final_view["assembly_data"]["final_component_placements"]["Arm"][
+        "matrix"
+    ][3] += 1.0
+    tamper_cases.append(("final_placement", changed_final, "independently derived"))
+    changed_native = copy.deepcopy(execution)
+    changed_native_view = next(
+        item for item in changed_native["outputs"] if item["name"] == "Exploded"
+    )
+    changed_native_view["assembly_data"]["native_readback"][
+        "view_proxy_class"
+    ] = "FlattenedView"
+    tamper_cases.append(("native_readback", changed_native, "readback changed"))
+    rejected = []
+    for name, payload, message in tamper_cases:
+        try:
+            validate_candidate(prepared, payload)
+        except ValueError as exc:
+            assert message in str(exc), (name, str(exc))
+            rejected.append(name)
+        else:
+            raise AssertionError(f"Host accepted altered exploded-view {name} evidence.")
+
+    validated = validate_candidate(prepared, execution)
+    retain_candidate(prepared, status="validated")
+    publication = publish_candidate(service, prepared, validated)
+    accepted = accept_candidate(prepared, publication)
+    identities = {
+        name: details["object_name"] for name, details in accepted["live_outputs"].items()
+    }
+    model = document.getObject(identities["Model"])
+    arm = document.getObject(identities["Arm"])
+    view = document.getObject(identities["Exploded"])
+    assert view.TypeId == "App::FeaturePython"
+    assert type(view.Proxy).__name__ == "ExplodedView"
+    assert any(parent.TypeId == "Assembly::ViewGroup" for parent in view.InList)
+    steps = list(view.Group)
+    assert len(steps) == 2
+    assert [type(step.Proxy).__name__ for step in steps] == [
+        "ExplodedViewStep",
+        "ExplodedViewStep",
+    ]
+    assert [str(step.MoveType) for step in steps] == ["Normal", "Radial"]
+    assert list(steps[0].References[1]) == [f"{arm.Name}."]
+    assert steps[0].References[0] is model
+    assert abs(float(steps[0].MovementTransform.Base.z) - 20.0) < 1.0e-9
+    assert arm.Placement.Base.z == 0.0
+    live_evidence = json.loads(view.SteveCADAssemblyExplodedViewValidation)
+    assert live_evidence["schema"] == "stevecad-assembly-exploded-view-v1"
+    step_identities = [str(step.Name) for step in steps]
+    timeline = document.getObject("SteveCADTimeline")
+    assert timeline is not None
+    _assert_timeline_resource_sequence(timeline, steps, view)
+
+    inspection = complete_inspection(
+        capture_inspection_state(
+            service,
+            "vibescript.assembly.inspect_program",
+            prepared["program_id"],
+        )
+    )
+    inspected_outputs = {
+        item["name"]: item for item in inspection["program"]["live_state"]["outputs"]
+    }
+    inspected_view = inspected_outputs["Exploded"]["accepted_state"]["validation"]
+    assert inspected_view["line_count"] == 3
+    assert inspected_view["moves"][0]["changed_component_outputs"] == ["Arm"]
+
+    edit_capture = _candidate_capture(
+        base_capture,
+        operation="edit_source",
+        tool_name="vibescript.assembly.edit_source",
+        arguments={
+            "program_id": prepared["program_id"],
+            "expected_revision": accepted["working_revision"],
+            "source": create_capture["arguments"]["source"].replace(
+                "[0,0,20]",
+                "[0,0,25]",
+            ),
+        },
+    )
+    _edited, edited_execution, edited_publication, accepted = _run_candidate(
+        edit_capture, service
+    )
+    assert edited_publication["created_objects"] == []
+    assert document.getObject(identities["Exploded"]) is view
+    assert [str(step.Name) for step in view.Group] == step_identities
+    assert abs(float(view.Group[0].MovementTransform.Base.z) - 25.0) < 1.0e-9
+    _assert_timeline_resource_sequence(timeline, list(view.Group), view)
+    assert edited_execution["assembly_validation"]["exploded_views"][0][
+        "line_count"
+    ] == 3
+
+    failed_capture = _candidate_capture(
+        base_capture,
+        operation="edit_source",
+        tool_name="vibescript.assembly.edit_source",
+        arguments={
+            "program_id": prepared["program_id"],
+            "expected_revision": accepted["working_revision"],
+            "source": (
+                create_capture["arguments"]["source"]
+                .replace("[0,0,20]", "[0,0,25]")
+                .replace("[base,arm]", "[center]")
+            ),
+        },
+    )
+    failed_prepared, failed_execution = _prepare_and_execute(failed_capture, service)
+    assert failed_execution.get("ok") is False
+    failed_details = failed_execution["observed"]["details"]
+    assert failed_details["stage"] == "exploded_view_effect"
+    assert failed_details["exploded_view_output"] == "Exploded"
+    assert failed_details["move_index"] == 1
+    assert failed_details["unchanged_component_outputs"] == ["Center"]
+    assert "assembly centre" in failed_details["correction"]
+    retain_candidate(failed_prepared, status="failed", failure=failed_execution)
+    assert document.getObject(identities["Exploded"]) is view
+    assert [str(step.Name) for step in view.Group] == step_identities
+    assert abs(float(view.Group[0].MovementTransform.Base.z) - 25.0) < 1.0e-9
+    failed_inspection = complete_inspection(
+        capture_inspection_state(
+            service,
+            "vibescript.assembly.inspect_program",
+            prepared["program_id"],
+        )
+    )
+    assert failed_inspection["model_state"]["status"] == (
+        "working_candidate_not_accepted"
+    )
+    assert failed_inspection["model_state"]["accepted_live_state_preserved"] is True
+
+    recovery_capture = _candidate_capture(
+        base_capture,
+        operation="edit_source",
+        tool_name="vibescript.assembly.edit_source",
+        arguments={
+            "program_id": prepared["program_id"],
+            "expected_revision": failed_prepared["revision"],
+            "source": create_capture["arguments"]["source"].replace(
+                "[0,0,20]",
+                "[0,0,25]",
+            ),
+        },
+    )
+    _recovered, _execution, recovery_publication, accepted = _run_candidate(
+        recovery_capture, service
+    )
+    assert recovery_publication["created_objects"] == []
+    assert [str(step.Name) for step in view.Group] == step_identities
+    _assert_timeline_resource_sequence(timeline, list(view.Group), view)
+
+    path = root / "assembly-exploded-view.FCStd"
+    document.saveAs(str(path))
+    App.closeDocument(document.Name)
+    reopened = App.openDocument(str(path))
+    assert reopened is not None
+    service.document = reopened
+    reopened_view = reopened.getObject(identities["Exploded"])
+    assert reopened_view is not None
+    assert type(reopened_view.Proxy).__name__ == "ExplodedView"
+    assert [str(step.Name) for step in reopened_view.Group] == step_identities
+    assert all(type(step.Proxy).__name__ == "ExplodedViewStep" for step in reopened_view.Group)
+    reopened_timeline = reopened.getObject("SteveCADTimeline")
+    assert reopened_timeline is not None
+    _assert_timeline_resource_sequence(
+        reopened_timeline,
+        list(reopened_view.Group),
+        reopened_view,
+    )
+    assert json.loads(reopened_view.SteveCADAssemblyExplodedViewValidation)[
+        "line_count"
+    ] == 3
+
+    reopened_base = {
+        **base_capture,
+        "document_name": str(reopened.Name),
+        "document_uid": str(reopened.Uid),
+        "document_objects": _document_objects(reopened),
+    }
+    prepared_delete = prepare_delete(
+        {
+            **reopened_base,
+            "operation": "delete_program",
+            "tool_name": "vibescript.assembly.delete_program",
+            "arguments": {
+                "program_id": prepared["program_id"],
+                "expected_revision": accepted["working_revision"],
+                "reason": "Assembly exploded-view lifecycle complete",
+            },
+        }
+    )
+    deletion = delete_live_program(service, prepared_delete)
+    assert finish_delete(prepared_delete, deletion)["ok"] is True
+    assert reopened.getObject("ExplodedPart") is not None
+    assert not any(
+        str(getattr(obj, PROP_PROGRAM_ID, "") or "") == prepared["program_id"]
+        for obj in reopened.Objects
+    )
+    App.closeDocument(reopened.Name)
+    return {
+        "program_id": prepared["program_id"],
+        "stable_outputs": identities,
+        "stable_moves": step_identities,
+        "tamper_rejections": rejected,
+        "failure_stage": failed_details["stage"],
+    }
+
+
+def _quantity(obj, name: str) -> float:
+    value = getattr(obj, name)
+    return float(getattr(value, "Value", value))
+
+
+def _exercise_live_joint_reconfiguration(
+    *,
+    base_capture: dict,
+    service: _Service,
+    program_id: str,
+    accepted: dict,
+    input_schema: dict,
+    inputs: dict,
+    expected_outputs: list[dict],
+    hinge,
+    base_edge: int,
+    arm_edge: int,
+) -> tuple[dict, dict[str, int]]:
+    """Update one stable live JointObject through every supported native type."""
+
+    connector_pair = "api.connector(base), api.connector(arm)"
+    rack_connectors = (
+        f"api.connector(base, 'Edge{base_edge}'), "
+        f"api.connector(arm, 'Edge{arm_edge}')"
+    )
+    cases = {
+        "fixed": f"api.joint('fixed', {connector_pair})",
+        "revolute": (
+            f"api.joint('revolute', {connector_pair}, "
+            "angle_limits_degrees=[None,120])"
+        ),
+        "cylindrical": (
+            f"api.joint('cylindrical', {connector_pair}, "
+            "length_limits_mm=[-20,None], angle_limits_degrees=[None,180])"
+        ),
+        "slider": (
+            f"api.joint('slider', {connector_pair}, length_limits_mm=[None,20])"
+        ),
+        "ball": f"api.joint('ball', {connector_pair})",
+        "distance": f"api.joint('distance', {connector_pair}, distance_mm=-8)",
+        "parallel": f"api.joint('parallel', {connector_pair}, suppressed=True)",
+        "perpendicular": f"api.joint('perpendicular', {connector_pair})",
+        "angle": f"api.joint('angle', {connector_pair}, angle_degrees=35)",
+        "rack_pinion": f"api.joint('rack_pinion', {rack_connectors}, pitch_radius_mm=-4)",
+        "screw": f"api.joint('screw', {connector_pair}, thread_pitch_mm=-2)",
+        "gears": f"api.joint('gears', {connector_pair}, radius1_mm=4, radius2_mm=8)",
+        "belt": f"api.joint('belt', {connector_pair}, radius1_mm=4, radius2_mm=8)",
+    }
+    native_names = {
+        "fixed": "Fixed",
+        "revolute": "Revolute",
+        "cylindrical": "Cylindrical",
+        "slider": "Slider",
+        "ball": "Ball",
+        "distance": "Distance",
+        "parallel": "Parallel",
+        "perpendicular": "Perpendicular",
+        "angle": "Angle",
+        "rack_pinion": "RackPinion",
+        "screw": "Screw",
+        "gears": "Gears",
+        "belt": "Belt",
+    }
+    observed: dict[str, int] = {}
+    for kind, expression in cases.items():
+        source = _source_text(
+            hinge_statement=f"hinge = {expression[:-1]}, label='Matrix {kind}')",
+            require_solved=kind not in {"rack_pinion", "screw"},
+        )
+        capture = _candidate_capture(
+            base_capture,
+            operation="reconfigure_program",
+            tool_name="vibescript.assembly.reconfigure_program",
+            arguments={
+                "program_id": program_id,
+                "expected_revision": accepted["working_revision"],
+                "source": source,
+                "input_schema": input_schema,
+                "inputs": inputs,
+                "expected_outputs": expected_outputs,
+            },
+        )
+        _prepared, execution, publication, accepted = _run_candidate(capture, service)
+        assert publication["created_objects"] == []
+        assert int(execution["assembly_validation"]["solver_code"]) == 0, execution
+        dependency_issues = execution["assembly_validation"][
+            "joint_dependency_issues"
+        ]
+        if kind in {"rack_pinion", "screw"}:
+            assert len(dependency_issues) == 1, dependency_issues
+            issue = dependency_issues[0]
+            assert issue["code"] == "missing_collinear_slider"
+            assert issue["joint_output"] == "Hinge"
+            assert issue["joint_type"] == kind
+            assert "api.joint('slider'" in issue["suggestion"]
+        else:
+            assert dependency_issues == []
+        assert hinge.JointType == native_names[kind]
+        assert hinge.Detach1 is True and hinge.Detach2 is True
+        assert hinge.Reference1[0] is not None and hinge.Reference2[0] is not None
+        data = json.loads(hinge.SteveCADAssemblyJointValidation)
+        assert data["kind"] == kind
+        assert data["native_readback"]["native_type"] == native_names[kind]
+        assert bool(hinge.Suppressed) is (kind == "parallel")
+        assert data["native_readback"]["suppressed"] is (kind == "parallel")
+        if kind == "cylindrical":
+            assert hinge.EnableLengthMin and not hinge.EnableLengthMax
+            assert not hinge.EnableAngleMin and hinge.EnableAngleMax
+            assert _quantity(hinge, "LengthMin") == -20.0
+            assert _quantity(hinge, "AngleMax") == 180.0
+        elif kind == "slider":
+            assert not hinge.EnableLengthMin and hinge.EnableLengthMax
+            assert not hinge.EnableAngleMin and not hinge.EnableAngleMax
+            assert _quantity(hinge, "LengthMax") == 20.0
+        elif kind == "revolute":
+            assert not hinge.EnableLengthMin and not hinge.EnableLengthMax
+            assert not hinge.EnableAngleMin and hinge.EnableAngleMax
+            assert _quantity(hinge, "AngleMax") == 120.0
+        else:
+            assert not hinge.EnableLengthMin and not hinge.EnableLengthMax
+            assert not hinge.EnableAngleMin and not hinge.EnableAngleMax
+        expected_parameters = {
+            "distance": ("Distance", -8.0),
+            "angle": ("Angle", 35.0),
+            "rack_pinion": ("Distance", -4.0),
+            "screw": ("Distance", -2.0),
+        }
+        if kind in expected_parameters:
+            property_name, expected = expected_parameters[kind]
+            assert abs(_quantity(hinge, property_name) - expected) < 1.0e-9
+        elif kind in {"gears", "belt"}:
+            assert abs(_quantity(hinge, "Distance") - 4.0) < 1.0e-9
+            assert abs(_quantity(hinge, "Distance2") - 8.0) < 1.0e-9
+        observed[kind] = int(execution["assembly_validation"]["solver_code"])
+
+    restore = _candidate_capture(
+        base_capture,
+        operation="reconfigure_program",
+        tool_name="vibescript.assembly.reconfigure_program",
+        arguments={
+            "program_id": program_id,
+            "expected_revision": accepted["working_revision"],
+            "source": _source_text(),
+            "input_schema": input_schema,
+            "inputs": inputs,
+            "expected_outputs": expected_outputs,
+        },
+    )
+    _prepared, execution, publication, accepted = _run_candidate(restore, service)
+    assert publication["created_objects"] == []
+    assert execution["assembly_validation"]["solver_code"] == 0
+    assert hinge.JointType == "Revolute"
+    assert hinge.EnableAngleMin and hinge.EnableAngleMax
+    assert not hinge.EnableLengthMin and not hinge.EnableLengthMax
+    assert set(observed) == set(cases)
+    return accepted, observed
+
+
+def _exercise_lifecycle(root: Path, pack) -> dict:
+    import FreeCAD as App
+    import Part
+    import Preferences
+
+    document = App.newDocument("VibeScriptAssemblyProduction")
+    source_base = document.addObject("Part::Feature", "SourceBase")
+    source_base.Label = "Source Base"
+    source_base.Shape = Part.makeBox(20, 16, 8)
+    source_arm = document.addObject("Part::Feature", "SourceArm")
+    source_arm.Label = "Source Arm"
+    source_arm.Shape = Part.makeCylinder(3, 30)
+    subassembly = document.addObject("Assembly::AssemblyObject", "NativeSubassembly")
+    subassembly.Type = "Assembly"
+    subassembly.Label = "Native Subassembly"
+    subassembly.newObject("Assembly::JointGroup", "NativeSubassemblyJoints")
+    sub_link = subassembly.newObject("App::Link", "NativeSubassemblyPart")
+    sub_link.LinkedObject = source_base
+    document.recompute()
+    assert not subassembly.Shape.isNull()
+    assert len(subassembly.Shape.Solids) == 1
+
+    references = {
+        "base": {"document_uid": str(document.Uid), "object_name": source_base.Name},
+        "arm": {"document_uid": str(document.Uid), "object_name": source_arm.Name},
+        "module": {"document_uid": str(document.Uid), "object_name": subassembly.Name},
+    }
+    input_schema = {
+        "type": "object",
+        "properties": {
+            "base": _reference_schema(),
+            "arm": _reference_schema(),
+            "module": _reference_schema(),
+            "arm_z": {"type": "number"},
+        },
+        "required": ["base", "arm", "module", "arm_z"],
+        "additionalProperties": False,
+    }
+    expected_outputs = [
+        {"name": "Model", "type": "assembly"},
+        {"name": "Base", "type": "component_link"},
+        {"name": "Arm", "type": "component_link"},
+        {"name": "Module", "type": "component_link"},
+        {"name": "Hinge", "type": "joint"},
+        {"name": "Mount", "type": "joint"},
+        {"name": "Diagnostics", "type": "solver_diagnostics"},
+    ]
+    base_capture = {
+        "pack": pack,
+        "project_root": str(root),
+        "document_name": str(document.Name),
+        "document_uid": str(document.Uid),
+        "document_revision": "assembly-production-revision",
+        "document_objects": _document_objects(document),
+        "surface": resolve_modeling_surface("AssemblyWorkbench", "vibescript").summary(),
+        "freecad_home": str(Path(App.getHomePath()).resolve()),
+        "timeout_seconds": 60.0,
+        "memory_limit_bytes": 2 * 1024 * 1024 * 1024,
+    }
+    create_capture = _candidate_capture(
+        base_capture,
+        operation="create_program",
+        tool_name="vibescript.assembly.create_program",
+        arguments={
+            "program_name": "Production Assembly",
+            "source": _source_text(),
+            "input_schema": input_schema,
+            "inputs": {**references, "arm_z": 0.0},
+            "expected_outputs": expected_outputs,
+        },
+    )
+    service = _Service(document, root)
+    auto_solve_before = bool(
+        Preferences.preferences().GetBool("SolveInJointCreation", True)
+    )
+    prepared, execution = _prepare_and_execute(create_capture, service)
+    assert execution.get("ok") is True, execution
+    tamper_rejections = _exercise_worker_result_tamper_rejection(prepared, execution)
+    validated = validate_candidate(prepared, execution)
+    retain_candidate(prepared, status="validated")
+    publication = publish_candidate(service, prepared, validated)
+    accepted = accept_candidate(prepared, publication)
+    assert bool(Preferences.preferences().GetBool("SolveInJointCreation", True)) == (
+        auto_solve_before
+    )
+    assert publication["created_objects"]
+    assert execution["assembly_validation"]["solver_code"] == 0
+    assert execution["assembly_validation"]["joint_count"] == 2
+    assert execution["assembly_validation"]["grounded_components"] == ["Base"]
+    solver_scope = execution["assembly_validation"]["validation_scope"]
+    assert solver_scope["scope"] == "joint_constraint_consistency"
+    assert solver_scope["constraints_consistent"] is True
+    assert solver_scope["mechanical_operation_verified"] is False
+    assert "collision clearance" in solver_scope["advisory"]
+    assert publication["live_outputs"]["Diagnostics"]["assembly_data"][
+        "validation_scope"
+    ] == solver_scope
+    assert accepted["live_outputs"]["Diagnostics"]["assembly_data"][
+        "validation_scope"
+    ] == solver_scope
+    placement_deltas = execution["assembly_validation"][
+        "component_placement_deltas"
+    ]
+    assert set(placement_deltas) == {"Base", "Arm", "Module"}
+    assert placement_deltas["Base"] == {
+        "translation_mm": [0.0, 0.0, 0.0],
+        "translation_distance_mm": 0.0,
+        "rotation_degrees": 0.0,
+    }
+    assert placement_deltas["Module"]["translation_mm"] == [
+        -40.0,
+        0.0,
+        0.0,
+    ]
+    assert placement_deltas["Module"]["translation_distance_mm"] == 40.0
+    assert next(
+        item
+        for item in execution["outputs"]
+        if item["name"] == "Module"
+    )["assembly_data"]["authored_to_solved_delta"] == placement_deltas[
+        "Module"
+    ]
+    resolved = {item["object_name"]: item for item in prepared["resolved_references"]}
+    for source_name in ("SourceBase", "SourceArm", "NativeSubassembly"):
+        facts = resolved[source_name]["facts"]
+        assert facts["solids"] >= 1
+        assert facts["subelement_detail_limit"] == 0
+        assert "volume_mm3" not in facts
+        assert "face_details" not in facts
+        assert "edge_details" not in facts
+    assert resolved["NativeSubassembly"]["source_kind"] == "assembly"
+    assert resolved["NativeSubassembly"]["reference_contract_sha256"]
+
+    identities = {
+        name: details["object_name"] for name, details in accepted["live_outputs"].items()
+    }
+    assert set(identities) == {item["name"] for item in expected_outputs}
+    model = document.getObject(identities["Model"])
+    base = document.getObject(identities["Base"])
+    arm = document.getObject(identities["Arm"])
+    module = document.getObject(identities["Module"])
+    hinge = document.getObject(identities["Hinge"])
+    mount = document.getObject(identities["Mount"])
+    diagnostics = document.getObject(identities["Diagnostics"])
+    assert model.TypeId == "Assembly::AssemblyObject"
+    assert base.TypeId == "App::Link" and base.LinkedObject is source_base
+    assert arm.TypeId == "App::Link" and arm.LinkedObject is source_arm
+    assert module.TypeId == "Assembly::AssemblyLink" and module.LinkedObject is subassembly
+    assert model.isPartGrounded(base)
+    assert hinge.JointType == "Revolute" and mount.JointType == "Fixed"
+    assert hinge.Detach1 is True and hinge.Detach2 is True
+    assert hinge.Reference1[0] is base and hinge.Reference2[0] is arm
+    assert diagnostics.SteveCADSolverCode == 0
+    diagnostic_payload = json.loads(diagnostics.SteveCADSolverDiagnostics)
+    assert diagnostic_payload["native"]["available"] is True
+    assert diagnostic_payload["component_count"] == 3
+    assert diagnostic_payload["validation_scope"] == solver_scope
+    dependency_anchor = next(
+        obj
+        for obj in document.Objects
+        if str(getattr(obj, PROP_OUTPUT_TYPE, "") or "") == "dependency_anchor"
+    )
+    assert dependency_anchor.TypeId == "App::FeaturePython"
+    assert dependency_anchor.getTypeIdOfProperty(PROP_INPUT_OBJECTS) == (
+        "App::PropertyXLinkList"
+    )
+    assert list(getattr(dependency_anchor, PROP_INPUT_OBJECTS)) == [
+        source_base,
+        source_arm,
+        subassembly,
+    ]
+    assert dependency_anchor.SteveCADTimelineRole == "resource"
+    assert dependency_anchor.SteveCADTimelineOwner is model
+    assert (
+        dependency_anchor.getTypeIdOfProperty("SteveCADTimelineOwner")
+        == "App::PropertyLinkHidden"
+    )
+    import UtilsAssembly
+
+    timeline = document.getObject("SteveCADTimeline")
+    assert timeline is not None
+    module_resources = UtilsAssembly._assemblyOccurrenceResources(module)
+    assert module_resources
+    assert all(resource is not sub_link for resource in module_resources)
+    assert getattr(sub_link, "SteveCADTimelineOwner", None) is not module
+    module_begin, module_index = _assert_timeline_resource_sequence(
+        timeline,
+        module_resources,
+        module,
+    )
+    timeline.Position = module_begin
+    assert all(
+        UtilsAssembly.isTimelineOperationActive(resource) is False
+        for resource in module_resources
+    )
+    timeline.Position = module_index + 1
+    assert all(
+        UtilsAssembly.isTimelineOperationActive(resource) is True
+        for resource in module_resources
+    )
+    anchor_index, model_index = _assert_timeline_resource_block(
+        timeline,
+        dependency_anchor,
+        model,
+    )
+    timeline.Position = anchor_index
+    assert UtilsAssembly.isTimelineOperationActive(dependency_anchor) is False
+    timeline.Position = model_index + 1
+    assert UtilsAssembly.isTimelineOperationActive(dependency_anchor) is True
+    timeline.Position = len(timeline.Operations)
+    assert list(getattr(model, PROP_INPUT_OBJECTS)) == []
+    for child in (base, arm, module, hinge, mount, diagnostics):
+        assert list(getattr(child, PROP_INPUT_OBJECTS)) == []
+    ground = next(
+        obj
+        for obj in document.Objects
+        if str(getattr(obj, "SteveCADVibeScriptOutputName", "")) == "Base.ground"
+    )
+    assert ground.ObjectToGround is base
+    _assert_timeline_operation(timeline, ground)
+
+    base_edge = next(
+        index
+        for index, edge in enumerate(source_base.Shape.Edges, start=1)
+        if "line" in type(edge.Curve).__name__.lower()
+    )
+    arm_edge = next(
+        index
+        for index, edge in enumerate(source_arm.Shape.Edges, start=1)
+        if "circle" in type(edge.Curve).__name__.lower()
+    )
+    accepted, published_joint_codes = _exercise_live_joint_reconfiguration(
+        base_capture=base_capture,
+        service=service,
+        program_id=prepared["program_id"],
+        accepted=accepted,
+        input_schema=input_schema,
+        inputs={**references, "arm_z": 0.0},
+        expected_outputs=expected_outputs,
+        hinge=hinge,
+        base_edge=base_edge,
+        arm_edge=arm_edge,
+    )
+
+    inspection = complete_inspection(
+        {
+            "pack": pack,
+            "program_id": prepared["program_id"],
+            "project_root": str(root),
+            "live_programs": [],
+        }
+    )
+    assert inspection["ok"] is True
+    assert inspection["program"]["accepted_revision"] == accepted["accepted_revision"]
+    assert inspection["program"]["resolved_references"][2]["source_kind"] == "assembly"
+
+    failed_capture = _candidate_capture(
+        base_capture,
+        operation="edit_source",
+        tool_name="vibescript.assembly.edit_source",
+        arguments={
+            "program_id": prepared["program_id"],
+            "expected_revision": accepted["working_revision"],
+            "source": create_capture["arguments"]["source"].replace(
+                "base = api.component(inputs['base'], grounded=True, label='Base')",
+                "base = api.component(inputs['base'], label='Base')",
+            ),
+        },
+    )
+    failed_prepared, failed_execution = _prepare_and_execute(failed_capture, service)
+    assert failed_execution.get("ok") is False
+    assert failed_execution["failure_code"] == "DOMAIN_CANDIDATE_FAILED"
+    assert "grounded component" in failed_execution["error"]
+    details = failed_execution["observed"]["details"]
+    assert details["stage"] == "assembly_grounding"
+    assert details["solver_code"] == -6
+    assert details["solver_verdict"] == "no_grounded_component"
+    retain_candidate(failed_prepared, status="failed", failure=failed_execution)
+    assert document.getObject(identities["Model"]) is model
+    assert model.SteveCADVibeScriptRevision == accepted["accepted_revision"]
+
+    recovery_capture = _candidate_capture(
+        base_capture,
+        operation="edit_source",
+        tool_name="vibescript.assembly.edit_source",
+        arguments={
+            "program_id": prepared["program_id"],
+            "expected_revision": failed_prepared["revision"],
+            "source": create_capture["arguments"]["source"].replace(
+                "Production Assembly",
+                "Recovered Assembly",
+            ),
+        },
+    )
+    recovered, _execution, recovery_publication, accepted = _run_candidate(
+        recovery_capture,
+        service,
+    )
+    assert recovery_publication["created_objects"] == []
+    assert model.Label == "Recovered Assembly"
+    assert {
+        name: details["object_name"] for name, details in accepted["live_outputs"].items()
+    } == identities
+    assert UtilsAssembly._assemblyOccurrenceResources(module) == module_resources
+    _assert_timeline_resource_sequence(timeline, module_resources, module)
+    _assert_timeline_operation(timeline, ground)
+
+    inputs_capture = _candidate_capture(
+        base_capture,
+        operation="set_inputs",
+        tool_name="vibescript.assembly.set_inputs",
+        arguments={
+            "program_id": prepared["program_id"],
+            "expected_revision": accepted["working_revision"],
+            "patch": {"arm_z": 12.0},
+        },
+    )
+    _inputs_prepared, _execution, inputs_publication, accepted = _run_candidate(
+        inputs_capture,
+        service,
+    )
+    assert inputs_publication["created_objects"] == []
+    assert document.getObject(identities["Arm"]) is arm
+
+    reconfigured_source = recovered["source"].replace(
+        "Recovered Assembly", "Reconfigured Assembly"
+    )
+    reconfigure_capture = _candidate_capture(
+        base_capture,
+        operation="reconfigure_program",
+        tool_name="vibescript.assembly.reconfigure_program",
+        arguments={
+            "program_id": prepared["program_id"],
+            "expected_revision": accepted["working_revision"],
+            "source": reconfigured_source,
+            "input_schema": input_schema,
+            "inputs": {**references, "arm_z": 12.0},
+            "expected_outputs": expected_outputs,
+        },
+    )
+    _reconfigured, _execution, _publication, accepted = _run_candidate(
+        reconfigure_capture,
+        service,
+    )
+    assert model.Label == "Reconfigured Assembly"
+
+    whole_consumer = document.addObject("App::FeaturePython", "WholeAssemblyConsumer")
+    whole_consumer.addProperty("App::PropertyLink", "AssemblySource")
+    whole_consumer.AssemblySource = model
+    arm.addProperty(
+        "App::PropertyString",
+        "HumanMaterialCard",
+        "Material",
+        "Human-authored material assignment preserved across regeneration.",
+    )
+    arm.HumanMaterialCard = "urn:material:human-assigned-aluminium"
+    prior_digest = next(
+        item["brep_sha256"]
+        for item in _reconfigured["resolved_references"]
+        if item["object_name"] == "SourceArm"
+    )
+    source_arm.Shape = Part.makeCylinder(4, 30)
+    automatically_marked = {
+        object_name
+        for object_name in identities.values()
+        if str(
+            getattr(
+                document.getObject(object_name),
+                "SteveCADDerivedState",
+                "",
+            )
+            or ""
+        )
+        == "stale"
+    }
+    marked = mark_programs_stale_from_source(source_arm, "Shape")
+    assert identities["Model"] in automatically_marked | set(marked)
+    for object_name in identities.values():
+        assert document.getObject(object_name).SteveCADDerivedState == "stale"
+    stale_capture = _candidate_capture(
+        base_capture,
+        operation="set_inputs",
+        tool_name="vibescript.assembly.set_inputs",
+        arguments={
+            "program_id": prepared["program_id"],
+            "expected_revision": accepted["working_revision"],
+            "patch": {"arm_z": 12.0},
+        },
+    )
+    stale_prepared, _execution, stale_publication, accepted = _run_candidate(
+        stale_capture,
+        service,
+    )
+    new_digest = next(
+        item["brep_sha256"]
+        for item in stale_prepared["resolved_references"]
+        if item["object_name"] == "SourceArm"
+    )
+    assert new_digest != prior_digest
+    assert whole_consumer.AssemblySource is model
+    assert arm.HumanMaterialCard == "urn:material:human-assigned-aluminium"
+    assert "WholeAssemblyConsumer" in stale_publication["downstream_references"]["touched"]
+    for object_name in identities.values():
+        assert document.getObject(object_name).SteveCADDerivedState == "accepted"
+
+    unsafe = document.addObject("App::FeaturePython", "UnsafeAssemblyFaceConsumer")
+    unsafe.addProperty("App::PropertyLinkSub", "ComponentFace")
+    unsafe.ComponentFace = (arm, ["Face1"])
+    unsafe_capture = _candidate_capture(
+        base_capture,
+        operation="set_inputs",
+        tool_name="vibescript.assembly.set_inputs",
+        arguments={
+            "program_id": prepared["program_id"],
+            "expected_revision": accepted["working_revision"],
+            "patch": {"arm_z": 13.0},
+        },
+    )
+    unsafe_prepared, unsafe_execution = _prepare_and_execute(unsafe_capture, service)
+    assert unsafe_execution.get("ok") is True, unsafe_execution
+    unsafe_validated = validate_candidate(unsafe_prepared, unsafe_execution)
+    retain_candidate(unsafe_prepared, status="validated")
+    try:
+        publish_candidate(service, unsafe_prepared, unsafe_validated)
+    except RuntimeError as exc:
+        assert "Face/Edge/Vertex references" in str(exc)
+        assert "UnsafeAssemblyFaceConsumer" in str(exc)
+    else:
+        raise AssertionError("A transient human Face1 consumer was silently accepted.")
+    retain_candidate(
+        unsafe_prepared,
+        status="publication_failed",
+        failure={
+            "failure_code": "DOMAIN_PUBLICATION_FAILED",
+            "failure_stage": "native_call",
+            "error": "unsafe assembly subelement consumer",
+        },
+    )
+    document.removeObject(unsafe.Name)
+    recovery_inputs_capture = _candidate_capture(
+        base_capture,
+        operation="set_inputs",
+        tool_name="vibescript.assembly.set_inputs",
+        arguments={
+            "program_id": prepared["program_id"],
+            "expected_revision": unsafe_prepared["revision"],
+            "patch": {"arm_z": 14.0},
+        },
+    )
+    _recovery_inputs, _execution, _publication, accepted = _run_candidate(
+        recovery_inputs_capture,
+        service,
+    )
+
+    module_resource_names_before_save = [
+        str(resource.Name)
+        for resource in UtilsAssembly._assemblyOccurrenceResources(module)
+    ]
+    path = root / "assembly-production.FCStd"
+    document.saveAs(str(path))
+    App.closeDocument(document.Name)
+    reopened = App.openDocument(str(path))
+    assert reopened is not None
+    service.document = reopened
+    for output_name, object_name in identities.items():
+        obj = reopened.getObject(object_name)
+        assert obj is not None, output_name
+        assert str(getattr(obj, PROP_PROGRAM_ID, "") or "") == prepared["program_id"]
+    reopened_hinge = reopened.getObject(identities["Hinge"])
+    assert reopened_hinge.Proxy is not None
+    _assert_gui_joint_view_providers(reopened)
+    assert reopened_hinge.JointType == "Revolute"
+    assert reopened_hinge.Detach1 is True and reopened_hinge.Detach2 is True
+    reopened_model = reopened.getObject(identities["Model"])
+    reopened_dependency_anchor = next(
+        obj
+        for obj in reopened.Objects
+        if str(getattr(obj, PROP_OUTPUT_TYPE, "") or "") == "dependency_anchor"
+    )
+    assert reopened_dependency_anchor.SteveCADTimelineRole == "resource"
+    assert reopened_dependency_anchor.SteveCADTimelineOwner is reopened_model
+    reopened_timeline = reopened.getObject("SteveCADTimeline")
+    assert reopened_timeline is not None
+    reopened_module = reopened.getObject(identities["Module"])
+    reopened_module_resources = UtilsAssembly._assemblyOccurrenceResources(
+        reopened_module
+    )
+    assert [
+        resource.Name for resource in reopened_module_resources
+    ] == module_resource_names_before_save
+    _assert_timeline_resource_sequence(
+        reopened_timeline,
+        reopened_module_resources,
+        reopened_module,
+    )
+    reopened_ground = next(
+        obj
+        for obj in reopened.Objects
+        if str(getattr(obj, "SteveCADVibeScriptOutputName", "") or "")
+        == "Base.ground"
+    )
+    _assert_timeline_operation(reopened_timeline, reopened_ground)
+    anchor_index, model_index = _assert_timeline_resource_block(
+        reopened_timeline,
+        reopened_dependency_anchor,
+        reopened_model,
+    )
+    reopened_timeline.Position = anchor_index
+    assert (
+        UtilsAssembly.isTimelineOperationActive(reopened_dependency_anchor)
+        is False
+    )
+    reopened_timeline.Position = model_index + 1
+    assert UtilsAssembly.isTimelineOperationActive(reopened_dependency_anchor)
+    reopened_timeline.Position = len(reopened_timeline.Operations)
+    reopened_consumer = reopened.getObject("WholeAssemblyConsumer")
+    assert reopened_consumer.AssemblySource is reopened_model
+
+    reopened_uid = str(reopened.Uid)
+    reopened_references = {
+        key: {"document_uid": reopened_uid, "object_name": value["object_name"]}
+        for key, value in references.items()
+    }
+    reopened_base = {
+        **base_capture,
+        "document_name": str(reopened.Name),
+        "document_uid": reopened_uid,
+        "document_objects": _document_objects(reopened),
+    }
+    reopen_capture = _candidate_capture(
+        reopened_base,
+        operation="set_inputs",
+        tool_name="vibescript.assembly.set_inputs",
+        arguments={
+            "program_id": prepared["program_id"],
+            "expected_revision": accepted["working_revision"],
+            "patch": {**reopened_references, "arm_z": 15.0},
+        },
+    )
+    _reopened_prepared, _execution, reopen_publication, accepted = _run_candidate(
+        reopen_capture,
+        service,
+    )
+    assert reopen_publication["created_objects"] == []
+    assert {
+        name: details["object_name"] for name, details in accepted["live_outputs"].items()
+    } == identities
+    assert reopened.getObject(identities["Module"]).TypeId == "Assembly::AssemblyLink"
+
+    delete_capture = {
+        **reopened_base,
+        "operation": "delete_program",
+        "tool_name": "vibescript.assembly.delete_program",
+        "arguments": {
+            "program_id": prepared["program_id"],
+            "expected_revision": accepted["working_revision"],
+            "reason": "Assembly production integration complete",
+        },
+    }
+    prepared_delete = prepare_delete(delete_capture)
+    try:
+        delete_live_program(service, prepared_delete)
+    except RuntimeError as exc:
+        assert "WholeAssemblyConsumer" in str(exc)
+    else:
+        raise AssertionError("Deletion ignored a human whole-assembly consumer.")
+    reopened.removeObject(reopened_consumer.Name)
+    deletion = delete_live_program(service, prepared_delete)
+    deleted = finish_delete(prepared_delete, deletion)
+    assert deleted["ok"] is True
+    assert reopened.getObject("SourceBase") is not None
+    assert reopened.getObject("SourceArm") is not None
+    assert reopened.getObject("NativeSubassembly") is not None
+    assert reopened.getObject("NativeSubassemblyPart") is not None
+    assert (
+        getattr(
+            reopened.getObject("NativeSubassemblyPart"),
+            "SteveCADTimelineOwner",
+            None,
+        )
+        is not reopened_module
+    )
+    assert not any(
+        str(getattr(obj, PROP_PROGRAM_ID, "") or "") == prepared["program_id"]
+        for obj in reopened.Objects
+    )
+    App.closeDocument(reopened.Name)
+    return {
+        "program_id": prepared["program_id"],
+        "accepted_revision": accepted["accepted_revision"],
+        "outputs": identities,
+        "published_joint_solver_codes": published_joint_codes,
+        "host_tamper_rejections": tamper_rejections,
+    }
+
+
+def _exercise_scoped_member_graph(root: Path, pack) -> dict:
+    """Publish more than 64 native members through three public outputs."""
+
+    import FreeCAD as App
+    import Part
+
+    document = App.newDocument("VibeScriptAssemblyScopedMembers")
+    source = document.addObject("Part::Feature", "ScopedMemberSource")
+    source.Shape = Part.makeBox(2, 2, 2)
+    document.recompute()
+    reference = {
+        "document_uid": str(document.Uid),
+        "object_name": str(source.Name),
+    }
+    input_schema = {
+        "type": "object",
+        "properties": {"source": _reference_schema()},
+        "required": ["source"],
+        "additionalProperties": False,
+    }
+    member_count = 70
+    declarations = [
+        (
+            f"part_{index} = api.component(inputs['source'], "
+            f"placement=[{index * 3},0,0], grounded={index == 0!r}, "
+            f"label='Part {index + 1}')"
+        )
+        for index in range(member_count)
+    ]
+    member_mapping = ",".join(
+        f"'Part{index + 1:03d}':part_{index}" for index in range(member_count)
+    )
+    source_text = "\n".join(
+        [
+            *declarations,
+            "hinge = api.joint('revolute', api.connector(part_0), "
+            "api.connector(part_1), label='Primary Hinge')",
+            f"model = api.assembly({{{member_mapping}}}, "
+            "{'PrimaryHinge':hinge}, label='Scoped Members')",
+            "diagnostics = api.solve(model)",
+            "drive = api.motion(hinge, 'initialValue + time', label='Hinge Drive')",
+            "simulation = api.simulation(model, {'HingeDrive':drive}, "
+            "end_time_s=0.1, time_step_s=0.1, label='Scoped Motion')",
+            "result = {'Model':model, 'Simulation':simulation, "
+            "'Diagnostics':diagnostics}",
+        ]
+    )
+    expected_outputs = [
+        {"name": "Model", "type": "assembly"},
+        {"name": "Simulation", "type": "simulation"},
+        {"name": "Diagnostics", "type": "solver_diagnostics"},
+    ]
+    base_capture = {
+        "pack": pack,
+        "project_root": str(root),
+        "document_name": str(document.Name),
+        "document_uid": str(document.Uid),
+        "document_revision": "assembly-production-revision",
+        "document_objects": _document_objects(document),
+        "surface": resolve_modeling_surface("AssemblyWorkbench", "vibescript").summary(),
+        "freecad_home": str(Path(App.getHomePath()).resolve()),
+        "timeout_seconds": 60.0,
+        "memory_limit_bytes": 2 * 1024 * 1024 * 1024,
+    }
+    capture = _candidate_capture(
+        base_capture,
+        operation="create_program",
+        tool_name="vibescript.assembly.create_program",
+        arguments={
+            "program_name": "Scoped Assembly Members",
+            "source": source_text,
+            "input_schema": input_schema,
+            "inputs": {"source": reference},
+            "expected_outputs": expected_outputs,
+        },
+    )
+    service = _Service(document, root)
+    prepared, execution, publication, accepted = _run_candidate(capture, service)
+    assert [item["name"] for item in execution["outputs"]] == [
+        "Model",
+        "Simulation",
+        "Diagnostics",
+    ]
+    assert len(execution["assembly_members"]) == member_count + 2
+    assert execution["assembly_validation"]["component_count"] == member_count
+    assert len(publication["outputs"]) == 3
+    assert set(accepted["live_outputs"]) == {
+        "Model",
+        "Simulation",
+        "Diagnostics",
+    }
+    members = {
+        str(getattr(obj, PROP_PROGRAM_OUTPUT, "") or ""): obj
+        for obj in document.Objects
+        if str(getattr(obj, PROP_PROGRAM_ID, "") or "") == prepared["program_id"]
+    }
+    assert all(f"Part{index + 1:03d}" in members for index in range(member_count))
+    assert all(
+        members[f"Part{index + 1:03d}"].TypeId == "App::Link"
+        for index in range(member_count)
+    )
+    assert members["PrimaryHinge"].SteveCADVibeScriptOutputType == "joint"
+    assert members["HingeDrive"].SteveCADVibeScriptOutputType == "motion"
+    model = document.getObject(accepted["live_outputs"]["Model"]["object_name"])
+    assert model is not None and model.TypeId == "Assembly::AssemblyObject"
+    assert len(
+        [child for child in model.Group if str(child.TypeId) == "App::Link"]
+    ) == member_count
+    App.closeDocument(document.Name)
+    return {
+        "public_output_count": 3,
+        "native_member_count": member_count + 2,
+        "stable_member_identity": True,
+    }
+
+
+def _exercise_flexible_subassembly_lifecycle(root: Path, pack) -> dict:
+    """Prove stable model-authored paths through nested flexible AssemblyLinks."""
+
+    import FreeCAD as App
+    import JointObject
+    import Part
+    import UtilsAssembly
+
+    document = App.newDocument("VibeScriptAssemblyFlexible")
+    parent_base = document.addObject("Part::Feature", "FlexibleParentBase")
+    parent_base.Label = "Parent Base"
+    parent_base.Shape = Part.makeBox(16, 16, 8)
+    gear = document.addObject("Part::Feature", "FlexibleGearSource")
+    gear.Label = "Drive Gear"
+    gear.Shape = Part.makeCylinder(5, 8)
+    shaft = document.addObject("Part::Feature", "FlexibleShaftSource")
+    shaft.Label = "Output Shaft"
+    shaft.Shape = Part.makeCylinder(3, 18)
+
+    core = document.addObject("Assembly::AssemblyObject", "FlexibleDriveCoreSource")
+    core.Type = "Assembly"
+    core.Label = "Flexible Drive Core Source"
+    core_joints = core.newObject("Assembly::JointGroup", "FlexibleDriveCoreJoints")
+    gear_occurrence = core.newObject("App::Link", "GearOccurrence")
+    gear_occurrence.LinkedObject = gear
+    shaft_occurrence = core.newObject("App::Link", "ShaftOccurrence")
+    shaft_occurrence.LinkedObject = shaft
+    shaft_occurrence.Placement = App.Placement(
+        App.Vector(0, 0, 8), App.Rotation()
+    )
+    source_ground = core_joints.newObject(
+        "App::FeaturePython", "GroundGearOccurrence"
+    )
+    JointObject.GroundedJoint(source_ground, gear_occurrence)
+    source_joint = core_joints.newObject(
+        "App::FeaturePython", "SourceRevolute"
+    )
+    JointObject.Joint(
+        source_joint, list(JointObject.JointTypes).index("Revolute")
+    )
+    source_joint.Proxy.setJointConnectors(
+        source_joint,
+        [
+            [gear_occurrence, ["", ""]],
+            [shaft_occurrence, ["", ""]],
+        ],
+    )
+    source_joint.EnableAngleMin = True
+    source_joint.AngleMin = -90.0
+    source_joint.EnableAngleMax = True
+    source_joint.AngleMax = 90.0
+    document.recompute()
+    assert int(core.solve(False)) == 0
+    document.recompute()
+    assert len(core.Shape.Solids) == 2
+
+    source = document.addObject("Assembly::AssemblyObject", "FlexibleDriveSource")
+    source.Type = "Assembly"
+    source.Label = "Flexible Drive Source"
+    source.newObject("Assembly::JointGroup", "FlexibleDriveJoints")
+    core_occurrence = source.newObject(
+        "Assembly::AssemblyLink", "CoreOccurrence"
+    )
+    core_occurrence.LinkedObject = core
+    core_occurrence.Rigid = False
+    document.recompute()
+    assert int(source.solve(False)) == 0
+    document.recompute()
+    assert len(source.Shape.Solids) == 2
+
+    references = {
+        "base": {
+            "document_uid": str(document.Uid),
+            "object_name": parent_base.Name,
+        },
+        "drive": {
+            "document_uid": str(document.Uid),
+            "object_name": source.Name,
+        },
+    }
+    service = _Service(document, root)
+    provider_context = complete_domain_context(
+        domain_context_snapshot(service, "assembly")
+    )
+    source_candidate = next(
+        item
+        for item in provider_context["component_candidates"]["objects"]
+        if item["name"] == source.Name
+    )
+    assert source_candidate["eligible_flexible_subassembly"] is True
+    assert source_candidate["eligible_detailed_bom_hierarchy"] is True
+    assert [
+        item["path"]
+        for item in source_candidate["assembly_hierarchy"]["occurrence_paths"]
+    ] == [
+        "CoreOccurrence",
+        "CoreOccurrence/GearOccurrence",
+        "CoreOccurrence/ShaftOccurrence",
+    ]
+    assert source_candidate["assembly_hierarchy"]["counts"]["maximum_depth"] == 2
+    input_schema = {
+        "type": "object",
+        "properties": {
+            "base": _reference_schema(),
+            "drive": _reference_schema(),
+            "drive_x": {"type": "number"},
+        },
+        "required": ["base", "drive", "drive_x"],
+        "additionalProperties": False,
+    }
+    source_text = "\n".join(
+        [
+            "base = api.component(inputs['base'], grounded=True, label='Base')",
+            "drive = api.component(inputs['drive'], placement=[inputs['drive_x'], 0, 0], flexible=True, label='Drive')",
+            "mount = api.joint('revolute', api.connector(base), api.connector(drive, occurrence_path='CoreOccurrence/GearOccurrence'), angle_limits_degrees=[-120, 120], label='Drive Mount')",
+            "model = api.assembly([base, drive], [mount], label='Flexible Mechanism')",
+            "diagnostics = api.solve(model)",
+            "result = {'Model': model, 'Base': base, 'Drive': drive, 'Mount': mount, 'Diagnostics': diagnostics}",
+        ]
+    )
+    expected_outputs = [
+        {"name": "Model", "type": "assembly"},
+        {"name": "Base", "type": "component_link"},
+        {"name": "Drive", "type": "component_link"},
+        {"name": "Mount", "type": "joint"},
+        {"name": "Diagnostics", "type": "solver_diagnostics"},
+    ]
+    base_capture = {
+        "pack": pack,
+        "project_root": str(root),
+        "document_name": str(document.Name),
+        "document_uid": str(document.Uid),
+        "document_revision": "assembly-production-revision",
+        "document_objects": _document_objects(document),
+        "surface": resolve_modeling_surface(
+            "AssemblyWorkbench", "vibescript"
+        ).summary(),
+        "freecad_home": str(Path(App.getHomePath()).resolve()),
+        "timeout_seconds": 60.0,
+        "memory_limit_bytes": 2 * 1024 * 1024 * 1024,
+    }
+    capture = _candidate_capture(
+        base_capture,
+        operation="create_program",
+        tool_name="vibescript.assembly.create_program",
+        arguments={
+            "program_name": "Flexible Drive Mechanism",
+            "source": source_text,
+            "input_schema": input_schema,
+            "inputs": {**references, "drive_x": 24.0},
+            "expected_outputs": expected_outputs,
+        },
+    )
+    prepared, execution, publication, accepted = _run_candidate(capture, service)
+    assert execution["assembly_validation"]["solver_code"] == 0
+    assert execution["assembly_validation"]["component_occurrence_counts"] == {
+        "Drive": 3
+    }
+    outputs = {item["name"]: item for item in execution["outputs"]}
+    drive_data = outputs["Drive"]["assembly_data"]
+    assert drive_data["flexible"] is True
+    assert drive_data["occurrence_paths"] == [
+        "CoreOccurrence",
+        "CoreOccurrence/GearOccurrence",
+        "CoreOccurrence/ShaftOccurrence",
+    ]
+    solved_occurrences = {
+        item["occurrence_path"]: item for item in drive_data["solved_occurrences"]
+    }
+    assert list(solved_occurrences) == [
+        "CoreOccurrence",
+        "CoreOccurrence/GearOccurrence",
+        "CoreOccurrence/ShaftOccurrence",
+    ]
+    mount_connector = outputs["Mount"]["assembly_data"]["connectors"][1]
+    assert mount_connector["occurrence_path"] == "CoreOccurrence/GearOccurrence"
+    assert mount_connector["native_target_mode"] == "direct_exposed_occurrence"
+    assert [
+        item["stable_name"] for item in mount_connector["native_hierarchy_chain"]
+    ] == ["CoreOccurrence", "GearOccurrence"]
+    assert mount_connector["native_reference"]["subelements"] == ["", ""]
+
+    identities = {
+        name: details["object_name"]
+        for name, details in accepted["live_outputs"].items()
+    }
+    live_drive = document.getObject(identities["Drive"])
+    live_mount = document.getObject(identities["Mount"])
+    assert live_drive.TypeId == "Assembly::AssemblyLink"
+    assert live_drive.Rigid is False
+    live_core = next(
+        child
+        for child in live_drive.Group
+        if getattr(child, "LinkedObject", None) is core_occurrence
+    )
+    assert live_core.TypeId == "Assembly::AssemblyLink"
+    assert live_core.Rigid is False
+    live_gear = next(
+        child
+        for child in live_core.Group
+        if getattr(child, "LinkedObject", None) is gear_occurrence
+    )
+    live_shaft = next(
+        child
+        for child in live_core.Group
+        if getattr(child, "LinkedObject", None) is shaft_occurrence
+    )
+    live_occurrences = {
+        "CoreOccurrence": live_core,
+        "CoreOccurrence/GearOccurrence": live_gear,
+        "CoreOccurrence/ShaftOccurrence": live_shaft,
+    }
+    for occurrence_path, live_occurrence in live_occurrences.items():
+        worker_matrix = solved_occurrences[occurrence_path]["global_placement"][
+            "matrix"
+        ]
+        live_matrix = _placement_matrix_values(
+            UtilsAssembly.getGlobalPlacement((live_occurrence, [""]))
+        )
+        assert len(worker_matrix) == len(live_matrix) == 16
+        assert all(
+            abs(worker_value - live_value) <= 1.0e-7
+            for worker_value, live_value in zip(worker_matrix, live_matrix)
+        )
+    assert live_mount.Reference2[0] is live_gear
+    assert list(live_mount.Reference2[1]) == ["", ""]
+    copied_joints = list(live_core.Joints)
+    assert len(copied_joints) == 1
+    assert copied_joints[0].JointType == "Revolute"
+
+    edit_capture = _candidate_capture(
+        base_capture,
+        operation="set_inputs",
+        tool_name="vibescript.assembly.set_inputs",
+        arguments={
+            "program_id": prepared["program_id"],
+            "expected_revision": accepted["working_revision"],
+            "patch": {"drive_x": 30.0},
+        },
+    )
+    _edited_prepared, edited_execution, edited_publication, edited = _run_candidate(
+        edit_capture, service
+    )
+    assert edited_execution["assembly_validation"]["solver_code"] == 0
+    assert edited_publication["created_objects"] == []
+    assert {
+        name: details["object_name"]
+        for name, details in edited["live_outputs"].items()
+    } == identities
+    live_drive = document.getObject(identities["Drive"])
+    live_mount = document.getObject(identities["Mount"])
+    live_core = next(
+        child
+        for child in live_drive.Group
+        if getattr(child, "LinkedObject", None) is core_occurrence
+    )
+    live_gear = next(
+        child
+        for child in live_core.Group
+        if getattr(child, "LinkedObject", None) is gear_occurrence
+    )
+    assert live_drive.Rigid is False
+    assert live_core.Rigid is False
+    assert live_mount.Reference2[0] is live_gear
+
+    invalid_capture = _candidate_capture(
+        base_capture,
+        operation="edit_source",
+        tool_name="vibescript.assembly.edit_source",
+        arguments={
+            "program_id": prepared["program_id"],
+            "expected_revision": edited["working_revision"],
+            "source": capture["arguments"]["source"].replace(
+                "CoreOccurrence/GearOccurrence",
+                "CoreOccurrence/MissingOccurrence",
+            ),
+        },
+    )
+    failed_prepared, failed_execution = _prepare_and_execute(
+        invalid_capture, service
+    )
+    assert failed_execution.get("ok") is False
+    assert failed_execution["failure_code"] == "DOMAIN_CANDIDATE_FAILED"
+    failed_details = failed_execution["observed"]["details"]
+    assert failed_details["stage"] == "assembly_occurrence_path"
+    assert failed_details["requested_path"] == (
+        "CoreOccurrence/MissingOccurrence"
+    )
+    assert failed_details["failed_segment_index"] == 1
+    assert failed_details["available_segments"] == [
+        "GearOccurrence",
+        "ShaftOccurrence",
+    ]
+    assert "Copy one exact occurrence path" in failed_details["correction"]
+    retain_candidate(failed_prepared, status="failed", failure=failed_execution)
+    assert document.getObject(identities["Drive"]) is live_drive
+    assert document.getObject(identities["Mount"]) is live_mount
+    assert live_mount.Reference2[0] is live_gear
+
+    recover_capture = _candidate_capture(
+        base_capture,
+        operation="edit_source",
+        tool_name="vibescript.assembly.edit_source",
+        arguments={
+            "program_id": prepared["program_id"],
+            "expected_revision": failed_prepared["revision"],
+            "source": capture["arguments"]["source"],
+        },
+    )
+    _recovered, _recovered_execution, recovered_publication, recovered = (
+        _run_candidate(recover_capture, service)
+    )
+    assert recovered_publication["created_objects"] == []
+    assert {
+        name: details["object_name"]
+        for name, details in recovered["live_outputs"].items()
+    } == identities
+
+    save_path = root / "flexible-subassembly.FCStd"
+    document.recompute()
+    document.saveAs(str(save_path))
+    App.closeDocument(document.Name)
+    reopened = App.openDocument(str(save_path))
+    reopened_drive = reopened.getObject(identities["Drive"])
+    reopened_mount = reopened.getObject(identities["Mount"])
+    reopened_core_occurrence = reopened.getObject("CoreOccurrence")
+    reopened_source_occurrence = reopened.getObject("GearOccurrence")
+    reopened_core = next(
+        child
+        for child in reopened_drive.Group
+        if getattr(child, "LinkedObject", None) is reopened_core_occurrence
+    )
+    reopened_gear = next(
+        child
+        for child in reopened_core.Group
+        if getattr(child, "LinkedObject", None) is reopened_source_occurrence
+    )
+    assert reopened_drive.Rigid is False
+    assert reopened_core.Rigid is False
+    assert reopened_mount.Reference2[0] is reopened_gear
+    assert len(reopened_core.Joints) == 1
+    App.closeDocument(reopened.Name)
+    return {
+        "program_id": prepared["program_id"],
+        "occurrence_paths": drive_data["occurrence_paths"],
+        "stable_outputs": identities,
+        "native_target_mode": mount_connector["native_target_mode"],
+        "repair_stage": failed_details["stage"],
+    }
+
+
+def _bom_source_text(description: str = "Drive gear", path: str = "Module/GearLeft") -> str:
+    return "\n".join(
+        [
+            "base = api.component(inputs['base'], grounded=True, label='Base')",
+            "module = api.component(inputs['module'], placement=[24, 0, 0], label='Module')",
+            "kit = api.component(inputs['kit'], placement=[48, 0, 0], label='Hardware Kit')",
+            "mount = api.joint('fixed', api.connector(base), api.connector(module), label='Module Mount')",
+            "kit_mount = api.joint('fixed', api.connector(base), api.connector(kit, occurrence_path='BoltA'), label='Kit Mount')",
+            "model = api.assembly([base, module, kit], [mount, kit_mount], label='BOM Assembly')",
+            "diagnostics = api.solve(model)",
+            "bill = api.bill_of_materials(model, columns=['index', 'name', 'quantity', 'file_name', {'property':'PartNumber','heading':'Part Number'}, {'property':'UnitCost','heading':'Unit Cost'}, {'heading':'Description'}], row_overrides=[{'occurrence_path':"
+            f"{path!r},'values':{{'Description':{description!r}}}}}], label='Manufacturing BOM')",
+            "result = {'Model':model, 'Base':base, 'Module':module, 'Kit':kit, 'Mount':mount, 'KitMount':kit_mount, 'Bill':bill, 'Diagnostics':diagnostics}",
+        ]
+    )
+
+
+def _exercise_native_bom_autogenerate_boundary(root: Path) -> dict:
+    """Prove a literal native BOM never generates during recompute or reopen."""
+
+    import FreeCAD as App
+    import Part
+
+    document = App.newDocument("VibeScriptAssemblyBOMBoundary")
+    source = document.addObject("Part::Feature", "BoundarySource")
+    source.Shape = Part.makeBox(4, 5, 6)
+    assembly = document.addObject("Assembly::AssemblyObject", "BoundaryAssembly")
+    assembly.Type = "Assembly"
+    link = assembly.newObject("App::Link", "BoundaryOccurrence")
+    link.LinkedObject = source
+    group = assembly.newObject("Assembly::BomGroup", "BoundaryBOMs")
+    bom = group.newObject("Assembly::BomObject", "BoundaryBOM")
+    assert bom.autoGenerate is True
+    bom.columnsNames = ["Name"]
+    document.recompute()
+    assert str(bom.getContents("A2") or "")
+
+    bom.autoGenerate = False
+    bom.clearAll()
+    bom.set("A1", "'Accepted Header")
+    bom.set("A2", "'ACCEPTED-LITERAL-SENTINEL")
+    document.recompute()
+    assert str(bom.getContents("A2") or "") == "'ACCEPTED-LITERAL-SENTINEL"
+    save_path = root / "assembly-bom-autogenerate-boundary.FCStd"
+    document.saveAs(str(save_path))
+    App.closeDocument(document.Name)
+
+    reopened = App.openDocument(str(save_path))
+    restored = reopened.getObject("BoundaryBOM")
+    assert restored is not None
+    assert restored.autoGenerate is False
+    assert str(restored.getContents("A1") or "") == "'Accepted Header"
+    assert str(restored.getContents("A2") or "") == "'ACCEPTED-LITERAL-SENTINEL"
+    reopened.recompute()
+    assert str(restored.getContents("A2") or "") == "'ACCEPTED-LITERAL-SENTINEL"
+    App.closeDocument(reopened.Name)
+    return {
+        "default_auto_generate": True,
+        "literal_auto_generate": False,
+        "save_reopen_preserved": True,
+    }
+
+
+def _exercise_bom_lifecycle(root: Path, pack) -> dict:
+    """Prove one model-facing BOM call through worker, live state, and reopen."""
+
+    import FreeCAD as App
+    import Part
+
+    document = App.newDocument("VibeScriptAssemblyBOM")
+    base = document.addObject("Part::Feature", "BOMBaseSource")
+    base.Label = "Base Plate"
+    base.Shape = Part.makeBox(20, 20, 8)
+    gear = document.addObject("Part::Feature", "BOMGearSource")
+    gear.Label = "Drive Gear"
+    gear.Shape = Part.makeCylinder(5, 8)
+    shaft = document.addObject("Part::Feature", "BOMShaftSource")
+    shaft.Label = "Output Shaft"
+    shaft.Shape = Part.makeCylinder(3, 18)
+    bolt = document.addObject("Part::Feature", "BOMBoltSource")
+    bolt.Label = "Mounting Bolt"
+    bolt.Shape = Part.makeCylinder(1.5, 10)
+    module = document.addObject("Assembly::AssemblyObject", "BOMModuleSource")
+    module.Type = "Assembly"
+    module.Label = "Drive Module"
+    kit = document.addObject("App::Part", "BOMHardwareKit")
+    kit.Label = "Hardware Kit"
+    for obj, part_number, unit_cost in (
+        (base, "BASE-001", 18.5),
+        (gear, "GEAR-014", 6.25),
+        (shaft, "SHAFT-008", 4.75),
+        (bolt, "BOLT-M3-010", 0.2),
+        (module, "MODULE-100", 0.0),
+        (kit, "KIT-FASTENER", 0.0),
+    ):
+        obj.addProperty("App::PropertyString", "PartNumber", "BOM")
+        obj.PartNumber = part_number
+        obj.addProperty("App::PropertyFloat", "UnitCost", "BOM")
+        obj.UnitCost = unit_cost
+    gear_left = module.newObject("App::Link", "GearLeft")
+    gear_left.LinkedObject = gear
+    gear_right = module.newObject("App::Link", "GearRight")
+    gear_right.LinkedObject = gear
+    gear_right.Placement = App.Placement(App.Vector(12, 0, 0), App.Rotation())
+    shaft_occurrence = module.newObject("App::Link", "ShaftOccurrence")
+    shaft_occurrence.LinkedObject = shaft
+    shaft_occurrence.Placement = App.Placement(
+        App.Vector(6, 0, 8), App.Rotation()
+    )
+    bolt_a = kit.newObject("App::Link", "BoltA")
+    bolt_a.LinkedObject = bolt
+    bolt_b = kit.newObject("App::Link", "BoltB")
+    bolt_b.LinkedObject = bolt
+    bolt_b.Placement = App.Placement(App.Vector(8, 0, 0), App.Rotation())
+    document.recompute()
+    assert len(module.Shape.Solids) == 3
+    assert len(kit.Shape.Solids) == 2
+    save_path = root / "assembly-bom.FCStd"
+    document.saveAs(str(save_path))
+
+    references = {
+        "base": {"document_uid": str(document.Uid), "object_name": base.Name},
+        "module": {
+            "document_uid": str(document.Uid),
+            "object_name": module.Name,
+        },
+        "kit": {"document_uid": str(document.Uid), "object_name": kit.Name},
+    }
+    input_schema = {
+        "type": "object",
+        "properties": {
+            "base": _reference_schema(),
+            "module": _reference_schema(),
+            "kit": _reference_schema(),
+        },
+        "required": ["base", "module", "kit"],
+        "additionalProperties": False,
+    }
+    expected_outputs = [
+        {"name": "Model", "type": "assembly"},
+        {"name": "Base", "type": "component_link"},
+        {"name": "Module", "type": "component_link"},
+        {"name": "Kit", "type": "component_link"},
+        {"name": "Mount", "type": "joint"},
+        {"name": "KitMount", "type": "joint"},
+        {"name": "Bill", "type": "bom"},
+        {"name": "Diagnostics", "type": "solver_diagnostics"},
+    ]
+    base_capture = {
+        "pack": pack,
+        "project_root": str(root),
+        "document_name": str(document.Name),
+        "document_uid": str(document.Uid),
+        "document_revision": "assembly-production-revision",
+        "document_objects": _document_objects(document),
+        "surface": resolve_modeling_surface(
+            "AssemblyWorkbench", "vibescript"
+        ).summary(),
+        "freecad_home": str(Path(App.getHomePath()).resolve()),
+        "timeout_seconds": 60.0,
+        "memory_limit_bytes": 2 * 1024 * 1024 * 1024,
+    }
+    service = _Service(document, root)
+    provider_context = complete_domain_context(
+        domain_context_snapshot(service, "assembly")
+    )
+    candidates = {
+        item["name"]: item
+        for item in provider_context["component_candidates"]["objects"]
+    }
+    assert candidates[module.Name]["eligible_flexible_subassembly"] is True
+    assert candidates[module.Name]["eligible_detailed_bom_hierarchy"] is True
+    assert [
+        item["path"]
+        for item in candidates[module.Name]["assembly_hierarchy"][
+            "occurrence_paths"
+        ]
+    ] == ["GearLeft", "GearRight", "ShaftOccurrence"]
+    assert candidates[kit.Name]["eligible_flexible_subassembly"] is False
+    assert candidates[kit.Name]["eligible_detailed_bom_hierarchy"] is True
+    assert [
+        item["path"]
+        for item in candidates[kit.Name]["assembly_hierarchy"]["occurrence_paths"]
+    ] == ["BoltA", "BoltB"]
+    create_capture = _candidate_capture(
+        base_capture,
+        operation="create_program",
+        tool_name="vibescript.assembly.create_program",
+        arguments={
+            "program_name": "Native Manufacturing BOM",
+            "source": _bom_source_text(),
+            "input_schema": input_schema,
+            "inputs": references,
+            "expected_outputs": expected_outputs,
+        },
+    )
+    prepared, execution = _prepare_and_execute(create_capture, service)
+    assert execution.get("ok") is True, execution
+    assert execution["assembly_validation"]["boms"][0]["bom_output"] == "Bill"
+    outputs = {item["name"]: item for item in execution["outputs"]}
+    data = outputs["Bill"]["assembly_data"]
+    assert data["schema"] == "stevecad-assembly-bom-v1"
+    assert data["row_count"] == 6
+    assert data["used_range"] == ["A1", "G7"]
+    rows = {row["index"]: row for row in data["rows"]}
+    assert rows["1"]["cells"]["Part Number"] == "BASE-001"
+    assert rows["2"]["cells"]["Part Number"] == "MODULE-100"
+    gear_row = rows["2.1"]
+    assert gear_row["quantity"] == 2
+    assert gear_row["occurrence_paths"] == [
+        "Module/GearLeft",
+        "Module/GearRight",
+    ]
+    assert gear_row["cells"]["Part Number"] == "GEAR-014"
+    assert gear_row["cells"]["Unit Cost"] == "6.25"
+    assert gear_row["cells"]["Description"] == "Drive gear"
+    assert rows["3"]["source_kind"] == "part"
+    assert rows["3"]["cells"]["Part Number"] == "KIT-FASTENER"
+    bolt_row = rows["3.1"]
+    assert bolt_row["quantity"] == 2
+    assert bolt_row["occurrence_paths"] == ["Kit/BoltA", "Kit/BoltB"]
+    assert bolt_row["cells"]["Part Number"] == "BOLT-M3-010"
+    assert {row["cells"]["File Name"] for row in data["rows"]} == {
+        save_path.name
+    }
+    assert data["native_readback"]["substituted_headings"] == [
+        "File Name",
+        "Description",
+    ]
+    kit_mount_data = outputs["KitMount"]["assembly_data"]
+    assert kit_mount_data["connectors"][1]["occurrence_path"] == "BoltA"
+    assert kit_mount_data["connectors"][1]["native_target_mode"] == (
+        "prefixed_rigid_boundary"
+    )
+
+    tampered = copy.deepcopy(execution)
+    tampered_bill = next(
+        item for item in tampered["outputs"] if item["name"] == "Bill"
+    )
+    tampered_bill["assembly_data"]["rows"][2]["cells"]["Part Number"] = (
+        "FORGED"
+    )
+    try:
+        validate_candidate(prepared, tampered)
+    except ValueError as exc:
+        assert "changed after host-authenticated planning" in str(exc), str(exc)
+    else:
+        raise AssertionError("Host accepted tampered Assembly BOM cells.")
+
+    validated = validate_candidate(prepared, execution)
+    retain_candidate(prepared, status="validated")
+    publication = publish_candidate(service, prepared, validated)
+    accepted = accept_candidate(prepared, publication)
+    identities = {
+        name: details["object_name"]
+        for name, details in accepted["live_outputs"].items()
+    }
+    bill = document.getObject(identities["Bill"])
+    assert bill.TypeId == "Assembly::BomObject"
+    assert bill.isFrozen() is True
+    assert bill.autoGenerate is False
+    restore_guard = next(
+        obj
+        for obj in document.Objects
+        if str(getattr(obj, PROP_PROGRAM_OUTPUT, "") or "")
+        == "Bill.__bom_restore"
+    )
+    assert restore_guard.TypeId == "App::FeaturePython"
+    assert restore_guard.SteveCADAssemblyBOMRestoreTarget is bill
+    assert restore_guard.SteveCADAssemblyBOMRestoreError == ""
+    timeline = document.getObject("SteveCADTimeline")
+    assert timeline is not None
+    _assert_timeline_resource_sequence(timeline, [restore_guard], bill)
+    restore_guard_name = str(restore_guard.Name)
+    accepted_context = complete_domain_context(
+        domain_context_snapshot(service, "assembly")
+    )
+    accepted_program = next(
+        item
+        for item in accepted_context["programs"]
+        if item["program_id"] == prepared["program_id"]
+    )
+    assert set(accepted_program["live_outputs"]) == {
+        "Model",
+        "Base",
+        "Module",
+        "Kit",
+        "Mount",
+        "KitMount",
+        "Bill",
+        "Diagnostics",
+    }
+    assert list(bill.columnsNames) == [
+        "Index",
+        "Name",
+        "Quantity",
+        "File Name",
+        ".PartNumber",
+        ".UnitCost",
+        "Description",
+    ]
+
+    def content(address: str) -> str:
+        value = str(bill.getContents(address) or "")
+        return value[1:] if value.startswith("'") else value
+
+    assert [content(f"{column}1") for column in "ABCDEFG"] == [
+        "Index",
+        "Name",
+        "Quantity",
+        "File Name",
+        "Part Number",
+        "Unit Cost",
+        "Description",
+    ]
+    assert content("C4") == "2"
+    assert content("D4") == save_path.name
+    assert content("E4") == "GEAR-014"
+    assert content("G4") == "Drive gear"
+    assert accepted["live_outputs"]["Bill"]["assembly_data"][
+        "available_row_override_paths"
+    ] == [
+        "Base",
+        "Module",
+        "Module/GearLeft",
+        "Module/GearRight",
+        "Module/ShaftOccurrence",
+        "Kit",
+        "Kit/BoltA",
+        "Kit/BoltB",
+    ]
+    document.recompute()
+    assert bill.isFrozen() is True
+    assert content("G4") == "Drive gear"
+    marked = mark_programs_stale_from_source(gear, "PartNumber")
+    assert bill.Name in marked
+    assert bill.SteveCADDerivedState == "stale"
+    assert bill.isFrozen() is True
+    assert content("G4") == "Drive gear"
+
+    inspection = complete_inspection(
+        capture_inspection_state(
+            service,
+            "vibescript.assembly.inspect_program",
+            prepared["program_id"],
+        )
+    )
+    inspected_outputs = {
+        item["name"]: item
+        for item in inspection["program"]["live_state"]["outputs"]
+    }
+    inspected_bill = inspected_outputs["Bill"]["accepted_state"]["validation"]
+    assert inspected_bill["table_sha256"] == data["table_sha256"]
+    assert inspected_bill["rows"][2]["occurrence_paths"] == [
+        "Module/GearLeft",
+        "Module/GearRight",
+    ]
+
+    edit_capture = _candidate_capture(
+        base_capture,
+        operation="edit_source",
+        tool_name="vibescript.assembly.edit_source",
+        arguments={
+            "program_id": prepared["program_id"],
+            "expected_revision": accepted["working_revision"],
+            "source": create_capture["arguments"]["source"].replace(
+                "Drive gear",
+                "Primary drive gear",
+            ),
+        },
+    )
+    _edited, edited_execution, edited_publication, accepted = _run_candidate(
+        edit_capture, service
+    )
+    assert edited_publication["created_objects"] == []
+    assert document.getObject(identities["Bill"]) is bill
+    assert document.getObject(restore_guard_name) is restore_guard
+    assert restore_guard.SteveCADAssemblyBOMRestoreTarget is bill
+    assert bill.isFrozen() is True
+    assert content("G4") == "Primary drive gear"
+    _assert_timeline_resource_sequence(timeline, [restore_guard], bill)
+    assert edited_execution["assembly_validation"]["boms"][0]["row_count"] == 6
+
+    invalid_capture = _candidate_capture(
+        base_capture,
+        operation="edit_source",
+        tool_name="vibescript.assembly.edit_source",
+        arguments={
+            "program_id": prepared["program_id"],
+            "expected_revision": accepted["working_revision"],
+            "source": (
+                create_capture["arguments"]["source"]
+                .replace("Drive gear", "Primary drive gear")
+                .replace("Module/GearLeft", "Module/UnknownOccurrence")
+            ),
+        },
+    )
+    failed_prepared, failed_execution = _prepare_and_execute(invalid_capture, service)
+    assert failed_execution.get("ok") is False
+    assert failed_execution["failure_code"] == "DOMAIN_CANDIDATE_FAILED"
+    failed_details = failed_execution["observed"]["details"]
+    assert failed_details["stage"] == "bom_row_overrides"
+    assert failed_details["requested_path"] == "Module/UnknownOccurrence"
+    assert "Module/GearLeft" in failed_details["available_occurrence_paths"]
+    assert "Copy one exact" in failed_details["correction"]
+    retain_candidate(failed_prepared, status="failed", failure=failed_execution)
+    assert bill.isFrozen() is True
+    assert content("G4") == "Primary drive gear"
+
+    recover_capture = _candidate_capture(
+        base_capture,
+        operation="edit_source",
+        tool_name="vibescript.assembly.edit_source",
+        arguments={
+            "program_id": prepared["program_id"],
+            "expected_revision": failed_prepared["revision"],
+            "source": create_capture["arguments"]["source"].replace(
+                "Drive gear",
+                "Primary drive gear",
+            ),
+        },
+    )
+    _recovered, _execution, recovered_publication, accepted = _run_candidate(
+        recover_capture, service
+    )
+    assert recovered_publication["created_objects"] == []
+    assert document.getObject(identities["Bill"]) is bill
+    assert content("G4") == "Primary drive gear"
+
+    document.save()
+    assert content("G4") == "Primary drive gear", "BOM changed during document save"
+    assert bill.isFrozen() is True
+    App.closeDocument(document.Name)
+    reopened = App.openDocument(str(save_path))
+    assert reopened is not None
+    service.document = reopened
+    reopened_bill = reopened.getObject(identities["Bill"])
+    assert reopened_bill is not None
+    assert reopened_bill.TypeId == "Assembly::BomObject"
+    assert reopened_bill.isFrozen() is True
+    assert reopened_bill.autoGenerate is False
+    reopened_guard = reopened.getObject(restore_guard_name)
+    assert reopened_guard is not None
+    assert reopened_guard.SteveCADAssemblyBOMRestoreTarget is reopened_bill
+    assert reopened_guard.SteveCADAssemblyBOMRestoreError == ""
+    reopened_timeline = reopened.getObject("SteveCADTimeline")
+    assert reopened_timeline is not None
+    _assert_timeline_resource_sequence(
+        reopened_timeline,
+        [reopened_guard],
+        reopened_bill,
+    )
+    reopened_value = str(reopened_bill.getContents("G4") or "")
+    clean_reopened_value = (
+        reopened_value[1:] if reopened_value.startswith("'") else reopened_value
+    )
+    assert clean_reopened_value == "Primary drive gear", repr(clean_reopened_value)
+    reopened_base = {
+        **base_capture,
+        "document_name": str(reopened.Name),
+        "document_uid": str(reopened.Uid),
+        "document_objects": _document_objects(reopened),
+    }
+    prepared_delete = prepare_delete(
+        {
+            **reopened_base,
+            "operation": "delete_program",
+            "tool_name": "vibescript.assembly.delete_program",
+            "arguments": {
+                "program_id": prepared["program_id"],
+                "expected_revision": accepted["working_revision"],
+                "reason": "Assembly BOM lifecycle complete",
+            },
+        }
+    )
+    deletion = delete_live_program(service, prepared_delete)
+    assert finish_delete(prepared_delete, deletion)["ok"] is True
+    assert reopened.getObject("BOMBaseSource") is not None
+    assert reopened.getObject("BOMModuleSource") is not None
+    assert reopened.getObject("BOMHardwareKit") is not None
+    assert not any(
+        str(getattr(obj, PROP_PROGRAM_ID, "") or "") == prepared["program_id"]
+        for obj in reopened.Objects
+    )
+    App.closeDocument(reopened.Name)
+    return {
+        "program_id": prepared["program_id"],
+        "stable_outputs": identities,
+        "row_count": data["row_count"],
+        "aggregated_occurrence_paths": gear_row["occurrence_paths"],
+        "table_sha256": data["table_sha256"],
+        "failure_stage": failed_details["stage"],
+        "host_tamper_rejections": ["bom_cells"],
+    }
+
+
+def _exercise_catalog_fastener_lifecycle(root: Path, pack) -> dict:
+    """Prove exact catalog occurrences, semantic connectors, BOM, and reopen."""
+
+    document = App.newDocument("VibeScriptAssemblyFasteners")
+    service = _Service(document, root)
+    source = "\n".join(
+        [
+            "bolt_a = api.fastener('ISO4762', 'M6', length_mm=inputs['length_mm'], model_thread=inputs['model_thread'], grounded=True, label='Bolt A')",
+            "bolt_b = api.fastener('ISO4762', 'M6', length_mm=inputs['length_mm'], model_thread=inputs['model_thread'], placement=[0, 0, 25], label='Bolt B')",
+            "axis_a = api.connector(bolt_a, 'origin')",
+            "axis_b = api.connector(bolt_b, {'type':'published_interface','interface_name':'thread_axis'})",
+            "fixed = api.joint('revolute', axis_a, axis_b, label='Fastener Fixture')",
+            "model = api.assembly([bolt_a, bolt_b], [fixed], label='Fastener Assembly')",
+            "diagnostics = api.solve(model)",
+            "drive = api.motion(fixed, 'initialValue + pi/4*time', label='Fastener Drive')",
+            "simulation = api.simulation(model, [drive], start_time_s=0, end_time_s=0.1, time_step_s=0.05, label='Fastener Simulation')",
+            "bill = api.bill_of_materials(model, columns=['name', 'quantity', {'property':'PartNumber','heading':'Part Number'}], label='Fastener BOM')",
+            "result = {'Model':model, 'BoltA':bolt_a, 'BoltB':bolt_b, 'Fixed':fixed, 'Drive':drive, 'Simulation':simulation, 'Bill':bill, 'Diagnostics':diagnostics}",
+        ]
+    )
+    expected_outputs = [
+        {"name": "Model", "type": "assembly"},
+        {"name": "BoltA", "type": "component_link"},
+        {"name": "BoltB", "type": "component_link"},
+        {"name": "Fixed", "type": "joint"},
+        {"name": "Drive", "type": "motion"},
+        {"name": "Simulation", "type": "simulation"},
+        {"name": "Bill", "type": "bom"},
+        {"name": "Diagnostics", "type": "solver_diagnostics"},
+    ]
+    base_capture = {
+        "pack": pack,
+        "project_root": str(root),
+        "document_name": str(document.Name),
+        "document_uid": str(document.Uid),
+        "document_revision": "assembly-production-revision",
+        "document_objects": _document_objects(document),
+        "surface": resolve_modeling_surface(
+            "AssemblyWorkbench", "vibescript"
+        ).summary(),
+        "freecad_home": str(Path(App.getHomePath()).resolve()),
+        "timeout_seconds": 60.0,
+        "memory_limit_bytes": 2 * 1024 * 1024 * 1024,
+    }
+    capture = _candidate_capture(
+        base_capture,
+        operation="create_program",
+        tool_name="vibescript.assembly.create_program",
+        arguments={
+            "program_name": "Catalog Fastener Assembly",
+            "source": source,
+            "input_schema": {
+                "type": "object",
+                "properties": {
+                    "length_mm": {
+                        "type": "number",
+                        "minimum": 1,
+                    },
+                    "model_thread": {"type": "boolean"},
+                },
+                "required": ["length_mm", "model_thread"],
+                "additionalProperties": False,
+            },
+            "inputs": {"length_mm": 20.0, "model_thread": True},
+            "expected_outputs": expected_outputs,
+        },
+    )
+    prepared, execution, publication, accepted = _run_candidate(capture, service)
+    assert execution["assembly_validation"]["solver_code"] == 0
+    worker_outputs = {
+        str(item["name"]): item for item in execution["outputs"]
+    }
+    assert worker_outputs["BoltA"]["assembly_data"]["catalog_fastener"][
+        "part_number"
+    ] == "ISO4762 M6x20"
+    assert worker_outputs["BoltA"]["assembly_data"]["catalog_fastener"][
+        "model_thread"
+    ] is True
+    assert worker_outputs["BoltA"]["assembly_data"]["source_facts"]["edges"] > 100
+    assert worker_outputs["BoltA"]["assembly_data"]["source"] == worker_outputs[
+        "BoltB"
+    ]["assembly_data"]["source"]
+    collision_summary = worker_outputs["Simulation"]["assembly_data"][
+        "collision_summary"
+    ]
+    assert collision_summary["status"] == "complete", collision_summary
+    assert collision_summary["analysis_complete"] is True
+    from vibescript_assembly_worker import _collision_definition_key
+
+    for name in ("BoltA", "BoltB"):
+        data = worker_outputs[name]["assembly_data"]
+        assert _collision_definition_key(
+            data["source_contract"],
+            data,
+        ) == data["source_brep"]["artifact_sha256"]
+    connectors = worker_outputs["Fixed"]["assembly_data"]["connectors"]
+    assert connectors[0]["geometry_type"] == "component_origin"
+    assert connectors[0]["semantic_selection"] is None
+    assert connectors[0]["interface_frame"] is None
+    assert connectors[1]["semantic_selection"]["interface_name"] == "thread_axis"
+    assert connectors[1]["interface_frame"] is not None
+    bill_data = worker_outputs["Bill"]["assembly_data"]
+    assert bill_data["row_count"] == 1
+    assert bill_data["rows"][0]["quantity"] == 2
+    assert bill_data["rows"][0]["cells"]["Part Number"] == "ISO4762 M6x20"
+
+    identities = {
+        name: details["object_name"]
+        for name, details in accepted["live_outputs"].items()
+    }
+    bolt_links = [
+        document.getObject(identities["BoltA"]),
+        document.getObject(identities["BoltB"]),
+    ]
+    assert all(link.TypeId == "App::Link" for link in bolt_links)
+    fastener_sources = [
+        obj
+        for obj in document.Objects
+        if str(getattr(obj, PROP_PROGRAM_OUTPUT, "") or "").endswith(
+            ".__fastener_source"
+        )
+    ]
+    assert len(fastener_sources) == 2
+    assert {link.LinkedObject for link in bolt_links} == set(fastener_sources)
+    assert all(source.TypeId == "Part::FeaturePython" for source in fastener_sources)
+    assert all(len(source.Shape.Solids) == 1 for source in fastener_sources)
+    assert all(bool(source.Thread) is True for source in fastener_sources)
+    fastener_collisions = evaluate_dynamic_collisions(
+        {
+            "First": fastener_sources[0].Shape,
+            "Second": fastener_sources[1].Shape,
+        },
+        _collision_frames(
+            [
+                ([0.0, 0.0, 0.0], [30.0, 0.0, 0.0]),
+                ([0.0, 0.0, 0.0], [0.0, 0.0, 0.0]),
+            ]
+        ),
+    )["summary"]
+    assert fastener_collisions["collision_free"] is False
+    assert fastener_collisions["colliding_pair_count"] == 1
+    assert fastener_collisions["interference_volume_complete"] is False
+    import UtilsAssembly
+
+    timeline = document.getObject("SteveCADTimeline")
+    assert timeline is not None
+    for link in bolt_links:
+        source = link.LinkedObject
+        assert source.SteveCADTimelineRole == "resource"
+        assert source.SteveCADTimelineOwner is link
+        assert (
+            source.getTypeIdOfProperty("SteveCADTimelineOwner")
+            == "App::PropertyLinkHidden"
+        )
+        assert link not in source.OutList
+        source_index, link_index = _assert_timeline_resource_block(
+            timeline,
+            source,
+            link,
+        )
+        timeline.Position = source_index
+        assert UtilsAssembly.isTimelineOperationActive(source) is False
+        timeline.Position = link_index + 1
+        assert UtilsAssembly.isTimelineOperationActive(source) is True
+        if "SteveCADTimelineEditor" not in link.PropertiesList:
+            link.addProperty(
+                "App::PropertyLinkHidden",
+                "SteveCADTimelineEditor",
+                "Timeline",
+                "Implementation object which edits this standard component",
+                attr=16,
+                hidden=True,
+                locked=True,
+            )
+        link.setPropertyStatus(
+            "SteveCADTimelineEditor",
+            ("Hidden", "LockDynamic", "NoRecompute"),
+        )
+        link.setEditorMode("SteveCADTimelineEditor", 2)
+        link.SteveCADTimelineEditor = source
+    timeline.Position = len(timeline.Operations)
+    real_thread_edges = [len(source.Shape.Edges) for source in fastener_sources]
+    assert len(
+        {
+            str(source.SteveCADFastenerCanonicalKey)
+            for source in fastener_sources
+        }
+    ) == 1
+
+    edit = _candidate_capture(
+        base_capture,
+        operation="set_inputs",
+        tool_name="vibescript.assembly.set_inputs",
+        arguments={
+            "program_id": prepared["program_id"],
+            "expected_revision": accepted["working_revision"],
+            "patch": {"length_mm": 25.0, "model_thread": False},
+        },
+    )
+    _edited_prepared, edited_execution, _edited_publication, edited = (
+        _run_candidate(edit, service)
+    )
+    assert edited_execution["assembly_validation"]["solver_code"] == 0
+    assert {
+        name: details["object_name"]
+        for name, details in edited["live_outputs"].items()
+    } == identities
+    edited_sources = [
+        obj
+        for obj in document.Objects
+        if str(getattr(obj, PROP_PROGRAM_OUTPUT, "") or "").endswith(
+            ".__fastener_source"
+        )
+    ]
+    assert len(edited_sources) == 2
+    assert all(str(source.Length) == "25" for source in edited_sources)
+    assert all(bool(source.Thread) is False for source in edited_sources)
+    simple_edges = [len(source.Shape.Edges) for source in edited_sources]
+    assert max(simple_edges) < min(real_thread_edges)
+    assert all(
+        str(source.SteveCADCatalogPartNumber) == "ISO4762 M6x25"
+        for source in edited_sources
+    )
+    for link in bolt_links:
+        source = link.LinkedObject
+        assert source in edited_sources
+        assert source.SteveCADTimelineRole == "resource"
+        assert source.SteveCADTimelineOwner is link
+        assert link.SteveCADTimelineEditor is source
+
+    restore_threads = _candidate_capture(
+        base_capture,
+        operation="set_inputs",
+        tool_name="vibescript.assembly.set_inputs",
+        arguments={
+            "program_id": prepared["program_id"],
+            "expected_revision": edited["working_revision"],
+            "patch": {"model_thread": True},
+        },
+    )
+    (
+        _threaded_prepared,
+        threaded_execution,
+        _threaded_publication,
+        threaded,
+    ) = _run_candidate(restore_threads, service)
+    assert threaded_execution["assembly_validation"]["solver_code"] == 0
+    assert {
+        name: details["object_name"]
+        for name, details in threaded["live_outputs"].items()
+    } == identities
+    threaded_sources = [
+        obj
+        for obj in document.Objects
+        if str(getattr(obj, PROP_PROGRAM_OUTPUT, "") or "").endswith(
+            ".__fastener_source"
+        )
+    ]
+    assert len(threaded_sources) == 2
+    assert all(bool(source.Thread) is True for source in threaded_sources)
+    assert min(len(source.Shape.Edges) for source in threaded_sources) > max(
+        simple_edges
+    )
+    assert all(
+        link.SteveCADTimelineEditor is link.LinkedObject for link in bolt_links
+    )
+
+    save_path = root / "catalog-fastener-assembly.FCStd"
+    document.recompute()
+    document.saveAs(str(save_path))
+    App.closeDocument(document.Name)
+    reopened = App.openDocument(str(save_path))
+    service.document = reopened
+    reopened_links = [
+        reopened.getObject(identities["BoltA"]),
+        reopened.getObject(identities["BoltB"]),
+    ]
+    assert all(link is not None and link.LinkedObject is not None for link in reopened_links)
+    assert all(len(link.Shape.Solids) == 1 for link in reopened_links)
+    assert all(
+        str(link.LinkedObject.SteveCADCatalogPartNumber) == "ISO4762 M6x25"
+        for link in reopened_links
+    )
+    assert all(bool(link.LinkedObject.Thread) is True for link in reopened_links)
+    assert all(
+        link.LinkedObject.SteveCADTimelineRole == "resource"
+        and link.LinkedObject.SteveCADTimelineOwner is link
+        and link.LinkedObject.getTypeIdOfProperty("SteveCADTimelineOwner")
+        == "App::PropertyLinkHidden"
+        for link in reopened_links
+    )
+    reopened_timeline = reopened.getObject("SteveCADTimeline")
+    assert reopened_timeline is not None
+    for link in reopened_links:
+        source = link.LinkedObject
+        source_index, link_index = _assert_timeline_resource_block(
+            reopened_timeline,
+            source,
+            link,
+        )
+        reopened_timeline.Position = source_index
+        assert UtilsAssembly.isTimelineOperationActive(source) is False
+        reopened_timeline.Position = link_index + 1
+        assert UtilsAssembly.isTimelineOperationActive(source) is True
+    reopened_timeline.Position = len(reopened_timeline.Operations)
+    reopened.recompute()
+    assert all(
+        str(link.LinkedObject.SteveCADFastenerError) == ""
+        for link in reopened_links
+    )
+
+    reopened_capture = {
+        **base_capture,
+        "document_name": str(reopened.Name),
+        "document_uid": str(reopened.Uid),
+        "document_objects": _document_objects(reopened),
+    }
+    prepared_delete = prepare_delete(
+        {
+            **reopened_capture,
+            "operation": "delete_program",
+            "tool_name": "vibescript.assembly.delete_program",
+            "arguments": {
+                "program_id": prepared["program_id"],
+                "expected_revision": threaded["working_revision"],
+                "reason": "Catalog fastener lifecycle complete",
+            },
+        }
+    )
+    deletion = delete_live_program(service, prepared_delete)
+    assert finish_delete(prepared_delete, deletion)["ok"] is True
+    assert not any(
+        str(getattr(obj, PROP_PROGRAM_ID, "") or "") == prepared["program_id"]
+        for obj in reopened.Objects
+    )
+    App.closeDocument(reopened.Name)
+    return {
+        "program_id": prepared["program_id"],
+        "part_number": "ISO4762 M6x25",
+        "bom_quantity": 2,
+        "semantic_interface": "thread_axis",
+        "native_thread_toggle_changes_brep": True,
+        "collision_geometry_supported": True,
+        "stable_outputs": identities,
+    }
+
+
+def _exercise_portable_external_instances(root: Path, pack) -> dict:
+    """Reuse one saved part as exact native occurrences across documents."""
+
+    import FreeCAD as App
+    import Part
+
+    project = root / "portable-project"
+    parts_directory = project / "parts"
+    parts_directory.mkdir(parents=True)
+    source_path = parts_directory / "bracket.FCStd"
+    assembly_path = project / "assembly.FCStd"
+
+    source_document = App.newDocument("PortableBracketSource")
+    source_object = source_document.addObject("Part::Feature", "Bracket")
+    source_object.Label = "Reusable Bracket"
+    source_object.Shape = Part.makeBox(10, 20, 3)
+    source_document.recompute()
+    source_document.saveAs(str(source_path))
+    source_document_uid = str(source_document.Uid)
+    source_object_name = str(source_object.Name)
+    App.closeDocument(str(source_document.Name))
+
+    document = App.newDocument("PortableAssembly")
+    document.saveAs(str(assembly_path))
+    service = _Service(document, root)
+    catalog = search_captured_component_catalog(
+        capture_component_catalog(service),
+        "reusable bracket",
+        document_path="parts/bracket.FCStd",
+        limit=10,
+    )
+    assert catalog.get("errors", []) == []
+    assert catalog["match_count"] == 1
+    reference = dict(catalog["matches"][0]["reference"])
+    assert reference == {
+        "document_uid": source_document_uid,
+        "object_name": source_object_name,
+        "document_path": "parts/bracket.FCStd",
+    }
+    input_schema = {
+        "type": "object",
+        "properties": {"bracket": _reference_schema()},
+        "required": ["bracket"],
+        "additionalProperties": False,
+    }
+    source = (
+        "brackets = api.instances(\n"
+        "    inputs['bracket'],\n"
+        "    [[0,0,0], [30,0,0], [60,0,0]],\n"
+        "    grounded_index=0,\n"
+        "    labels=['Bracket 1', 'Bracket 2', 'Bracket 3'],\n"
+        ")\n"
+        "first = brackets[0]\n"
+        "second = brackets[1]\n"
+        "third = brackets[2]\n"
+        "model = api.assembly([first, second, third], [], label='Bracket Array')\n"
+        "diagnostics = api.solve(model, require_solved=False)\n"
+        "result = {'Model':model, 'Bracket1':first, 'Bracket2':second, "
+        "'Bracket3':third, 'Diagnostics':diagnostics}\n"
+    )
+    expected_outputs = [
+        {"name": "Model", "type": "assembly"},
+        {"name": "Bracket1", "type": "component_link"},
+        {"name": "Bracket2", "type": "component_link"},
+        {"name": "Bracket3", "type": "component_link"},
+        {"name": "Diagnostics", "type": "solver_diagnostics"},
+    ]
+    base_capture = {
+        "pack": pack,
+        "project_root": str(root),
+        "document_name": str(document.Name),
+        "document_uid": str(document.Uid),
+        "document_revision": "assembly-production-revision",
+        "document_objects": _document_objects(document),
+        "surface": resolve_modeling_surface(
+            "AssemblyWorkbench", "vibescript"
+        ).summary(),
+        "freecad_home": str(Path(App.getHomePath()).resolve()),
+        "timeout_seconds": 60.0,
+        "memory_limit_bytes": 2 * 1024 * 1024 * 1024,
+    }
+    create = _candidate_capture(
+        base_capture,
+        operation="create_program",
+        tool_name="vibescript.assembly.create_program",
+        arguments={
+            "program_name": "Portable Bracket Array",
+            "source": source,
+            "input_schema": input_schema,
+            "inputs": {"bracket": reference},
+            "expected_outputs": expected_outputs,
+        },
+    )
+    prepared, _execution, publication, accepted = _run_candidate(create, service)
+    assert len(publication["created_objects"]) >= 5
+    links = [
+        document.getObject(
+            next(
+                item["object_name"]
+                for item in publication["outputs"]
+                if item["name"] == output_name
+            )
+        )
+        for output_name in ("Bracket1", "Bracket2", "Bracket3")
+    ]
+    source_object = links[0].LinkedObject
+    assert source_object is not None
+    source_document = source_object.Document
+    assert str(source_document.Uid) == source_document_uid
+    assert Path(str(source_document.FileName)).resolve() == source_path.resolve()
+    assert all(link.LinkedObject is source_object for link in links)
+    assert [float(link.Placement.Base.x) for link in links] == [0.0, 30.0, 60.0]
+    assert [round(float(link.Shape.Volume), 7) for link in links] == [
+        600.0,
+        600.0,
+        600.0,
+    ]
+    dependency_owners = [
+        obj
+        for obj in document.Objects
+        if str(getattr(obj, PROP_OUTPUT_TYPE, "") or "") == "dependency_anchor"
+    ]
+    assert len(dependency_owners) == 1
+    assert source_object in list(
+        getattr(dependency_owners[0], PROP_INPUT_OBJECTS, []) or []
+    )
+
+    source_object.Shape = Part.makeBox(10, 20, 6)
+    source_document.recompute()
+    source_document.save()
+    automatically_marked = {
+        str(link.Name)
+        for link in links
+        if str(getattr(link, "SteveCADDerivedState", "") or "") == "stale"
+    }
+    marked = mark_programs_stale_from_source(source_object, "Shape")
+    assert automatically_marked | set(marked) >= {
+        str(link.Name) for link in links
+    }
+    assert all(link.SteveCADDerivedState == "stale" for link in links)
+
+    regenerate = _candidate_capture(
+        {
+            **base_capture,
+            "document_objects": _document_objects(document),
+        },
+        operation="set_inputs",
+        tool_name="vibescript.assembly.set_inputs",
+        arguments={
+            "program_id": prepared["program_id"],
+            "expected_revision": accepted["working_revision"],
+            "patch": {"bracket": reference},
+        },
+    )
+    _updated, _execution, updated_publication, accepted = _run_candidate(
+        regenerate,
+        service,
+    )
+    assert updated_publication["created_objects"] == []
+    assert all(link.LinkedObject is source_object for link in links)
+    document.recompute()
+    assert [round(float(link.Shape.Volume), 7) for link in links] == [
+        1200.0,
+        1200.0,
+        1200.0,
+    ]
+    assert all(link.SteveCADDerivedState == "accepted" for link in links)
+    document.save()
+
+    original_document_name = str(document.Name)
+    original_source_name = str(source_document.Name)
+    App.closeDocument(original_document_name)
+    App.closeDocument(original_source_name)
+    moved_project = root / "moved-portable-project"
+    project.rename(moved_project)
+
+    reopened = App.openDocument(str(moved_project / "assembly.FCStd"))
+    reopened_links = [
+        obj
+        for obj in reopened.Objects
+        if str(getattr(obj, PROP_OUTPUT_TYPE, "") or "") == "component_link"
+        and str(getattr(obj, PROP_PROGRAM_ID, "") or "") == prepared["program_id"]
+    ]
+    assert len(reopened_links) == 3
+    reopened_targets = [link.LinkedObject for link in reopened_links]
+    assert all(target is not None for target in reopened_targets)
+    assert {
+        Path(str(target.Document.FileName)).resolve()
+        for target in reopened_targets
+    } == {(moved_project / "parts" / "bracket.FCStd").resolve()}
+    assert {str(target.Name) for target in reopened_targets} == {"Bracket"}
+    assert [round(float(link.Shape.Volume), 7) for link in reopened_links] == [
+        1200.0,
+        1200.0,
+        1200.0,
+    ]
+    reopened_source_documents = {
+        str(target.Document.Name) for target in reopened_targets
+    }
+    App.closeDocument(str(reopened.Name))
+    for name in reopened_source_documents:
+        if name in App.listDocuments():
+            App.closeDocument(name)
+    return {
+        "program_id": prepared["program_id"],
+        "occurrence_count": 3,
+        "shared_source": "parts/bracket.FCStd#Bracket",
+        "catalog_search_loaded_closed_source": True,
+        "source_update_propagated": True,
+        "portable_after_project_move": True,
+        "accepted_revision": accepted["working_revision"],
+    }
+
+
+def _exercise_model_occurrence_adoption(root: Path, pack) -> dict:
+    """Adopt, reopen, and release one existing Model occurrence in place."""
+
+    import FreeCAD as App
+    import Part
+
+    document = App.newDocument("AssemblyModelOccurrenceAdoption")
+    source = document.addObject("Part::Feature", "ImportedMotorDefinition")
+    source.Shape = Part.makeBox(30, 18, 18)
+    source.Label = "Imported motor definition"
+    occurrence = document.addObject("App::Link", "PlacedMotor")
+    occurrence.LinkedObject = source
+    occurrence.Label = "Placed motor"
+    occurrence.Placement = App.Placement(App.Vector(45, 8, 3), App.Rotation())
+    for name, value in (
+        (PROP_PROGRAM_ID, "model-occurrence-program"),
+        (PROP_PROGRAM_DOMAIN, "partdesign"),
+        (PROP_PROGRAM_WORKBENCH, "PartDesignWorkbench"),
+        (PROP_PROGRAM_OUTPUT, "Motor"),
+        (PROP_PROGRAM_REVISION, "model-occurrence-revision"),
+        (PROP_OUTPUT_TYPE, "component_link"),
+    ):
+        occurrence.addProperty("App::PropertyString", name, "SteveCAD")
+        setattr(occurrence, name, value)
+    document.recompute()
+    original_link = occurrence.LinkedObject
+    original_program_id = str(occurrence.SteveCADVibeScriptProgramId)
+
+    service = _Service(document, root)
+    reference = {
+        "document_uid": str(document.Uid),
+        "object_name": str(occurrence.Name),
+    }
+    source_text = (
+        "motor = api.component(inputs['motor'], grounded=True)\n"
+        "model = api.assembly([motor], [], label='Robot mechanism')\n"
+        "diagnostics = api.solve(model, require_solved=False)\n"
+        "result = {'Model': model, 'Motor': motor, 'Diagnostics': diagnostics}\n"
+    )
+    expected_outputs = [
+        {"name": "Model", "type": "assembly"},
+        {"name": "Motor", "type": "component_link"},
+        {"name": "Diagnostics", "type": "solver_diagnostics"},
+    ]
+    base_capture = {
+        "pack": pack,
+        "project_root": str(root),
+        "document_name": str(document.Name),
+        "document_uid": str(document.Uid),
+        "document_revision": service.provider_document_revision(),
+        "document_objects": _document_objects(document),
+        "surface": resolve_modeling_surface(
+            "AssemblyWorkbench", "vibescript"
+        ).summary(),
+        "freecad_home": str(Path(App.getHomePath()).resolve()),
+        "timeout_seconds": 60.0,
+        "memory_limit_bytes": 2 * 1024 * 1024 * 1024,
+    }
+    create = _candidate_capture(
+        base_capture,
+        operation="create_program",
+        tool_name="vibescript.assembly.create_program",
+        arguments={
+            "program_name": "Adopt placed motor",
+            "source": source_text,
+            "input_schema": {
+                "type": "object",
+                "properties": {"motor": _reference_schema()},
+                "required": ["motor"],
+                "additionalProperties": False,
+            },
+            "inputs": {"motor": reference},
+            "expected_outputs": expected_outputs,
+        },
+    )
+    active_document = document
+    try:
+        prepared, _execution, publication, accepted = _run_candidate(create, service)
+        published_motor = next(
+            item for item in publication["outputs"] if item["name"] == "Motor"
+        )
+        assert published_motor["object_name"] == occurrence.Name
+        assert occurrence.LinkedObject is original_link
+        assert str(occurrence.SteveCADVibeScriptProgramId) == original_program_id
+        assembly = document.getObject(accepted["live_outputs"]["Model"]["object_name"])
+        assert assembly is not None
+        assert assembly in list(occurrence.InList)
+        assert len(
+            [
+                obj
+                for obj in document.Objects
+                if obj.TypeId == "App::Link" and obj.LinkedObject is source
+            ]
+        ) == 1
+
+        save_path = root / "assembly-model-occurrence-adoption.FCStd"
+        program_id = str(prepared["program_id"])
+        accepted_revision = str(accepted["working_revision"])
+        assembly_name = str(assembly.Name)
+        occurrence_name = str(occurrence.Name)
+        source_name = str(source.Name)
+        document.recompute()
+        document.saveAs(str(save_path))
+        App.closeDocument(document.Name)
+        reopened = App.openDocument(str(save_path))
+        active_document = reopened
+        occurrence = reopened.getObject(occurrence_name)
+        source = reopened.getObject(source_name)
+        assembly = reopened.getObject(assembly_name)
+        assert occurrence is not None and source is not None and assembly is not None
+        assert occurrence.LinkedObject is source
+        assert str(occurrence.SteveCADVibeScriptProgramId) == original_program_id
+        assert assembly in list(occurrence.InList)
+        service = _Service(reopened, root)
+
+        deletion = prepare_delete(
+            {
+                **base_capture,
+                "document_name": str(reopened.Name),
+                "document_uid": str(reopened.Uid),
+                "document_objects": _document_objects(reopened),
+                "operation": "delete_program",
+                "tool_name": "vibescript.assembly.delete_program",
+                "arguments": {
+                    "program_id": program_id,
+                    "expected_revision": accepted_revision,
+                    "reason": "Adoption lifecycle complete",
+                },
+            }
+        )
+        deleted = delete_live_program(service, deletion)
+        assert finish_delete(deletion, deleted)["ok"] is True
+        assert reopened.getObject(occurrence.Name) is occurrence
+        assert occurrence.LinkedObject is source
+        assert not _assembly_owners_for_test(occurrence)
+        return {
+            "occurrence": str(occurrence.Name),
+            "reused_in_place": True,
+            "model_authorship_preserved": True,
+            "save_reopen_preserved_adoption": True,
+            "release_preserved_occurrence": True,
+        }
+    finally:
+        if str(active_document.Name) in App.listDocuments():
+            App.closeDocument(active_document.Name)
+
+
+def _assembly_owners_for_test(occurrence) -> list:
+    return [
+        owner
+        for owner in list(occurrence.InList)
+        if str(getattr(owner, "TypeId", "")) == "Assembly::AssemblyObject"
+    ]
+
+
+def _exercise_static_geometry_evidence() -> dict:
+    """Prove raw exact evidence for separated, touching, and overlapping pairs."""
+
+    import Part
+
+    base_shape = Part.makeBox(10, 10, 10)
+    repeated_shape = Part.makeBox(10, 10, 10)
+    rotated_shape = Part.makeBox(4, 2, 2)
+    preplaced_shape = Part.makeBox(10, 10, 10)
+    preplaced_shape.Placement = App.Placement(
+        App.Vector(50, 0, 0),
+        App.Rotation(),
+    )
+    identity = {
+        "position": [0, 0, 0],
+        "rotation": [0, 0, 0, 1],
+    }
+    half_root = math.sqrt(0.5)
+    evidence = measure_static_component_pairs(
+        {
+            "Base": {"shape": base_shape, "placement": identity},
+            "Separated": {
+                "shape": repeated_shape,
+                "placement": {
+                    "position": [12, 0, 0],
+                    "rotation": [0, 0, 0, 1],
+                },
+            },
+            "Touching": {
+                "shape": repeated_shape,
+                "placement": {
+                    "position": [10, 0, 0],
+                    "rotation": [0, 0, 0, 1],
+                },
+            },
+            "Overlapping": {
+                "shape": repeated_shape,
+                "placement": {
+                    "position": [8, 0, 0],
+                    "rotation": [0, 0, 0, 1],
+                },
+            },
+            "RotatedTouch": {
+                "shape": rotated_shape,
+                "placement": {
+                    "position": [12, 0, 0],
+                    "rotation": [0, 0, half_root, half_root],
+                },
+            },
+            "PreplacedSource": {
+                "shape": preplaced_shape,
+                "placement": {
+                    "position": [12, 0, 0],
+                    "rotation": [0, 0, 0, 1],
+                },
+            },
+        },
+        [
+            ["Base", "Separated"],
+            ["Base", "Touching"],
+            ["Base", "Overlapping"],
+            ["Base", "RotatedTouch"],
+            ["Base", "PreplacedSource"],
+        ],
+    )
+    assert evidence["schema"] == STATIC_PAIR_EVIDENCE_SCHEMA
+    assert evidence["component_count"] == 6
+    assert evidence["pair_count"] == 5
+    json.dumps(evidence, sort_keys=True, allow_nan=False)
+    pairs = {
+        item["second_component"]: item for item in evidence["pairs"]
+    }
+    separated = pairs["Separated"]
+    assert separated["broad_phase"]["overlaps_or_touches"] is False
+    assert round(float(separated["broad_phase"]["distance_mm"]), 7) == 2.0
+    assert round(float(separated["minimum_distance_mm"]), 7) == 2.0
+    assert separated["common_evaluated"] is False
+    assert separated["common_volume_mm3"] == 0.0
+    assert separated["witness_count"] > 0
+
+    touching = pairs["Touching"]
+    assert touching["broad_phase"]["overlaps_or_touches"] is True
+    assert round(float(touching["minimum_distance_mm"]), 7) == 0.0
+    assert touching["common_evaluated"] is True
+    assert round(float(touching["common_volume_mm3"]), 7) == 0.0
+
+    overlapping = pairs["Overlapping"]
+    assert round(float(overlapping["minimum_distance_mm"]), 7) == 0.0
+    assert overlapping["common_evaluated"] is True
+    assert round(float(overlapping["common_volume_mm3"]), 7) == 200.0
+    assert overlapping["common_solid_count"] == 1
+
+    rotated = pairs["RotatedTouch"]
+    assert rotated["broad_phase"]["overlaps_or_touches"] is True
+    assert round(float(rotated["minimum_distance_mm"]), 7) == 0.0
+    assert round(float(rotated["second_bounds"]["minimum_mm"][0]), 7) == 10.0
+    assert round(float(rotated["second_bounds"]["maximum_mm"][0]), 7) == 12.0
+
+    preplaced = pairs["PreplacedSource"]
+    assert round(float(preplaced["minimum_distance_mm"]), 7) == 2.0
+    assert round(float(preplaced["second_bounds"]["minimum_mm"][0]), 7) == 12.0
+    assert round(float(preplaced["second_bounds"]["maximum_mm"][0]), 7) == 22.0
+
+    semantic_evidence = measure_static_mechanism_pairs(
+        {
+            "Base": {"shape": base_shape, "placement": identity},
+            "Touching": {
+                "shape": repeated_shape,
+                "placement": {
+                    "position": [10, 0, 0],
+                    "rotation": [0, 0, 0, 1],
+                },
+            },
+            "WrongTouch": {
+                "shape": repeated_shape,
+                "placement": {
+                    "position": [10, 0, 0],
+                    "rotation": [0, 0, 0, 1],
+                },
+            },
+        },
+        [
+            {
+                "declaration_id": "AllowedContact",
+                "first_component": "Base",
+                "second_component": "Touching",
+                "tolerance_mm": 0.001,
+                "first_interface": "MatingFace",
+                "second_interface": "SeatFace",
+            },
+            {
+                "declaration_id": "WrongInterface",
+                "first_component": "Base",
+                "second_component": "WrongTouch",
+                "tolerance_mm": 0.001,
+                "first_interface": "MatingFace",
+                "second_interface": "FarFace",
+            },
+        ],
+        interfaces={
+            "Base": {"MatingFace": ["Face2"]},
+            "Touching": {"SeatFace": ["Face1"]},
+            "WrongTouch": {"FarFace": ["Face2"]},
+        },
+    )
+    assert semantic_evidence["schema"] == STATIC_MECHANISM_EVIDENCE_SCHEMA
+    semantic_by_id = {
+        item["declaration_id"]: item
+        for item in semantic_evidence["declarations"]
+    }
+    assert semantic_by_id["AllowedContact"]["interfaces"][
+        "contact_locus_on_interfaces"
+    ] is True
+    assert semantic_by_id["AllowedContact"]["interfaces"]["section"][
+        "all_on_interfaces"
+    ] is True
+    assert semantic_by_id["WrongInterface"]["interfaces"][
+        "contact_locus_on_interfaces"
+    ] is False
+
+    # The evaluator applies all placements to detached copies.
+    assert round(float(base_shape.BoundBox.XMin), 7) == 0.0
+    assert round(float(repeated_shape.BoundBox.XMin), 7) == 0.0
+    assert round(float(rotated_shape.BoundBox.XMin), 7) == 0.0
+    assert round(float(preplaced_shape.BoundBox.XMin), 7) == 50.0
+    try:
+        measure_static_component_pairs(
+            {
+                "not/a/stable/id": {
+                    "shape": base_shape,
+                    "placement": {
+                        "position": [0, 0, 0],
+                        "rotation": [0, 0, 0, 1],
+                    },
+                }
+            },
+            [["not/a/stable/id", "not/a/stable/id"]],
+        )
+    except MechanismGeometryError as exc:
+        assert "stable identifiers" in str(exc)
+    else:
+        raise AssertionError("Static geometry accepted a path-like component id.")
+    return {
+        "pairs": 5,
+        "separated_distance_mm": separated["minimum_distance_mm"],
+        "touching_common_volume_mm3": touching["common_volume_mm3"],
+        "overlap_volume_mm3": overlapping["common_volume_mm3"],
+        "rotated_transform_applied": True,
+        "source_placement_replaced_by_occurrence": True,
+        "semantic_contact_confined": True,
+        "wrong_interface_rejected": True,
+        "source_shapes_unchanged": True,
+        "strict_component_identity": True,
+    }
+
+
+def _exercise_static_mechanism_verification_lifecycle(root: Path, pack) -> dict:
+    """Publish, reauthorize, reopen, and update one portable static report."""
+
+    import FreeCAD as App
+    import Part
+
+    document = App.newDocument("VibeScriptAssemblyStaticVerification")
+    source = document.addObject("Part::Feature", "VerificationSource")
+    source.Label = "Verification block"
+    source.Shape = Part.makeBox(10, 10, 10)
+    document.recompute()
+    reference = {
+        "document_uid": str(document.Uid),
+        "object_name": str(source.Name),
+    }
+    input_schema = {
+        "type": "object",
+        "properties": {
+            "source": _reference_schema(),
+            "probe_x": {"type": "number"},
+        },
+        "required": ["source", "probe_x"],
+        "additionalProperties": False,
+    }
+    source_text = (
+        "base = api.component(inputs['source'], grounded=True, label='Base')\n"
+        "probe = api.component(inputs['source'], placement=[inputs['probe_x'],0,0], "
+        "label='Probe')\n"
+        "clearance = api.component(inputs['source'], placement=[25,0,0], "
+        "label='Clearance Target')\n"
+        "model = api.assembly([base,probe,clearance], label='Static Mechanism')\n"
+        "diagnostics = api.solve(model)\n"
+        "verification = api.mechanism_check(model, requirements=["
+        "{'type':'collision_free','first':base,'second':probe,"
+        "'tolerance_mm':0.01}], contacts=["
+        "{'first':base,'second':clearance,'policy':'clearance',"
+        "'minimum_clearance_mm':2.0,'tolerance_mm':0.01},"
+        "{'first':probe,'second':clearance,'policy':'ignored',"
+        "'reason':'Nonphysical reference envelope'}], "
+        "label='Static pair verification')\n"
+        "result = {'Model':model,'Base':base,'Probe':probe,"
+        "'ClearanceTarget':clearance,'Verification':verification,"
+        "'Diagnostics':diagnostics}\n"
+    )
+    expected_outputs = [
+        {"name": "Model", "type": "assembly"},
+        {"name": "Base", "type": "component_link"},
+        {"name": "Probe", "type": "component_link"},
+        {"name": "ClearanceTarget", "type": "component_link"},
+        {"name": "Verification", "type": "mechanism_verification"},
+        {"name": "Diagnostics", "type": "solver_diagnostics"},
+    ]
+    base_capture = {
+        "pack": pack,
+        "project_root": str(root),
+        "document_name": str(document.Name),
+        "document_uid": str(document.Uid),
+        "document_revision": "assembly-production-revision",
+        "document_objects": _document_objects(document),
+        "surface": resolve_modeling_surface(
+            "AssemblyWorkbench",
+            "vibescript",
+        ).summary(),
+        "freecad_home": str(Path(App.getHomePath()).resolve()),
+        "timeout_seconds": 120.0,
+        "memory_limit_bytes": 2 * 1024 * 1024 * 1024,
+    }
+    service = _Service(document, root)
+    captured = _candidate_capture(
+        base_capture,
+        operation="create_program",
+        tool_name="vibescript.assembly.create_program",
+        arguments={
+            "program_name": "Static Mechanism Verification",
+            "source": source_text,
+            "input_schema": input_schema,
+            "inputs": {"source": reference, "probe_x": 12.0},
+            "expected_outputs": expected_outputs,
+        },
+    )
+    prepared, execution = _prepare_and_execute(captured, service)
+    assert execution.get("ok") is True, execution
+    worker_verification = next(
+        item for item in execution["outputs"] if item["name"] == "Verification"
+    )
+    worker_report = worker_verification["assembly_data"]["report"]
+    assert worker_report["verdict"] == "pass"
+    assert worker_report["summary"] == {
+        "declaration_count": 3,
+        "pass_count": 2,
+        "fail_count": 0,
+        "indeterminate_count": 0,
+        "ignored_count": 1,
+    }
+    tampered = copy.deepcopy(execution)
+    tampered_report = next(
+        item for item in tampered["outputs"] if item["name"] == "Verification"
+    )["assembly_data"]["report"]
+    tampered_report["verdict"] = "fail"
+    try:
+        validate_candidate(prepared, tampered)
+    except ValueError as exc:
+        assert "deterministic report" in str(exc)
+    else:
+        raise AssertionError("Host accepted a tampered mechanism verdict.")
+
+    validated = validate_candidate(prepared, execution)
+    retain_candidate(prepared, status="validated")
+    publication = publish_candidate(service, prepared, validated)
+    accepted = accept_candidate(prepared, publication)
+    identities = {
+        name: details["object_name"]
+        for name, details in accepted["live_outputs"].items()
+    }
+    verification = document.getObject(identities["Verification"])
+    model = document.getObject(identities["Model"])
+    assert verification is not None and model is not None
+    assert str(verification.SteveCADMechanismVerdict) == "pass"
+    assert getattr(verification, PROP_MECHANISM_ASSEMBLY_OUTPUT) == "Model"
+    assert "SteveCADMechanismAssembly" not in verification.PropertiesList
+    assert model not in list(verification.OutList)
+    persisted_check = json.loads(
+        getattr(verification, PROP_MECHANISM_STATIC_CHECK)
+    )
+    persisted_report = json.loads(
+        getattr(verification, PROP_MECHANISM_VERIFICATION_REPORT)
+    )
+    assert persisted_check["schema"] == "stevecad-mechanism-static-check-v1"
+    assert persisted_report == worker_report
+    assert persisted_report["scope"]["motion_certified"] is False
+    verification_groups = [
+        child
+        for child in list(model.Group)
+        if str(getattr(child, "Label", "") or "") == "Verification"
+    ]
+    assert len(verification_groups) == 1
+    assert verification in list(verification_groups[0].Group)
+
+    bad_source = source_text.replace(
+        "'tolerance_mm':0.01",
+        "'missing_tolerance_mm':0.01",
+        1,
+    )
+    failed_capture = _candidate_capture(
+        base_capture,
+        operation="reconfigure_program",
+        tool_name="vibescript.assembly.reconfigure_program",
+        arguments={
+            "program_id": prepared["program_id"],
+            "expected_revision": accepted["working_revision"],
+            "source": bad_source,
+            "input_schema": input_schema,
+            "inputs": {"source": reference, "probe_x": 12.0},
+            "expected_outputs": expected_outputs,
+        },
+    )
+    failed_prepared, failed_execution = _prepare_and_execute(
+        failed_capture,
+        service,
+    )
+    assert failed_execution.get("ok") is False
+    retain_candidate(
+        failed_prepared,
+        status="failed",
+        failure=failed_execution,
+    )
+    assert document.getObject(identities["Verification"]) is verification
+    assert str(verification.SteveCADMechanismVerdict) == "pass"
+
+    failing_geometry_capture = _candidate_capture(
+        base_capture,
+        operation="reconfigure_program",
+        tool_name="vibescript.assembly.reconfigure_program",
+        arguments={
+            "program_id": prepared["program_id"],
+            "expected_revision": failed_prepared["revision"],
+            "source": source_text,
+            "input_schema": input_schema,
+            "inputs": {"source": reference, "probe_x": 10.0},
+            "expected_outputs": expected_outputs,
+        },
+    )
+    _updated, updated_execution, updated_publication, accepted = _run_candidate(
+        failing_geometry_capture,
+        service,
+    )
+    assert updated_publication["created_objects"] == []
+    assert document.getObject(identities["Verification"]) is verification
+    failed_report = json.loads(
+        getattr(verification, PROP_MECHANISM_VERIFICATION_REPORT)
+    )
+    assert str(verification.SteveCADMechanismVerdict) == "fail"
+    assert failed_report["verdict"] == "fail"
+    assert failed_report["first_failure"]["reason_code"] == (
+        "prohibited_contact"
+    )
+    assert failed_report["results"][0]["evidence"]["body"][
+        "minimum_distance_mm"
+    ] == 0.0
+    assert updated_execution["assembly_validation"]["verifications"][0][
+        "verdict"
+    ] == "fail"
+
+    path = root / "assembly-static-verification.FCStd"
+    document.saveAs(str(path))
+    App.closeDocument(document.Name)
+    reopened = App.openDocument(str(path))
+    assert reopened is not None
+    service.document = reopened
+    reopened_verification = reopened.getObject(identities["Verification"])
+    reopened_model = reopened.getObject(identities["Model"])
+    assert reopened_verification is not None and reopened_model is not None
+    assert str(reopened_verification.SteveCADMechanismVerdict) == "fail"
+    assert getattr(
+        reopened_verification,
+        PROP_MECHANISM_ASSEMBLY_OUTPUT,
+    ) == "Model"
+    assert "SteveCADMechanismAssembly" not in reopened_verification.PropertiesList
+    assert reopened_model not in list(reopened_verification.OutList)
+    assert json.loads(
+        getattr(
+            reopened_verification,
+            PROP_MECHANISM_VERIFICATION_REPORT,
+        )
+    ) == failed_report
+
+    reopened_base = {
+        **base_capture,
+        "document_name": str(reopened.Name),
+        "document_uid": str(reopened.Uid),
+        "document_objects": _document_objects(reopened),
+    }
+    prepared_delete = prepare_delete(
+        {
+            **reopened_base,
+            "operation": "delete_program",
+            "tool_name": "vibescript.assembly.delete_program",
+            "arguments": {
+                "program_id": prepared["program_id"],
+                "expected_revision": accepted["working_revision"],
+                "reason": "Static mechanism verification lifecycle complete",
+            },
+        }
+    )
+    deletion = delete_live_program(service, prepared_delete)
+    assert finish_delete(prepared_delete, deletion)["ok"] is True
+    assert reopened.getObject("VerificationSource") is not None
+    assert not any(
+        str(getattr(obj, PROP_PROGRAM_ID, "") or "")
+        == prepared["program_id"]
+        for obj in reopened.Objects
+    )
+    App.closeDocument(reopened.Name)
+    return {
+        "program_id": prepared["program_id"],
+        "stable_output": identities["Verification"],
+        "initial_verdict": "pass",
+        "updated_verdict": "fail",
+        "ignored_pair_retained": True,
+        "tampered_report_rejected": True,
+        "failed_candidate_preserved_live_report": True,
+        "portable_after_reopen": True,
+    }
+
+
+def main() -> int:
+    pack = get_vibescript_pack("AssemblyWorkbench")
+    assert pack is not None
+    root = Path(tempfile.mkdtemp(prefix="stevecad-assembly-production-"))
+    try:
+        provider_context = _exercise_provider_context(root, pack)
+        joint_codes = _exercise_native_joint_matrix(root, pack)
+        coupled_joint_codes = _exercise_coupled_joint_dependencies(root, pack)
+        semantic_connectors = _exercise_semantic_connectors(root, pack)
+        transient_geometry_connectors = _exercise_transient_geometry_connectors(
+            root,
+            pack,
+        )
+        simulation = _exercise_simulation_lifecycle(root, pack)
+        exploded_view = _exercise_exploded_view_lifecycle(root, pack)
+        flexible_subassembly = _exercise_flexible_subassembly_lifecycle(root, pack)
+        bom_autogenerate_boundary = _exercise_native_bom_autogenerate_boundary(root)
+        bom = _exercise_bom_lifecycle(root, pack)
+        catalog_fasteners = _exercise_catalog_fastener_lifecycle(root, pack)
+        dynamic_collision_geometry = _exercise_dynamic_collision_geometry()
+        exact_link_reference_capture = _exercise_exact_link_reference_capture(root)
+        portable_external_instances = _exercise_portable_external_instances(
+            root,
+            pack,
+        )
+        model_occurrence_adoption = _exercise_model_occurrence_adoption(root, pack)
+        static_geometry_evidence = _exercise_static_geometry_evidence()
+        static_mechanism_verification = (
+            _exercise_static_mechanism_verification_lifecycle(root, pack)
+        )
+        scoped_member_graph = _exercise_scoped_member_graph(root, pack)
+        lifecycle = _exercise_lifecycle(root, pack)
+    finally:
+        shutil.rmtree(root, ignore_errors=True)
+    print(
+        json.dumps(
+            {
+                "ok": True,
+                "integration": "assembly_vibescript_api",
+                "provider_context": provider_context,
+                "joint_solver_codes": joint_codes,
+                "coupled_joint_solver_codes": coupled_joint_codes,
+                "semantic_connectors": semantic_connectors,
+                "transient_geometry_connectors": transient_geometry_connectors,
+                "simulation": simulation,
+                "exploded_view": exploded_view,
+                "flexible_subassembly": flexible_subassembly,
+                "bom_autogenerate_boundary": bom_autogenerate_boundary,
+                "bom": bom,
+                "catalog_fasteners": catalog_fasteners,
+                "dynamic_collision_geometry": dynamic_collision_geometry,
+                "exact_link_reference_capture": exact_link_reference_capture,
+                "portable_external_instances": portable_external_instances,
+                "model_occurrence_adoption": model_occurrence_adoption,
+                "static_geometry_evidence": static_geometry_evidence,
+                "static_mechanism_verification": static_mechanism_verification,
+                "scoped_member_graph": scoped_member_graph,
+                **lifecycle,
+            },
+            sort_keys=True,
+        )
+    )
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

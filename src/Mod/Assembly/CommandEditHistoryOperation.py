@@ -14,18 +14,18 @@ COMMAND_NAME = "Assembly_EditHistoryOperation"
 def _has_exact_timeline_metadata(operation):
     properties = set(getattr(operation, "PropertiesList", []) or [])
     if {
-        "VibeCADTimelineRole",
-        "VibeCADTimelineEditCommand",
+        "SteveCADTimelineRole",
+        "SteveCADTimelineEditCommand",
     } - properties:
         return False
     try:
         return (
-            operation.getTypeIdOfProperty("VibeCADTimelineRole")
+            operation.getTypeIdOfProperty("SteveCADTimelineRole")
             == "App::PropertyString"
-            and operation.VibeCADTimelineRole == "operation"
-            and operation.getTypeIdOfProperty("VibeCADTimelineEditCommand")
+            and operation.SteveCADTimelineRole == "operation"
+            and operation.getTypeIdOfProperty("SteveCADTimelineEditCommand")
             == "App::PropertyString"
-            and operation.VibeCADTimelineEditCommand == COMMAND_NAME
+            and operation.SteveCADTimelineEditCommand == COMMAND_NAME
         )
     except (AttributeError, ReferenceError, RuntimeError, TypeError):
         return False
@@ -115,4 +115,4 @@ class CommandEditHistoryOperation:
 
 Gui.addCommand(COMMAND_NAME, CommandEditHistoryOperation())
 for _action in Gui.Command.get(COMMAND_NAME).ensureAction():
-    _action.setProperty("VibeCADTimelineOperationEditor", True)
+    _action.setProperty("SteveCADTimelineOperationEditor", True)

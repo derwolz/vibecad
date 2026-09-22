@@ -466,8 +466,8 @@ class Stretch(gui_base_original.Modifier):
                             _msg(translate("draft", "Turning a rectangle into a wire"))
                             if not replacement_outputs:
                                 Gui.addModule("draftutils.timeline")
-                                commitops.insert(0, "_vibecad_stretch_inputs = []")
-                                commitops.insert(1, "_vibecad_stretch_outputs = []")
+                                commitops.insert(0, "_stevecad_stretch_inputs = []")
+                                commitops.insert(1, "_stevecad_stretch_outputs = []")
                                 replacement_outputs = True
                             pts = []
                             vts = ops[0].Shape.Vertexes
@@ -485,13 +485,13 @@ class Stretch(gui_base_original.Modifier):
                             _format += "(w, "
                             _format += _doc + ops[0].Name
                             _format += ")"
-                            _capture = "_vibecad_stretch_inputs.extend("
+                            _capture = "_stevecad_stretch_inputs.extend("
                             _capture += "draftutils.timeline.visible_inputs(["
                             _capture += _doc + ops[0].Name + "]))"
                             commitops.append("w = " + _cmd)
                             commitops.append(_format)
                             commitops.insert(-2, _capture)
-                            commitops.append("_vibecad_stretch_outputs.append(w)")
+                            commitops.append("_stevecad_stretch_outputs.append(w)")
                     else:
                         _pl = _doc + ops[0].Name
                         _pl += ".Placement.Base=FreeCAD."
@@ -501,7 +501,7 @@ class Stretch(gui_base_original.Modifier):
             if replacement_outputs:
                 commitops.append(
                     "draftutils.timeline.accept_outputs("
-                    "_vibecad_stretch_outputs, _vibecad_stretch_inputs)"
+                    "_stevecad_stretch_outputs, _stevecad_stretch_inputs)"
                 )
             commitops.append("FreeCAD.ActiveDocument.recompute()")
             Gui.addModule("Draft")

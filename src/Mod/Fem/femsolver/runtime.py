@@ -1,5 +1,5 @@
 # **************************************************************************
-# *   Copyright (c) 2026 VibeCAD contributors                              *
+# *   Copyright (c) 2026 SteveCAD contributors                              *
 # *                                                                        *
 # *   This file is part of the FreeCAD CAx development system.             *
 # *                                                                        *
@@ -8,7 +8,7 @@
 # *   as published by the Free Software Foundation; either version 2 of     *
 # *   the License, or (at your option) any later version.                   *
 # **************************************************************************
-"""Discover FEM solver programs available to VibeCAD."""
+"""Discover FEM solver programs available to SteveCAD."""
 
 import os
 from pathlib import Path
@@ -62,7 +62,7 @@ def load_openfoam_environment(environment_file):
             "--norc",
             "-c",
             'source "$1" >/dev/null && env -0',
-            "vibecad-openfoam",
+            "stevecad-openfoam",
             str(path),
         ),
         check=True,
@@ -81,7 +81,7 @@ def load_openfoam_environment(environment_file):
         raise RuntimeError(
             "The OpenFOAM environment did not define WM_PROJECT_DIR and PATH."
         )
-    environment["VIBECAD_OPENFOAM_ENVIRONMENT_FILE"] = str(path)
+    environment["STEVECAD_OPENFOAM_ENVIRONMENT_FILE"] = str(path)
     return environment
 
 
@@ -90,7 +90,7 @@ def _openfoam_environment_file():
         _OPENFOAM_ENVIRONMENT_KEY,
         "",
     )
-    explicit = configured or os.environ.get("VIBECAD_OPENFOAM_ENVIRONMENT_FILE", "")
+    explicit = configured or os.environ.get("STEVECAD_OPENFOAM_ENVIRONMENT_FILE", "")
     if explicit:
         return Path(explicit).expanduser()
     project_dir = os.environ.get("WM_PROJECT_DIR", "")
@@ -199,7 +199,7 @@ def solver_runtime_statuses(solvers=None):
                 "programs": openfoam_programs,
                 "missing": openfoam_missing,
                 "environment_file": foam_environment.get(
-                    "VIBECAD_OPENFOAM_ENVIRONMENT_FILE",
+                    "STEVECAD_OPENFOAM_ENVIRONMENT_FILE",
                     "",
                 ),
             }

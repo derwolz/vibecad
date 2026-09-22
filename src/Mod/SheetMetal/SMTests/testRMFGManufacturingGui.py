@@ -120,7 +120,7 @@ class TestRMFGManufacturingGui(unittest.TestCase):
         self.assertEqual((self.model.doc.UndoCount, self.model.sheet.PreparedInputHash), before)
         self.assertEqual(self.fixture.view.mode, "flat")
         QtWidgets.QApplication.processEvents()
-        self.panel.grab().save(str(Path(os.environ["VIBECAD_TEST_OUTPUT"])/"rmfg-manufacturing.png"))
+        self.panel.grab().save(str(Path(os.environ["STEVECAD_TEST_OUTPUT"])/"rmfg-manufacturing.png"))
         self.panel.checkout_button.click()
         self.wait()
         self.assertEqual(self.opened, ["https://www.rmfg.com/cart/private-link"])

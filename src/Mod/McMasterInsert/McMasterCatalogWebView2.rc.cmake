@@ -1,3 +1,3 @@
 #include <windows.h>
 
-101 ICON "@VIBECAD_ICON_PATH@"
+101 ICON "@STEVECAD_ICON_PATH@"

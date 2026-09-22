@@ -3,10 +3,10 @@
 set -euo pipefail
 set -x
 
-app_name="VibeCAD.app"
+app_name="SteveCAD.app"
 default_env="../.pixi/envs/default"
 conda_env="${app_name}/Contents/Resources"
-module_directory="${conda_env}/Mod/VibeCAD"
+module_directory="${conda_env}/Mod/SteveCAD"
 
 rm -rf "${app_name}"
 
@@ -20,11 +20,11 @@ python ../scripts/relocate_conda_environment.py \
     "${default_env_absolute}" \
     "${conda_env_absolute}"
 
-../scripts/install_vibecad_provider_deps.sh "${conda_env}"
-../scripts/install_vibecad_codex_runtime.sh \
+../scripts/install_stevecad_provider_deps.sh "${conda_env}"
+../scripts/install_stevecad_codex_runtime.sh \
     "${conda_env}/bin/python" \
     "${module_directory}"
-../scripts/purge_vibecad_retired_authoring_artifacts.sh \
+../scripts/purge_stevecad_retired_authoring_artifacts.sh \
     "${conda_env}" \
     "${module_directory}"
 
@@ -45,7 +45,7 @@ cp "${conda_env}/bin_tmp/pyside6-rcc" "${conda_env}/bin/"
 cp "${conda_env}/bin_tmp/gmsh" "${conda_env}/bin/"
 cp "${conda_env}/bin_tmp/dot" "${conda_env}/bin/"
 cp "${conda_env}/bin_tmp/unflatten" "${conda_env}/bin/"
-cp "${conda_env}/bin_tmp/VibeCADGeometryWorker" "${conda_env}/bin/"
+cp "${conda_env}/bin_tmp/SteveCADGeometryWorker" "${conda_env}/bin/"
 rm -rf "${conda_env}/bin_tmp"
 
 sed -i '1s|.*|#!/usr/bin/env python|' "${conda_env}/bin/pip"
@@ -53,10 +53,10 @@ sed -i '1s|.*|#!/usr/bin/env python|' "${conda_env}/bin/pip"
 # copy resources
 cp resources/* "${conda_env}"
 
-iconset="$(mktemp -d)/VibeCAD.iconset"
+iconset="$(mktemp -d)/SteveCAD.iconset"
 mkdir -p "${iconset}"
 "${conda_env}/bin/python" - \
-    "../../../src/Gui/Icons/vibecad.svg" \
+    "../../../src/Gui/Icons/stevecad.svg" \
     "${iconset}" <<'PY'
 from pathlib import Path
 import sys
@@ -67,7 +67,7 @@ source = Path(sys.argv[1])
 destination = Path(sys.argv[2])
 renderer = QtSvg.QSvgRenderer(str(source))
 if not renderer.isValid():
-    raise SystemExit(f"VibeCAD app icon is not a valid SVG: {source}")
+    raise SystemExit(f"SteveCAD app icon is not a valid SVG: {source}")
 outputs = {
     "icon_16x16.png": 16,
     "icon_16x16@2x.png": 32,
@@ -87,9 +87,9 @@ for name, size in outputs.items():
     renderer.render(painter)
     painter.end()
     if not image.save(str(destination / name), "PNG"):
-        raise SystemExit(f"Could not write VibeCAD app icon: {name}")
+        raise SystemExit(f"Could not write SteveCAD app icon: {name}")
 PY
-iconutil -c icns --output "${conda_env}/vibecad.icns" "${iconset}"
+iconutil -c icns --output "${conda_env}/stevecad.icns" "${iconset}"
 rm -rf "$(dirname "${iconset}")"
 
 # Remove __pycache__ folders and .pyc files
@@ -117,7 +117,7 @@ cp build/FreeCAD "${app_name}/Contents/MacOS/FreeCAD"
 deploy_target="${MACOS_DEPLOYMENT_TARGET:-11.0}"
 artifact_base="$(python ../../../src/Tools/resolve_release_artifact_name.py ../../..)"
 version_name="${artifact_base}-macOS${deploy_target%%.*}-$(uname -m)"
-application_menu_name="VibeCAD"
+application_menu_name="SteveCAD"
 
 echo -e "\################"
 echo -e "version_name:  ${version_name}"
@@ -137,8 +137,8 @@ short_version="${version_output%%|*}"
 bundle_version="${version_output#*|}"
 
 cp Info.plist.template "${conda_env}/../Info.plist"
-sed -i "s/VIBECAD_SHORT_VERSION/${short_version}/" "${conda_env}/../Info.plist"
-sed -i "s/VIBECAD_BUILD_VERSION/${bundle_version}/" "${conda_env}/../Info.plist"
+sed -i "s/STEVECAD_SHORT_VERSION/${short_version}/" "${conda_env}/../Info.plist"
+sed -i "s/STEVECAD_BUILD_VERSION/${bundle_version}/" "${conda_env}/../Info.plist"
 sed -i "s/APPLICATION_MENU_NAME/${application_menu_name}/" "${conda_env}/../Info.plist"
 
 pixi list -e default > "${app_name}/Contents/packages.txt"
@@ -158,7 +158,7 @@ python ../scripts/audit_macos_bundle.py \
     "${app_name}" \
     --forbid-prefix "${default_env_absolute}"
 
-runtime_validator="$(cd ../scripts && pwd)/validate_vibecad_macos_runtime.py"
+runtime_validator="$(cd ../scripts && pwd)/validate_stevecad_macos_runtime.py"
 
 run_standalone_runtime_check() {
     local check="$1"
@@ -170,24 +170,24 @@ run_standalone_runtime_check() {
 
 run_freecad_runtime_check() {
     local check="$1"
-    VIBECAD_RUNTIME_PREFIX="${conda_env_absolute}" \
-    VIBECAD_RUNTIME_CHECK="${check}" \
-    VIBECAD_RUNTIME_VALIDATOR="${runtime_validator}" \
+    STEVECAD_RUNTIME_PREFIX="${conda_env_absolute}" \
+    STEVECAD_RUNTIME_CHECK="${check}" \
+    STEVECAD_RUNTIME_VALIDATOR="${runtime_validator}" \
         "${conda_env}/bin/freecadcmd" --safe-mode -c \
-        "import os, runpy, sys; sys.argv = ['validator', '--prefix', os.environ['VIBECAD_RUNTIME_PREFIX'], '--check', os.environ['VIBECAD_RUNTIME_CHECK']]; runpy.run_path(os.environ['VIBECAD_RUNTIME_VALIDATOR'], run_name='__main__')"
+        "import os, runpy, sys; sys.argv = ['validator', '--prefix', os.environ['STEVECAD_RUNTIME_PREFIX'], '--check', os.environ['STEVECAD_RUNTIME_CHECK']]; runpy.run_path(os.environ['STEVECAD_RUNTIME_VALIDATOR'], run_name='__main__')"
 }
 
-echo "Running isolated VibeCAD macOS runtime smoke tests..."
+echo "Running isolated SteveCAD macOS runtime smoke tests..."
 for check in python anthropic keyring jsonschema mcp mcp-types openai tuf macos-keyring gemini-sdk; do
     run_standalone_runtime_check "${check}"
 done
 
 if ! "${conda_env}/bin/freecadcmd" --safe-mode --version; then
-    echo "VibeCAD command-line smoke test failed; the macOS bundle cannot start." >&2
+    echo "SteveCAD command-line smoke test failed; the macOS bundle cannot start." >&2
     exit 1
 fi
-if ! "${conda_env}/bin/freecadcmd" --safe-mode -c "from VibeCADGeometry import runtime_execution_smoke; result = runtime_execution_smoke(); print('VibeCAD geometry worker smoke ok', result['worker'])"; then
-    echo "VibeCAD geometry worker smoke test failed; the macOS bundle cannot inspect geometry." >&2
+if ! "${conda_env}/bin/freecadcmd" --safe-mode -c "from SteveCADGeometry import runtime_execution_smoke; result = runtime_execution_smoke(); print('SteveCAD geometry worker smoke ok', result['worker'])"; then
+    echo "SteveCAD geometry worker smoke test failed; the macOS bundle cannot inspect geometry." >&2
     exit 1
 fi
 for check in \
@@ -196,16 +196,16 @@ for check in \
     run_freecad_runtime_check "${check}"
 done
 
-echo "Running VibeCAD app launcher smoke test..."
-"${app_name}/Contents/MacOS/FreeCAD" --vibecad-launcher-smoke
+echo "Running SteveCAD app launcher smoke test..."
+"${app_name}/Contents/MacOS/FreeCAD" --stevecad-launcher-smoke
 
 if [[ "${MACOS_SIGN_RELEASE:-false}" == "true" ]]; then
     # create the signed dmg
     ../../scripts/macos_sign_and_notarize.zsh \
-        -p "${MACOS_KEYCHAIN_PROFILE:-VibeCAD}" \
+        -p "${MACOS_KEYCHAIN_PROFILE:-SteveCAD}" \
         -k "${MACOS_SIGNING_KEY_ID:?MACOS_SIGNING_KEY_ID is required for signing}" \
         -n "${app_name}" \
-        -v "VibeCAD" \
+        -v "SteveCAD" \
         -o "${version_name}.dmg"
 else
     # Ad-hoc sign for local builds (required for QuickLook extensions to register)
@@ -225,7 +225,7 @@ else
     fi
     codesign --force --deep --sign - "${app_name}"
     codesign --verify --deep --strict "${app_name}"
-    "${app_name}/Contents/MacOS/FreeCAD" --vibecad-launcher-smoke
+    "${app_name}/Contents/MacOS/FreeCAD" --stevecad-launcher-smoke
 
     # create the dmg
     echo "Staged macOS application size before DMG creation:"
@@ -237,7 +237,7 @@ else
         -s dmg_settings.py \
         -Dapp_name="${app_name}" \
         -Dimage_size="${dmg_size}" \
-        "VibeCAD" \
+        "SteveCAD" \
         "${version_name}.dmg"
 fi
 

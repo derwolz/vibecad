@@ -2,12 +2,12 @@
 
 ## Purpose
 
-VibeCAD CAM must help a person turn one or more models into trustworthy machine
+SteveCAD CAM must help a person turn one or more models into trustworthy machine
 programs. Humans choose the Manufacture ribbon and remain in control of the
 document. Native assistance uses the same production services as the human CAM
 commands. The assistant should be able to inspect the current manufacturing
 state, explain what is missing, perform requested work, verify the result, and
-return a useful next state without requiring the user to understand VibeCAD's
+return a useful next state without requiring the user to understand SteveCAD's
 internal object model.
 
 This effort is Native-only. Existing CAM VibeScript behavior remains untouched
@@ -210,7 +210,7 @@ in the background so the dialog and application remain responsive.
 ## Upstream product signals
 
 FreeCAD's current CAM backlog identifies recurring needs that should inform
-VibeCAD priorities without blindly copying every patch:
+SteveCAD priorities without blindly copying every patch:
 
 - [New Job UI improvements](https://github.com/FreeCAD/FreeCAD/issues/30194):
   understandable unit warnings and safer feed-unit presentation.
@@ -237,7 +237,7 @@ VibeCAD priorities without blindly copying every patch:
   differently oriented operations.
 
 Upstream changes are reviewed before local implementation. A current upstream fix
-may be adopted or adapted; VibeCAD should not create conflicting parallel behavior.
+may be adopted or adapted; SteveCAD should not create conflicting parallel behavior.
 
 ## Tool-sharpening method
 
@@ -458,6 +458,6 @@ The sharpening effort is complete only when:
   CAM internals.
 
 The objective is not to make Qwen a brilliant machinist. The objective is to make
-VibeCAD CAM so coherent that even a weak model can operate every supported tool
+SteveCAD CAM so coherent that even a weak model can operate every supported tool
 correctly, while stronger models and human operators receive a best-of-breed CAM
 workflow rather than additional platform complexity.

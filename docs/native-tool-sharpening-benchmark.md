@@ -2,17 +2,17 @@
 
 ## Purpose
 
-This corpus measures whether VibeCAD's Native assistant can complete varied
+This corpus measures whether SteveCAD's Native assistant can complete varied
 mechanical-engineering work from ordinary user requests. It is designed to catch
 overfitting to one part, one tool family, or one model.
 
 The benchmark is not a prompt-writing contest. User prompts state the desired
-artifact and engineering requirements. They must not name VibeCAD tools, prescribe
+artifact and engineering requirements. They must not name SteveCAD tools, prescribe
 an operation sequence, tell the model to inspect instead of calculate, or explain
 how the application works.
 
 CADGenBench supplies public generation and editing inputs and a tool-independent
-geometry evaluation approach. VibeCAD adds workflow cases for capabilities outside
+geometry evaluation approach. SteveCAD adds workflow cases for capabilities outside
 CADGenBench: parameters, assemblies, analysis, manufacturing, drawings, and BOMs.
 
 Sources:
@@ -26,7 +26,7 @@ Sources:
 Every comparison uses the same ten cases and the exact prompt text below.
 
 1. Start from the case's declared clean document or immutable input fixture.
-2. Use the same VibeCAD build, model, reasoning effort, and model context limit for
+2. Use the same SteveCAD build, model, reasoning effort, and model context limit for
    every case in one run.
 3. Do not add corrective steering, tool hints, or hidden case-specific instructions.
 4. Preserve every rollout, tool trace, final document, neutral export, and screenshot.
@@ -53,7 +53,7 @@ Every comparison uses the same ten cases and the exact prompt text below.
   placement, pockets, fillets, and a single valid part.
 - Prompt: `Reproduce the geometry as accurately as possible from the attached engineering drawing.`
 - Oracle: CADGenBench validity, shape similarity, interface match, and topology
-  metrics against its private ground truth; VibeCAD additionally requires an
+  metrics against its private ground truth; SteveCAD additionally requires an
   editable parametric document and one final solid Body.
 
 ### NTS-02 — Patterned cylindrical hub from drawing
@@ -268,7 +268,7 @@ Record these values per case and in aggregate:
 | Completion | The assistant reaches the requested final artifact and answer. |
 | False completion | The assistant claims success while the oracle fails. This is always a critical failure. |
 | CAD-work transitions | Requested transitions, successful transitions, and unnecessary transitions. |
-| Non-CAD calls | Provider-owned planning or harness calls made before or between VibeCAD actions. |
+| Non-CAD calls | Provider-owned planning or harness calls made before or between SteveCAD actions. |
 | Context bytes | System instructions, active state, conversation, and tool schemas measured separately for every turn. |
 | Token usage | Input, cached input, reasoning, and output tokens where the provider reports them. |
 | Latency | Total case time and time to each accepted mutation. |
@@ -284,7 +284,7 @@ Create one immutable record for each corpus run. At minimum, record:
 
 ```text
 Run ID:
-VibeCAD commit/build:
+SteveCAD commit/build:
 Provider and access method:
 Model:
 Reasoning effort:
@@ -313,7 +313,7 @@ visible.
 
 Classify every failure before changing code:
 
-- **False state:** VibeCAD supplied incorrect or missing live document facts.
+- **False state:** SteveCAD supplied incorrect or missing live document facts.
 - **Tool selection:** names or descriptions made the wrong capability look correct.
 - **Schema:** the chosen capability's required payload was ambiguous or needlessly
   difficult to express.

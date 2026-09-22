@@ -9,7 +9,7 @@ import tempfile
 import threading
 
 from PySide import QtCore
-from VibeCADNativeBackground import NativeBackgroundCancelled
+from SteveCADNativeBackground import NativeBackgroundCancelled
 
 
 class AnimationExportError(RuntimeError):
@@ -40,7 +40,7 @@ class AnimationExportJob:
                 # Same volume as the destination: publication is one rename,
                 # never a cross-volume copy or a partially overwritten file.
                 self._temporary = tempfile.TemporaryDirectory(
-                    prefix='.vibecad-animation-', dir=self.output.parent,
+                    prefix='.stevecad-animation-', dir=self.output.parent,
                 )
                 staging = Path(self._temporary.name)
                 self.staging_ready.put_nowait(staging)

@@ -1,7 +1,7 @@
 # SPDX-License-Identifier: LGPL-2.1-or-later
 """Exercise native abort/undo/redo on an isolated copy of a real assembly.
 
-Use the packaged edit-check runner. VIBECAD_JOINT_SOURCE optionally selects a
+Use the packaged edit-check runner. STEVECAD_JOINT_SOURCE optionally selects a
 Python-only candidate module before restore. The solve observer records attempts
 without running the expensive erroneous solver during a failing baseline test.
 No document or project is saved.
@@ -18,13 +18,13 @@ import FreeCAD as App
 import FreeCADGui as Gui
 from PySide6 import QtCore, QtGui, QtWidgets
 
-output = Path(os.environ['VIBECAD_TRACE_PROBE_RESULT']).resolve()
-source = Path(os.environ['VIBECAD_ROUNDTRIP_COPY']).resolve()
+output = Path(os.environ['STEVECAD_TRACE_PROBE_RESULT']).resolve()
+source = Path(os.environ['STEVECAD_ROUNDTRIP_COPY']).resolve()
 if source.parent != output.parent or source.name != 'probe-document.FCStd' or App.listDocuments():
     raise RuntimeError('Use a fresh process and an isolated document copy')
 
-if os.environ.get('VIBECAD_JOINT_SOURCE'):
-    spec = importlib.util.spec_from_file_location('JointObject', os.environ['VIBECAD_JOINT_SOURCE'])
+if os.environ.get('STEVECAD_JOINT_SOURCE'):
+    spec = importlib.util.spec_from_file_location('JointObject', os.environ['STEVECAD_JOINT_SOURCE'])
     module = importlib.util.module_from_spec(spec)
     sys.modules['JointObject'] = module
     spec.loader.exec_module(module)
@@ -44,7 +44,7 @@ def event(name, **values):
 def exercise(doc):
     import JointObject
     import Preferences
-    from VibeCADAssemblySolverPolicy import suspend_joint_autosolve
+    from SteveCADAssemblySolverPolicy import suspend_joint_autosolve
 
     joints = [obj for obj in doc.Objects if isinstance(getattr(obj, 'Proxy', None), JointObject.Joint)
               and obj.Reference1 and obj.Reference2 and JointObject._jointInteractionUsable(obj)]

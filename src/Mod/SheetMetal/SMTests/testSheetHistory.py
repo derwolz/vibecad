@@ -44,7 +44,7 @@ class TestSheetHistory(unittest.TestCase):
 
     def button(self, suffix):
         button = Gui.getMainWindow().findChild(QtWidgets.QToolButton,
-                                               "VibeCADFeatureTimeline" + suffix)
+                                               "SteveCADFeatureTimeline" + suffix)
         self.assertIsNotNone(button)
         self.fixture.wait_for(lambda: button.isVisible() and button.isEnabled())
         button.click()
@@ -52,7 +52,7 @@ class TestSheetHistory(unittest.TestCase):
         self.fixture.wait_for(lambda: not self.model.doc.PresentationUpdateActive)
 
     def item(self):
-        widget = Gui.getMainWindow().findChild(QtWidgets.QListWidget, "VibeCADFeatureTimelineItems")
+        widget = Gui.getMainWindow().findChild(QtWidgets.QListWidget, "SteveCADFeatureTimelineItems")
         self.assertIsNotNone(widget)
         def find():
             return next((widget.item(row) for row in range(widget.count())
@@ -61,10 +61,10 @@ class TestSheetHistory(unittest.TestCase):
         return widget, find()
 
     def test_creation_is_one_persisted_operation_with_exact_replaced_source(self):
-        self.assertEqual(self.sheet.VibeCADTimelineRole, "operation")
-        self.assertEqual(list(self.sheet.VibeCADTimelineReplacedInputs), [self.source])
-        self.assertEqual(self.sheet.VibeCADTimelineEditCommand, "SheetMetal_EditParameters")
-        for name in ("VibeCADTimelineRole", "VibeCADTimelineReplacedInputs", "VibeCADTimelineEditCommand"):
+        self.assertEqual(self.sheet.SteveCADTimelineRole, "operation")
+        self.assertEqual(list(self.sheet.SteveCADTimelineReplacedInputs), [self.source])
+        self.assertEqual(self.sheet.SteveCADTimelineEditCommand, "SheetMetal_EditParameters")
+        for name in ("SteveCADTimelineRole", "SteveCADTimelineReplacedInputs", "SteveCADTimelineEditCommand"):
             self.assertTrue({"Hidden", "LockDynamic", "NoRecompute"}.issubset(
                 self.sheet.getPropertyStatus(name)))
         self.assertEqual(self.model.doc.UndoCount, self.before_undo + 1)
@@ -184,7 +184,7 @@ class TestSheetHistory(unittest.TestCase):
                 self.assertIs(self.sheet.getParentGeoFeatureGroup(), container)
                 self.assertEqual(self.source.Shape.exportBrepToString(), source_brep)
                 self.assertNotIn("KFactor", dict(self.sheet.ExpressionEngine))
-                self.assertEqual(self.sheet.VibeCADTimelineRole, "operation")
+                self.assertEqual(self.sheet.SteveCADTimelineRole, "operation")
                 self.assertIn(self.sheet, self.timeline().Operations)
                 self.button("Previous")
                 self.assertFalse(self.sheet.Visibility)
@@ -223,7 +223,7 @@ class TestSheetHistory(unittest.TestCase):
         self.sheet = self.model.sheet = self.model.doc.getObject(name)
         self.fixture.view = self.sheet.ViewObject.Proxy
         self.fixture.wait_for(lambda: self.fixture.view.ready)
-        self.assertEqual(list(self.sheet.VibeCADTimelineReplacedInputs), [self.source])
+        self.assertEqual(list(self.sheet.SteveCADTimelineReplacedInputs), [self.source])
         with tempfile.TemporaryDirectory() as directory:
             filename = str(Path(directory) / "sheet-history.FCStd")
             self.model.doc.saveAs(filename)
@@ -235,8 +235,8 @@ class TestSheetHistory(unittest.TestCase):
             self.source = self.model.doc.BaseBend
             self.fixture.view = self.sheet.ViewObject.Proxy
             self.fixture.wait_for(lambda: self.fixture.view.ready)
-            self.assertEqual(self.sheet.VibeCADTimelineEditCommand, "SheetMetal_EditParameters")
-            self.assertEqual(list(self.sheet.VibeCADTimelineReplacedInputs), [self.source])
+            self.assertEqual(self.sheet.SteveCADTimelineEditCommand, "SheetMetal_EditParameters")
+            self.assertEqual(list(self.sheet.SteveCADTimelineReplacedInputs), [self.source])
             self.button("Previous")
             self.assertFalse(self.sheet.Visibility)
             self.assertTrue(self.source.Visibility)

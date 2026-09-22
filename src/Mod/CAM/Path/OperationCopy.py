@@ -78,7 +78,7 @@ def _live_object(document: Any, obj: Any) -> bool:
 
 
 def _timeline_state(document: Any) -> tuple[Any, tuple[Any, ...], tuple[bool, ...], tuple[bool, ...], int]:
-    timeline = document.getObject("VibeCADTimeline")
+    timeline = document.getObject("SteveCADTimeline")
     if timeline is None or str(getattr(timeline, "TypeId", "")) != "App::DocumentTimeline":
         raise RuntimeError("The CAM document has no valid operation History")
     try:
@@ -109,8 +109,8 @@ def _validated_selection_entry(document: Any, operation: Any, job: Any) -> None:
         valid_job = isinstance(getattr(job, "Proxy", None), PathJob.ObjectJob)
         group = tuple(getattr(getattr(job, "Operations", None), "Group", ()) or ())
         timeline_operation = (
-            "VibeCADTimelineRole" in tuple(getattr(operation, "PropertiesList", ()) or ())
-            and str(operation.VibeCADTimelineRole) == "operation"
+            "SteveCADTimelineRole" in tuple(getattr(operation, "PropertiesList", ()) or ())
+            and str(operation.SteveCADTimelineRole) == "operation"
         )
         valid_operation = bool(PathDressup.isOp(operation) or timeline_operation)
         parent_job = PathUtils.findParentJob(operation)
@@ -238,7 +238,7 @@ def assertPlanCurrent(plan: OperationCopyPlan) -> None:
 def removeCopiedTimelineReplacement(operation: Any) -> None:
     """Make a copied operation source-preserving rather than replacement-owned."""
 
-    property_name = "VibeCADTimelineReplacedInputs"
+    property_name = "SteveCADTimelineReplacedInputs"
     if property_name not in tuple(getattr(operation, "PropertiesList", ()) or ()):
         return
     if operation.getTypeIdOfProperty(property_name) != "App::PropertyLinkListHidden":

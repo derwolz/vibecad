@@ -14,7 +14,7 @@ set(Surface_Scripts
 set(Surface_TestScripts
     SurfaceTests/__init__.py
     SurfaceTests/TestBlendCurve.py
-    SurfaceTests/TestVibeCADRibbonTools.py
+    SurfaceTests/TestSteveCADRibbonTools.py
 )
 
 if(BUILD_GUI)

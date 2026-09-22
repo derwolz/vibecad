@@ -59,7 +59,7 @@ class TestReleaseArtifactName(unittest.TestCase):
                     Path(directory),
                     source_sha="ABCDEF1234567890ABCDEF1234567890ABCDEF12",
                 ),
-                "VibeCAD-26.3.2-RC1-build7",
+                "SteveCAD-26.3.2-RC1-build7",
             )
 
     def test_basename_does_not_expose_source_sha(self) -> None:
@@ -81,7 +81,7 @@ class TestReleaseArtifactName(unittest.TestCase):
         with self._repo_root(build=19) as directory:
             self.assertEqual(
                 resolve_release_title(Path(directory)),
-                "VibeCAD 26.3.2-RC1 (Build 19)",
+                "SteveCAD 26.3.2-RC1 (Build 19)",
             )
 
     def test_suffixed_release_uses_preview_channel(self) -> None:

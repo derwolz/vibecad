@@ -2,21 +2,21 @@
 
 Status: Official plan — active goal ledger
 Implementation status: Complete; production and live-provider acceptance green
-Scope owner: VibeCAD AI-assisted native authoring
+Scope owner: SteveCAD AI-assisted native authoring
 Last updated: 2026-08-14
 Checklist status: 772 complete / 0 pending / 772 total (100% by row count)
 
 ## Purpose
 
 Reintroduce Native assistant mode as a clean, ribbon-scoped authoring system.
-The human chooses and changes the active VibeCAD ribbon. The assistant receives
+The human chooses and changes the active SteveCAD ribbon. The assistant receives
 only the tools belonging to that human-selected surface and cannot activate a
 different workbench or ribbon for itself. The assistant may finish the exact
 human-opened Sketch edit task only through the explicit Leave Sketch control;
 that state change ends the current assistant turn.
 
 Native mode must be substantially easier for an AI to use than the retired
-direct-tool surface. VibeCAD owns document identity, revisions, transactions,
+direct-tool surface. SteveCAD owns document identity, revisions, transactions,
 the current working set, operation receipts, and recovery. The assistant owns
 modeling intent and explicit operation parameters; it is never expected to
 reconstruct the document graph from a long transcript of tool calls.
@@ -82,8 +82,8 @@ A broad end-to-end test cannot close multiple unfinished capability rows.
 The following evidence is part of the ledger and must stay current as the
 implementation changes:
 
-- The C++ ribbon controller publishes `VibeCADActiveSurfaceId`, a monotonic
-  `VibeCADActiveSurfaceRevision`, and `VibeCADActiveSurfaceManifest` from the
+- The C++ ribbon controller publishes `SteveCADActiveSurfaceId`, a monotonic
+  `SteveCADActiveSurfaceRevision`, and `SteveCADActiveSurfaceManifest` from the
   same deduplicated command entries used to build the visible page.
 - A clean-profile GUI gate currently observes Model 75, Assemble 53, Mesh 60,
   Analyze 104, Manufacture 59, Drawing 107, Parameters 24, Sketch setup 15,
@@ -105,9 +105,9 @@ implementation changes:
   parity, exact hashes, values, canonical formulas, aliases, model-expression
   propagation, merge/split, cell properties, all six alignments, all three
   styles, stale refusal, selection preservation, responsive import/export,
-  History, undo/redo, and FCStd save/reopen. SpreadsheetGui and VibeCADScripts
-  build cleanly, and the gate reports `VIBECAD_NATIVE_PARAMETERS_GUI_OK`.
-- `VibeCADNativeSurfaceVariants.py` now constrains conditional live surfaces to
+  History, undo/redo, and FCStd save/reopen. SpreadsheetGui and SteveCADScripts
+  build cleanly, and the gate reports `STEVECAD_NATIVE_PARAMETERS_GUI_OK`.
+- `SteveCADNativeSurfaceVariants.py` now constrains conditional live surfaces to
   graphs the shipped workbenches can actually produce. Analyze covers both
   Netgen build states and the three valid VTK states as six environments with
   exact 82, 99, or 104-action group/composite graphs; VTK Python without VTK
@@ -156,7 +156,7 @@ implementation changes:
   action/context route graph for all nine states. The gate also proves common
   tools are byte-identical on every eligible state and cannot leak onto an
   ineligible one. Default and maximum live runs report
-  `VIBECAD_NATIVE_RIBBON_SURFACE_GUI_OK`.
+  `STEVECAD_NATIVE_RIBBON_SURFACE_GUI_OK`.
 - A separate saved-document acceptance gate now drives the visible UI through
   Model, Assemble, Mesh, Analyze, Manufacture, Drawing, Parameters, Sketch
   setup, and Sketch edit while retaining one Codex conversation. Every turn
@@ -165,13 +165,13 @@ implementation changes:
   callback invokes the real `state.read` tool and observes the matching live
   domain. It also proves that Save remains available in all eligible states
   and absent during Sketch edit. The clean-profile run reports
-  `VIBECAD_NATIVE_CODEX_CROSS_RIBBON_GUI_OK`. This replaces inference about
+  `STEVECAD_NATIVE_CODEX_CROSS_RIBBON_GUI_OK`. This replaces inference about
   inter-turn tool swapping with executable production-path evidence. The same
   harness has an explicit live-provider mode. Against the configured ChatGPT
   Codex provider, one temporary saved document and one conversation traversed
   all nine states; the external model invoked exactly one `state.read` per
   state, selected no mutation tools, and received the matching live domain.
-  That run reports `VIBECAD_NATIVE_CODEX_LIVE_CROSS_RIBBON_GUI_OK`.
+  That run reports `STEVECAD_NATIVE_CODEX_LIVE_CROSS_RIBBON_GUI_OK`.
 - The final completion audit rebuilt the complete release tree successfully,
   reran both default and maximum live manifest/provider graphs, and passed all
   152 retired-architecture, modeling-surface, and Native authority guardrails.
@@ -185,19 +185,19 @@ implementation changes:
   mirror exact reusable Sketch definitions without entering edit mode. The
   compiled lifecycle gate preserves construction geometry, constraints,
   virtual constraints, expressions, History identity, undo/redo, and
-  save/reopen state and reports `VIBECAD_NATIVE_MODEL_STRUCTURE_GUI_OK`.
+  save/reopen state and reports `STEVECAD_NATIVE_MODEL_STRUCTURE_GUI_OK`.
 - Compiled responsiveness gates prove point-cloud import/export and mutation
   stay backgrounded, expensive Drawing redraw keeps the GUI responsive, and
   SVG, DXF, and PDF Drawing output remains backgrounded, atomic, path-private,
   revision-stable, and undo-stable. They report
-  `VIBECAD_NATIVE_MESH_POINTS_GUI_OK`,
-  `VIBECAD_NATIVE_DRAWING_REDRAW_GUI_OK`, and
-  `VIBECAD_NATIVE_DRAWING_OUTPUT_GUI_OK`.
-- `VibeCADRibbonSurface.py` strictly validates the live schema, action order,
+  `STEVECAD_NATIVE_MESH_POINTS_GUI_OK`,
+  `STEVECAD_NATIVE_DRAWING_REDRAW_GUI_OK`, and
+  `STEVECAD_NATIVE_DRAWING_OUTPUT_GUI_OK`.
+- `SteveCADRibbonSurface.py` strictly validates the live schema, action order,
   dropdown parentage, duplicate IDs, controller agreement, and revision. It
   exposes no activation or switching API.
 - VibeScript surface resolution no longer imports or calls
-  `VibeCADWorkbenchTools`. All 17 registered VibeScript surface summaries had
+  `SteveCADWorkbenchTools`. All 17 registered VibeScript surface summaries had
   SHA-256 `05666abeb08e2f9ce89e6c254a6dd25cf76d8d47112395d753e95a8126397bf9`
   both before and after decoupling; 145 modeling-surface tests and 72
   provider/engine guardrail tests passed.
@@ -207,30 +207,30 @@ implementation changes:
   VibeScript surfaces advertise. A guardrail compares that set for exact
   equality, so an old direct Native name cannot remain quietly callable.
 - No production module, runtime list, or old pack contract test imports
-  `VibeCADWorkbenchTools`; negative guardrails are the only remaining textual
+  `SteveCADWorkbenchTools`; negative guardrails are the only remaining textual
   references. The obsolete
   command-prefix, arbitrary command-list, object-template, tool-pack, and
   pack-filtered workbench-object context paths have been removed from
-  `VibeCADCore.py`. Old direct implementation files remain unregistered only
+  `SteveCADCore.py`. Old direct implementation files remain unregistered only
   as migration inputs; each must either supply a proven domain algorithm to a
   new capability module or be deleted under steps 2.12–2.13.
-- `VibeCADNativeActionManifest.py` explicitly classifies the proven default
+- `SteveCADNativeActionManifest.py` explicitly classifies the proven default
   action graph, exact Analyze/Manufacture environment variants, and conditional
   Drawing IDs. It preserves live order, rejects unknown IDs, group drift, and
   composite-role drift, and contains no dispatch or activation API. Default,
   maximum, and all eight CAM-preference clean-profile GUI gates pass.
-- `VibeCADNativeContextManifest.py` separately inventories 27 current context
+- `SteveCADNativeContextManifest.py` separately inventories 27 current context
   actions: eleven Assembly, four CAM-only additions, ten Drawing, and two
   Inspection actions. Assembly context actions now have stable object names;
   source-drift tests prove the C++ and CAM context inventories exactly. The
-  current VibeCAD fastener workflow adds no hidden context-only action: Model
+  current SteveCAD fastener workflow adds no hidden context-only action: Model
   exposes four fastener commands and Assemble exposes Insert and Edit.
-- `VibeCADNativeCapabilityRegistry.py` separates provider definitions from
+- `SteveCADNativeCapabilityRegistry.py` separates provider definitions from
   callable implementations, requires exact `domain.operation` names and
   discriminated variants, rejects open JSON objects and raw command dispatch,
   and enforces default plus explicit high-complexity surface tool/schema
   budgets below the provider transport ceiling.
-  `VibeCADNativeSchemaRules.py` recursively rejects unbounded text and arrays,
+  `SteveCADNativeSchemaRules.py` recursively rejects unbounded text and arrays,
   open nested objects, malformed required fields, and schema references. The
   production registry now contains the five finished common families, the
   finished Model structure/Sketch-readiness families, two compact typed
@@ -255,30 +255,30 @@ implementation changes:
   underlying CAD/VTK properties with ambiguous host names now carry explicit
   millimetre, inverse-millimetre, radian, pixel, or dimensionless descriptions.
   Default and maximum live graphs remain within their unchanged hard budgets.
-- `VibeCADNativeTurn.py` freezes the exact human ribbon identity, ordered tool
+- `SteveCADNativeTurn.py` freezes the exact human ribbon identity, ordered tool
   names, and canonical provider-schema digest without owning dispatch. It
   cannot start against the incomplete production registry; focused tests prove
   unchanged reauthorization and fail-closed invalidation for ribbon revision
   and schema changes. The module is 164 lines and remains separate from the
   registry and all domain execution modules.
-- `VibeCADAuthoringMode.py` defines only `native | vibescript`, keeps unsaved
+- `SteveCADAuthoringMode.py` defines only `native | vibescript`, keeps unsaved
   choices in process memory, promotes the exact choice to the project manifest
   after first save, and restores saved choices without touching the CAD
   document. The service no longer hardcodes VibeScript. Build123d and OpenSCAD
   are rejected as authoring modes; the unrelated removed-workbench preference
   cleanup remains separate. The mode module is 143 lines.
-- `VibeCADNativeState.py` owns monotonic per-document structural revisions,
+- `SteveCADNativeState.py` owns monotonic per-document structural revisions,
   host-generated call tokens, stale preflight, bounded verified-result replay,
   and exact created/changed/deleted/replaced identities. Document observers
   count object creation, deletion, and structural property changes while
   filtering visibility, appearance, transient recompute pulses, selection,
   camera, tree, and UI events. It contains no tool execution.
-  `VibeCADNativeStatePersistence.py` keeps atomic bounded state storage separate
+  `SteveCADNativeStatePersistence.py` keeps atomic bounded state storage separate
   from the in-memory state machine. The state module is 681 lines. Four hundred
   twenty-five focused state, mode, Native domain, provider, VibeScript surface,
   registry, and guardrail tests pass; a clean GUI gate still reports the exact
   527-command default ribbon inventory.
-- `VibeCADAuthoringModePolicy.py` contains the selector policy independently of
+- `SteveCADAuthoringModePolicy.py` contains the selector policy independently of
   Qt. The header exposes exactly VibeScript and Native, requires explicit human
   confirmation to take manual control, and fails closed during an assistant
   run, transaction, task/edit, recompute, unresolved editor work, or external
@@ -286,37 +286,37 @@ implementation changes:
   prove first-save, close/reopen, changed-authority lockout, and independent
   multi-document mode restoration. Native remains disabled in production until
   the active ribbon registry is complete.
-- `VibeCADNativeMutation.py` is the single immediate mutation runner. It
+- `SteveCADNativeMutation.py` is the single immediate mutation runner. It
   reauthorizes the frozen ribbon before stale preflight, refuses nested
   transactions, buffers document-observer events until commit, recomputes only
   exact affected objects, requires a postcondition, and records one receipt.
   A real FreeCAD GUI gate proves one undo step, exact undo/redo, and rollback
   without a false authority change. The runner is 273 lines.
-- `VibeCADNativeBackground.py` separately owns expensive detached preparation,
+- `SteveCADNativeBackground.py` separately owns expensive detached preparation,
   bounded monotonic progress, cooperative cancellation, one active job per
   document, and document-thread commit dispatch. A Qt gate proves the event
   loop remains responsive, commit returns to the GUI/document thread, and
   closing a document cancels its active job. A frozen-turn test proves a ribbon
   change during preparation prevents commit. The manager is 350 lines.
 - Exact target identity, active-domain snapshots, and common reads are split
-  across `VibeCADNativeTargets.py`, `VibeCADNativeSnapshot.py`, eight narrow
-  domain snapshot modules, `VibeCADNativeView.py`,
-  `VibeCADNativeMeasure.py`, and `VibeCADNativeInspect.py`. Snapshots are rebuilt
+  across `SteveCADNativeTargets.py`, `SteveCADNativeSnapshot.py`, eight narrow
+  domain snapshot modules, `SteveCADNativeView.py`,
+  `SteveCADNativeMeasure.py`, and `SteveCADNativeInspect.py`. Snapshots are rebuilt
   from the live document, contain only the active human-selected domain, include
   exact bounded selection when present, and never depend on a chat transcript.
-- `VibeCADNativeDocument.py` is an 85-line guarded existing-path save and
-  `VibeCADNativeUndo.py` is a 308-line session-only assistant-run history
+- `SteveCADNativeDocument.py` is an 85-line guarded existing-path save and
+  `SteveCADNativeUndo.py` is a 308-line session-only assistant-run history
   ledger. Local undo requires the exact FreeCAD transaction name, undo count,
   document revision, and current assistant run; it refuses unrelated human
   history and restores a failed undo attempt by redo before reporting failure.
-  `VibeCADNativeApplicationManifest.py` separately classifies application-strip,
+  `SteveCADNativeApplicationManifest.py` separately classifies application-strip,
   document-tab, assistant, and debugger controls, with source-drift tests.
 - A clean-profile FreeCAD GUI gate now proves real OCC distance, angle, radius,
   mass, element, and validity reads; direct Fit All and Isometric calls; grid
   and screenshot presentation without structural revision changes; guarded
   FCStd save; exact assistant-local undo; and refusal to undo a later human
   transaction. The gate now invokes the final five common provider schemas
-  through `VibeCADNativeDispatch.py`, exact host-generated call tickets, and
+  through `SteveCADNativeDispatch.py`, exact host-generated call tickets, and
   production common bindings rather than calling those helpers directly. The
   live gate also found and corrected the Python
   `Materials.Material.Name` handling needed to match the C++ Mass Properties
@@ -331,7 +331,7 @@ implementation changes:
   active-domain snapshot and optional exact selection, not legacy document,
   command, template, or workbench-pack summaries. A focused Native/provider/
   VibeScript guardrail run passes 492 tests, and the dispatcher-backed clean
-  GUI gate reports `VIBECAD_NATIVE_COMMON_GUI_OK`.
+  GUI gate reports `STEVECAD_NATIVE_COMMON_GUI_OK`.
 - The first Model capability slice uses `PartDesign::Component`, empty
   `PartDesign::Body`, standalone Design-history Sketches, global reusable
   SubShapeBinders, and `PartDesign::DesignClone`; it does not wrap GUI commands
@@ -342,7 +342,7 @@ implementation changes:
   base-plane and exact planar-face Sketch support without edit mode, read-only
   readiness, exact History reference resolution, clone output identity,
   per-operation undo/redo, and FCStd save/reopen. It reports
-  `VIBECAD_NATIVE_MODEL_STRUCTURE_GUI_OK`.
+  `STEVECAD_NATIVE_MODEL_STRUCTURE_GUI_OK`.
 - The Design primitive slice maps the nine current human primitive leaves to
   `PartDesign::DesignBox`, `DesignCylinder`, `DesignSphere`, `DesignCone`,
   `DesignEllipsoid`, `DesignTorus`, `DesignPrism`, `DesignWedge`, and
@@ -354,7 +354,7 @@ implementation changes:
   placement, exact Component destination, invalid-input no-ops, Body-local
   downstream result frames, all four result modes, per-operation undo/redo,
   stable operation/Body identity, and FCStd save/reopen. It reports
-  `VIBECAD_NATIVE_MODEL_PRIMITIVES_GUI_OK`.
+  `STEVECAD_NATIVE_MODEL_PRIMITIVES_GUI_OK`.
 - The Model profile slice maps the current Extrude, Revolve, Loft, Sweep, and
   Helix task controls directly onto global Design operations. It covers every
   current termination or definition mode, exact profile/axis/path/section/
@@ -365,7 +365,7 @@ implementation changes:
   dispatcher-backed 891-line clean-profile gate proves invalid-input no-ops,
   all current operation modes, the full five-by-four result matrix, exact
   undo/redo, and stable operation/Body IDs after FCStd save/reopen; it reports
-  `VIBECAD_NATIVE_MODEL_PROFILES_GUI_OK`. Target-dependent global Extrude and
+  `STEVECAD_NATIVE_MODEL_PROFILES_GUI_OK`. Target-dependent global Extrude and
   Revolve terminations now consume exactly one immutable Design input state
   instead of inventing a Body-owned BaseFeature. Three focused C++ lifecycle
   regressions, all 39 broader Design-modeling tests, and the full Part Design
@@ -384,7 +384,7 @@ implementation changes:
   cutter and property postconditions, concise receipts, semantic undo/redo,
   stable operation/Body/input-state identity after FCStd save/reopen, and
   materially distinct modeled-thread geometry. It reports
-  `VIBECAD_NATIVE_MODEL_HOLE_GUI_OK modeled_thread_seconds=2.025`; focused
+  `STEVECAD_NATIVE_MODEL_HOLE_GUI_OK modeled_thread_seconds=2.025`; focused
   Native tests, all 39 Design-modeling tests, and the full Part Design
   VibeScript integration remain green.
 - The focused Fillet slice uses the global `PartDesign::DesignFillet`
@@ -399,7 +399,7 @@ implementation changes:
   multi-Body edges, face-boundary filleting, all-sharp-edge filleting, concise
   receipts, semantic undo/redo, impossible-radius kernel rollback, and stable
   operation/Body/input identities after FCStd save/reopen. It reports
-  `VIBECAD_NATIVE_MODEL_FILLET_GUI_OK`; all 39 Design-modeling tests and the
+  `STEVECAD_NATIVE_MODEL_FILLET_GUI_OK`; all 39 Design-modeling tests and the
   full Part Design VibeScript integration remain green.
 - The focused Chamfer slice uses the global `PartDesign::DesignChamfer`
   operation with the same fixed Modify and exact-target contract. Its
@@ -414,7 +414,7 @@ implementation changes:
   boundary selection, every definition mode, both flip states, Use All Edges,
   concise receipts, semantic undo/redo, impossible-size kernel rollback, and
   exact operation/Body/input/property identity after FCStd save/reopen. It
-  reports `VIBECAD_NATIVE_MODEL_CHAMFER_GUI_OK`; 248 focused Native tests, all
+  reports `STEVECAD_NATIVE_MODEL_CHAMFER_GUI_OK`; 248 focused Native tests, all
   39 Design-modeling tests, 222 VibeScript surface/guardrail tests, the Fillet
   regression gate, and the full Part Design VibeScript integration remain
   green.
@@ -435,7 +435,7 @@ implementation changes:
   relationship rollback, unchanged accepted geometry and frames after moving
   the source Component, and exact operation/Body/input/reference/property
   identity after FCStd save/reopen. It reports
-  `VIBECAD_NATIVE_MODEL_DRAFT_GUI_OK`; 255 focused Native tests, all 39
+  `STEVECAD_NATIVE_MODEL_DRAFT_GUI_OK`; 255 focused Native tests, all 39
   Design-modeling tests, 222 VibeScript surface/guardrail tests, the Fillet and
   Chamfer regression gates, and the full Part Design VibeScript integration
   remain green.
@@ -453,7 +453,7 @@ implementation changes:
   intersection-handling states, concise receipts, semantic undo/redo,
   impossible-thickness kernel rollback, and exact operation/Body/input/control
   identity after FCStd save/reopen. It reports
-  `VIBECAD_NATIVE_MODEL_THICKNESS_GUI_OK`; all four dress-up regression gates,
+  `STEVECAD_NATIVE_MODEL_THICKNESS_GUI_OK`; all four dress-up regression gates,
   268 focused Native tests, all 39 Design-modeling tests, 224 VibeScript
   surface/engine guardrails, and the full Part Design VibeScript integration
   remain green. The complete registered Model schema set is 52,728 bytes,
@@ -475,7 +475,7 @@ implementation changes:
   Feature modes, a moved-Component reference frame, concise receipts,
   semantic undo/redo, disconnected-addition kernel rollback, and stable
   operation/Body/input/reference identities after FCStd save/reopen. It
-  reports `VIBECAD_NATIVE_MODEL_DESIGN_MIRROR_GUI_OK`; all nine current Model
+  reports `STEVECAD_NATIVE_MODEL_DESIGN_MIRROR_GUI_OK`; all nine current Model
   lifecycle gates, 282 focused Native tests, all 39 Design-modeling tests, 224
   VibeScript surface/engine guardrails, and the full Part Design VibeScript
   integration remain green. The complete registered schema set is 55,608
@@ -496,7 +496,7 @@ implementation changes:
   Edge in a moved Component, multi-Body additive and subtractive Feature modes,
   concise receipts, semantic undo/redo, disconnected-addition kernel rollback,
   and stable operation/Body/input/reference identities after FCStd save/reopen.
-  It reports `VIBECAD_NATIVE_MODEL_DESIGN_LINEAR_PATTERN_GUI_OK`; all ten Model
+  It reports `STEVECAD_NATIVE_MODEL_DESIGN_LINEAR_PATTERN_GUI_OK`; all ten Model
   lifecycle gates, 294 focused Native tests, all 39 Design-modeling tests, 237
   VibeScript surface/engine/timeline guardrails, and the full Part Design
   VibeScript integration remain green. The complete registered Model schema set
@@ -520,7 +520,7 @@ implementation changes:
   Component, multi-Body additive and subtractive Feature modes, concise
   receipts, semantic undo/redo, disconnected-addition kernel rollback, and
   stable operation/Body/input/reference identities after FCStd save/reopen. It
-  reports `VIBECAD_NATIVE_MODEL_DESIGN_CIRCULAR_PATTERN_GUI_OK`; all eleven
+  reports `STEVECAD_NATIVE_MODEL_DESIGN_CIRCULAR_PATTERN_GUI_OK`; all eleven
   Model lifecycle gates, 308 focused Native tests, all 39 Design-modeling tests,
   237 VibeScript surface/engine/timeline guardrails, and the full Part Design
   VibeScript integration remain green. The complete registered Model schema set
@@ -544,7 +544,7 @@ implementation changes:
   hands, tapered and untapered curves, partial/full arcs, explicit transformed
   placement, schema and kernel no-ops, concise receipts, exact undo/redo,
   postcondition rollback, and FCStd save/reopen. It reports
-  `VIBECAD_NATIVE_MODEL_PART_PRIMITIVES_GUI_OK`.
+  `STEVECAD_NATIVE_MODEL_PART_PRIMITIVES_GUI_OK`.
 - The standalone Shape Builder slice extends the same focused `model.part`
   capability with one compact `builder` variant for the six modes proven from
   the live task panel: Edge from vertices, Wire from edges, Face from vertices,
@@ -563,7 +563,7 @@ implementation changes:
   input paths, explicit and all-face shells, refined and unrefined solids,
   multi-object exact targets, schema/stale/kernel no-ops, source immutability,
   exact rollback, undo/redo, and FCStd save/reopen. It reports
-  `VIBECAD_NATIVE_MODEL_PART_BUILDER_GUI_OK`.
+  `STEVECAD_NATIVE_MODEL_PART_BUILDER_GUI_OK`.
 - The standalone Part Extrude slice extends `model.part` with the complete live
   retained-dialog contract: one to 32 exact current-History sources; normal,
   custom-vector, or exact straight-edge direction; independent forward and
@@ -577,7 +577,7 @@ implementation changes:
   normal/custom/edge modes, zero-length edge-magnitude semantics, taper,
   reversal, symmetry, multi-source grouping, invalid/stale/nonplanar/curved
   no-ops, source immutability, forced rollback, exact undo/redo, and FCStd
-  save/reopen. It reports `VIBECAD_NATIVE_MODEL_PART_EXTRUDE_GUI_OK`.
+  save/reopen. It reports `STEVECAD_NATIVE_MODEL_PART_EXTRUDE_GUI_OK`.
 - The standalone Part Revolve slice extends `model.part` with every live
   retained-dialog control: one to 32 exact current-History sources; a custom
   center/direction or an exact whole-object/EdgeN line or circular reference;
@@ -591,7 +591,7 @@ implementation changes:
   exact line, exact circular-arc, whole-edge, negative, symmetric, solid/shell,
   and multi-source cases; schema/stale/solid/invalid-axis no-ops; forced
   rollback; exact undo/redo; and FCStd save/reopen. It reports
-  `VIBECAD_NATIVE_MODEL_PART_REVOLVE_GUI_OK`.
+  `STEVECAD_NATIVE_MODEL_PART_REVOLVE_GUI_OK`.
 - The standalone Part Mirror slice extends `model.part` with the complete live
   retained-dialog contract: one to 32 exact current-History shape sources,
   including solids and solid-bearing compounds; XY, XZ, and YZ planes with an
@@ -608,7 +608,7 @@ implementation changes:
   and inferred planar/circular references, transformed solid, compound, wire,
   and multi-source outputs, repeated-recompute stability, schema/stale/
   nonplanar/noncircular/ambiguous no-ops, forced rollback, exact undo/redo, and
-  FCStd save/reopen. It reports `VIBECAD_NATIVE_MODEL_PART_MIRROR_GUI_OK`.
+  FCStd save/reopen. It reports `STEVECAD_NATIVE_MODEL_PART_MIRROR_GUI_OK`.
 - The Body-aware Design Scale slice extends the existing compact
   `model.transform` family with the exact live `PartDesign_Scale` contract:
   one to 16 explicit current-History Bodies, uniform or independent Design-axis
@@ -625,7 +625,7 @@ implementation changes:
   independent-axis scaling, a moved-Component Design-frame case, concise exact
   receipts, immutable prior states, schema/type/empty/current-History no-ops,
   forced postcondition rollback, exact undo/redo, repeated recompute, and FCStd
-  save/reopen. It reports `VIBECAD_NATIVE_MODEL_DESIGN_SCALE_GUI_OK`; all three
+  save/reopen. It reports `STEVECAD_NATIVE_MODEL_DESIGN_SCALE_GUI_OK`; all three
   existing Design pattern lifecycle gates remain green.
 - The standalone Face From Wires slice extends `model.part` without inventing
   controls absent from the human command: one to 32 whole-object exact
@@ -642,7 +642,7 @@ implementation changes:
   immutability, schema/stale/empty/open-wire/existing-face/current-History
   no-ops, forced postcondition rollback, repeated recompute, exact undo/redo,
   and FCStd save/reopen. It reports
-  `VIBECAD_NATIVE_MODEL_PART_MAKE_FACE_GUI_OK`.
+  `STEVECAD_NATIVE_MODEL_PART_MAKE_FACE_GUI_OK`.
 - The standalone Ruled Surface slice extends `model.part` with the exact
   source-preserving `Part_RuledSurface` command contract: exactly two ordered
   current-History curves, each either a whole Edge/Wire object or one exact
@@ -657,7 +657,7 @@ implementation changes:
   wires, transformed placements, exact kernel-equivalent geometry, schema/
   stale/face/compound/current-History no-ops, source immutability, forced
   rollback, repeated recompute, exact undo/redo, and FCStd save/reopen. It
-  reports `VIBECAD_NATIVE_MODEL_PART_RULED_SURFACE_GUI_OK`.
+  reports `STEVECAD_NATIVE_MODEL_PART_RULED_SURFACE_GUI_OK`.
 - The standalone Part Loft slice extends `model.part` with the retained human
   task's exact contract: two to 32 ordered current-History profiles, each a
   whole Vertex/Edge/Wire/Face object or one exact VertexN/EdgeN/WireN/FaceN
@@ -674,7 +674,7 @@ implementation changes:
   immutability; forced rollback; exact undo/redo; repeated recompute; and FCStd
   save/reopen. The Loft/Sweep view provider now claims each source once in
   stable order, eliminating duplicate tree children without changing stored
-  links. The gate reports `VIBECAD_NATIVE_MODEL_PART_LOFT_GUI_OK`.
+  links. The gate reports `STEVECAD_NATIVE_MODEL_PART_LOFT_GUI_OK`.
 - The standalone Part Sweep slice extends `model.part` with the retained human
   task's exact contract: one to 32 ordered current-History profiles, each a
   whole Vertex/Edge/Wire/Face object or one exact VertexN/EdgeN/WireN/FaceN
@@ -695,7 +695,7 @@ implementation changes:
   schema/stale/invalid/disconnected/current-History no-ops; source immutability;
   forced rollback; exact undo/redo; repeated recompute; unique stable tree
   children; and FCStd save/reopen. It reports
-  `VIBECAD_NATIVE_MODEL_PART_SWEEP_GUI_OK`; the Loft, Ruled Surface, and Part
+  `STEVECAD_NATIVE_MODEL_PART_SWEEP_GUI_OK`; the Loft, Ruled Surface, and Part
   Mirror lifecycle gates remain green after the shared exact-target change.
 - The standalone Part Section slice introduces the focused `model.boolean`
   family instead of continuing to grow `model.part`. Its only current variant
@@ -713,7 +713,7 @@ implementation changes:
   operands, and the human command's valid empty disjoint result; schema/stale/
   null-shape/current-History no-ops; exact preflight change rejection; source
   BREP immutability; forced rollback; exact undo/redo; repeated recompute; and
-  FCStd save/reopen. It reports `VIBECAD_NATIVE_MODEL_PART_SECTION_GUI_OK`.
+  FCStd save/reopen. It reports `STEVECAD_NATIVE_MODEL_PART_SECTION_GUI_OK`.
 - The standalone Part Cross Sections slice extends the focused `model.part`
   family with the retained `Part::CrossSections` feature instead of a
   destructive shape copy or an AI-only slicing approximation. It accepts 1–32
@@ -734,7 +734,7 @@ implementation changes:
   no-intersection/current-History no-ops, preflight change rejection, forced
   rollback, source BREP immutability, exact undo/redo, repeated recompute, and
   FCStd save/reopen. It reports
-  `VIBECAD_NATIVE_MODEL_PART_CROSS_SECTIONS_GUI_OK`.
+  `STEVECAD_NATIVE_MODEL_PART_CROSS_SECTIONS_GUI_OK`.
 - The standalone Part 3D Offset slice adds one retained `Part::Offset` through
   `model.part`. Its whole-object current-History target and closed definition
   expose every final-geometry task control: signed distance, Skin/Pipe/
@@ -752,7 +752,7 @@ implementation changes:
   current-History no-ops, exact preflight change rejection, forced rollback,
   source geometry and placement preservation, exact undo/redo, repeated
   recompute, presentation transfer, and FCStd save/reopen. It reports
-  `VIBECAD_NATIVE_MODEL_PART_OFFSET_GUI_OK`.
+  `STEVECAD_NATIVE_MODEL_PART_OFFSET_GUI_OK`.
 - The standalone Part 2D Offset slice reuses the same focused retained-offset
   lifecycle while keeping a narrower truthful `Part::Offset2D` contract. It
   accepts one exact current-History whole shape only when transformed geometry
@@ -768,7 +768,7 @@ implementation changes:
   nonplanar/current-History no-ops, exact preflight change rejection, forced
   rollback, source geometry and placement preservation, exact undo/redo,
   repeated recompute, and FCStd save/reopen. It reports
-  `VIBECAD_NATIVE_MODEL_PART_OFFSET_2D_GUI_OK`.
+  `STEVECAD_NATIVE_MODEL_PART_OFFSET_2D_GUI_OK`.
 - The Projection on Surface slice adds one retained
   `Part::ProjectOnSurface` through `model.part`. Its closed contract accepts
   exactly one current-History target face, 1–64 distinct exact Edge/Wire/Face
@@ -787,7 +787,7 @@ implementation changes:
   no-projection/current-History no-ops, exact preflight change rejection,
   forced rollback, source-preserving visibility, exact undo/redo, repeated
   recompute, and FCStd save/reopen. It reports
-  `VIBECAD_NATIVE_MODEL_PART_PROJECTION_GUI_OK`.
+  `STEVECAD_NATIVE_MODEL_PART_PROJECTION_GUI_OK`.
 - The standalone Part Compound slice maps `Part_Compound` to one retained
   root-level `Part::Compound`. Its closed contract accepts 1–64 ordered,
   distinct current-History whole shapes and exposes no subelement, refinement,
@@ -803,7 +803,7 @@ implementation changes:
   History no-ops, exact preflight change rejection, forced rollback, source
   geometry and placement preservation, exact undo/redo, repeated recompute,
   and FCStd save/reopen. It reports
-  `VIBECAD_NATIVE_MODEL_PART_COMPOUND_GUI_OK`.
+  `STEVECAD_NATIVE_MODEL_PART_COMPOUND_GUI_OK`.
 - The Compound separation slice follows the shipped ribbon action
   `PartDesign_Separate`, not the obsolete workbench-only explode command. Its
   closed `model.structure` variant accepts one exact active reusable
@@ -826,7 +826,7 @@ implementation changes:
   preflight change rejection, forced postcondition rollback including source
   publication and visibility, stable IDs/witnesses across recompute and exact
   undo/redo, and FCStd save/reopen. It reports
-  `VIBECAD_NATIVE_MODEL_DESIGN_SEPARATE_GUI_OK`. Its exact global-geometry
+  `STEVECAD_NATIVE_MODEL_DESIGN_SEPARATE_GUI_OK`. Its exact global-geometry
   postcondition compares mass properties and full boolean-intersection volume,
   not OCC's representation-dependent curved bounding boxes. No Native mapping
   or runtime path for legacy `Part_ExplodeCompound` was added.
@@ -854,7 +854,7 @@ implementation changes:
   missing/non-Compound/out-of-range/no-output/current-History no-ops, exact
   preflight change rejection, forced rollback, exact undo/redo, repeated
   recompute, and FCStd save/reopen. It reports
-  `VIBECAD_NATIVE_MODEL_PART_COMPOUND_FILTER_GUI_OK`.
+  `STEVECAD_NATIVE_MODEL_PART_COMPOUND_FILTER_GUI_OK`.
 - The Design Combine slice maps the single shipped `PartDesign_Combine` action
   to one compact `model.boolean` variant covering each human task mode: Join,
   Cut, and Intersect. Its closed contract accepts one exact result Body, 1–15
@@ -876,7 +876,7 @@ implementation changes:
   durable ports, shapes, Body identities, absence states, and frames across
   FCStd save/reopen. It also verifies that `PreviewShape` follows its declared
   transient lifecycle rather than treating it as saved model state. It reports
-  `VIBECAD_NATIVE_MODEL_DESIGN_COMBINE_GUI_OK`.
+  `STEVECAD_NATIVE_MODEL_DESIGN_COMBINE_GUI_OK`.
 - The authoritative 75-action Model inventory contains no Boolean Fragments,
   XOR, standalone Fuse, or standalone Common leaf action. The only shipped
   general Boolean leaf is `PartDesign_Combine`, whose Join, Cut, and Intersect
@@ -906,7 +906,7 @@ implementation changes:
   rejection, forced postcondition rollback, exact undo/redo, repeated
   recompute, and durable proxy types, links, identities, replacement metadata,
   visibility, and shapes across FCStd save/reopen. It reports
-  `VIBECAD_NATIVE_MODEL_PART_JOIN_GUI_OK`. OCC can vary a repeated general-fuse
+  `STEVECAD_NATIVE_MODEL_PART_JOIN_GUI_OK`. OCC can vary a repeated general-fuse
   cylinder bound by 0.0024 mm with identical topology, area, and volume, so the
   gate uses the existing 0.005-mm geometric comparison tolerance while keeping
   identity, controls, topology, and roles exact.
@@ -935,7 +935,7 @@ implementation changes:
   empty/self/inactive-History/non-dividing/out-of-range no-ops, stale preflight
   rejection, forced verifier rollback, one-step undo/redo, recompute, and exact
   identities, ports, witnesses, and shapes across FCStd save/reopen. It reports
-  `VIBECAD_NATIVE_MODEL_DESIGN_SPLIT_GUI_OK`.
+  `STEVECAD_NATIVE_MODEL_DESIGN_SPLIT_GUI_OK`.
 - The Defeaturing slice maps only the shipped immediate
   `Part_Defeaturing` action to the `defeature` variant of the compact
   `model.part` family. Its closed contract accepts 1–32 distinct exact current-
@@ -959,7 +959,7 @@ implementation changes:
   duplicate/inactive-History no-ops, stale-preflight rejection, forced verifier
   rollback, exact undo/redo, recompute, and durable identities, roles,
   ownership, shapes, replacement states, and Design IDs across FCStd
-  save/reopen. It reports `VIBECAD_NATIVE_MODEL_PART_DEFEATURE_GUI_OK`.
+  save/reopen. It reports `STEVECAD_NATIVE_MODEL_PART_DEFEATURE_GUI_OK`.
 - The Surface Filling slice maps only the shipped `Surface_Filling` action to
   the `filling` variant of the new focused `model.surface` family. Its compact,
   closed contract accepts one ordered array of 1–256 exact current-History
@@ -986,7 +986,7 @@ implementation changes:
   nonadjacent/duplicate/inactive-History no-ops, stale-preflight rejection,
   forced verifier rollback, exact undo/redo, recompute, and durable links,
   controls, identities, shapes, and visibility across FCStd save/reopen. It
-  reports `VIBECAD_NATIVE_MODEL_SURFACE_FILLING_GUI_OK`.
+  reports `STEVECAD_NATIVE_MODEL_SURFACE_FILLING_GUI_OK`.
 - The Geometric Fill Surface slice maps only the shipped
   `Surface_GeomFillSurface` action to the `geometric_fill` variant of the
   focused `model.surface` family. Its compact, closed contract accepts two to
@@ -1014,7 +1014,7 @@ implementation changes:
   duplicate/inactive-History no-ops, stale-preflight rejection, forced verifier
   rollback, exact undo/redo, repeated recompute, and durable links, controls,
   identities, shapes, and visibility across FCStd save/reopen. It reports
-  `VIBECAD_NATIVE_MODEL_SURFACE_GEOMETRIC_FILL_GUI_OK`.
+  `STEVECAD_NATIVE_MODEL_SURFACE_GEOMETRIC_FILL_GUI_OK`.
 - The Surface Sections slice maps only the shipped `Surface_Sections` action
   to the `sections` variant of the focused `model.surface` family. Its compact,
   closed contract accepts two to 256 ordered, distinct exact current-History
@@ -1034,7 +1034,7 @@ implementation changes:
   schema/missing/non-edge/duplicate/inactive-History no-ops, stale-preflight
   rejection, forced verifier rollback, exact undo/redo, repeated recompute, and
   durable links, identities, shapes, and visibility across FCStd save/reopen.
-  It reports `VIBECAD_NATIVE_MODEL_SURFACE_SECTIONS_GUI_OK`.
+  It reports `STEVECAD_NATIVE_MODEL_SURFACE_SECTIONS_GUI_OK`.
 - The Extend Face slice maps only the shipped `Surface_ExtendFace` action to
   the `extend` variant of the focused `model.surface` family. Its compact,
   closed contract accepts one exact current-History Part face, the visible
@@ -1063,7 +1063,7 @@ implementation changes:
   no-ops, stale-preflight rejection, forced verifier rollback, repeated
   recompute, exact undo/redo, and durable links, controls, identities, shapes,
   and visibility across FCStd save/reopen. It reports
-  `VIBECAD_NATIVE_MODEL_SURFACE_EXTEND_GUI_OK`.
+  `STEVECAD_NATIVE_MODEL_SURFACE_EXTEND_GUI_OK`.
 - The Curve on Mesh slice maps only the shipped `Surface_CurveOnMesh` action
   to the `curve_on_mesh` variant of `model.surface`. Its compact closed
   contract takes one exact current-History `Mesh::Feature` and 2–64 ordered
@@ -1092,7 +1092,7 @@ implementation changes:
   verifier rollback, exact undo/redo, repeated recompute, and durable source,
   anchor, direction, control, History, shape, and visibility state across FCStd
   save/reopen. It reports
-  `VIBECAD_NATIVE_MODEL_SURFACE_CURVE_ON_MESH_GUI_OK`.
+  `STEVECAD_NATIVE_MODEL_SURFACE_CURVE_ON_MESH_GUI_OK`.
 - The Blend Curve slice maps only the shipped `Surface_BlendCurve` action to
   the immediate `blend_curve` variant of `model.surface`. Its compact closed
   contract takes two distinct exact current-History `EdgeN` references. Each
@@ -1114,7 +1114,7 @@ implementation changes:
   and Body-tip stale-preflight rejection, forced-verifier rollback,
   suppression, repeated recompute, exact undo/redo, and durable links,
   controls, identities, shapes, and visibility across FCStd save/reopen. It
-  reports `VIBECAD_NATIVE_MODEL_SURFACE_BLEND_CURVE_GUI_OK`.
+  reports `STEVECAD_NATIVE_MODEL_SURFACE_BLEND_CURVE_GUI_OK`.
 - The assistant-local undo ledger now proves the exact host undo-name stack at
   every checkpoint. It accepts normal stack growth or the exact oldest-entry
   eviction transition at FreeCAD's configured history limit, keeps only a
@@ -1195,7 +1195,7 @@ implementation changes:
   while the concise receipt omits catalog and topology noise. Its GUI gate
   proves plain and modeled thread insertion, invalid-input no-ops, rollback,
   undo/redo, repeated recompute, and save/reopen; it emits
-  `VIBECAD_NATIVE_MODEL_FASTENER_GUI_OK`. The exhaustive catalog gate covers
+  `STEVECAD_NATIVE_MODEL_FASTENER_GUI_OK`. The exhaustive catalog gate covers
   all 225 standards, 3,580 nominal sizes, 5,355 resolved boundary/canonical
   keys, and 12 modeled-thread families; all 21 human Fasteners GUI tests pass.
   A new curved one-solid compound regression also found and fixed a core rigid
@@ -1219,7 +1219,7 @@ implementation changes:
   The expanded GUI gate proves human/Native geometry parity, exact receipts,
   wrong/stale/incompatible/schema no-ops, verifier rollback, undo/redo,
   repeated recompute, modeled threads, snapshot discovery, and save/reopen;
-  it emits `VIBECAD_NATIVE_MODEL_FASTENER_GUI_OK`. All 21 human Fasteners GUI
+  it emits `STEVECAD_NATIVE_MODEL_FASTENER_GUI_OK`. All 21 human Fasteners GUI
   tests, 102 focused Native/catalog/snapshot/ribbon tests, the exhaustive
   225-standard catalog gate, and the complete Part Design VibeScript lifecycle
   are green. The complete registered Model schema is 63,150 bytes, 2,386 bytes
@@ -1240,7 +1240,7 @@ implementation changes:
   multi-Body, counterbore, and countersink cases; schema/target/ownership/fit
   no-ops; forced verifier rollback; undo/redo; repeated recompute; and
   save/reopen. It emits
-  `VIBECAD_NATIVE_MODEL_MATCHING_FASTENER_HOLE_GUI_OK`. All 21 human Fasteners
+  `STEVECAD_NATIVE_MODEL_MATCHING_FASTENER_HOLE_GUI_OK`. All 21 human Fasteners
   GUI tests, 811 focused Native/schema/ribbon/guardrail tests, the exhaustive
   225-standard catalog gate, and the complete Part Design VibeScript lifecycle
   are green. The complete registered Model schema is 64,015 bytes, 1,521 bytes
@@ -1265,7 +1265,7 @@ implementation changes:
   changing workbench, and covers target no-ops, forced-verifier rollback,
   History ordering, exact receipts, undo/redo, repeated recompute, and durable
   save/reopen references. It emits
-  `VIBECAD_NATIVE_MODEL_FASTENER_ATTACHMENT_GUI_OK`. All 21 human Fasteners GUI
+  `STEVECAD_NATIVE_MODEL_FASTENER_ATTACHMENT_GUI_OK`. All 21 human Fasteners GUI
   tests, 813 focused Native/schema/ribbon/packaging/guardrail tests, the
   exhaustive 225-standard catalog gate, and the complete Part Design
   VibeScript lifecycle are green. Source and build-tree packaged modules match;
@@ -1294,7 +1294,7 @@ implementation changes:
   connector and frame parity, schema and target no-ops, stale preflight,
   forced-verifier rollback, exact receipt, update-in-place, undo/redo,
   repeated recompute, live snapshot/catalog discovery, and FCStd save/reopen.
-  It emits `VIBECAD_NATIVE_COMPONENT_INTERFACE_GUI_OK`. The focused Native,
+  It emits `STEVECAD_NATIVE_COMPONENT_INTERFACE_GUI_OK`. The focused Native,
   schema, ribbon, surface, and retained-tool suite is 841/841 green; the full
   Part Design and Assembly VibeScript integration gates also complete
   successfully. Source and build-tree modules match, the retired name is
@@ -1335,7 +1335,7 @@ implementation changes:
   and source identity, one-step pattern undo/redo, concise dispatcher results,
   no residual edit/task UI, stable Body and operation IDs, Component
   containment, recompute, and FCStd save/reopen. The gate emits
-  `VIBECAD_NATIVE_MODEL_BRACKET_WORKFLOW_GUI_OK` on two consecutive runs. The
+  `STEVECAD_NATIVE_MODEL_BRACKET_WORKFLOW_GUI_OK` on two consecutive runs. The
   live ribbon gate, 818 focused Native/ribbon/surface/guardrail tests, and the
   full Part Design VibeScript lifecycle are green; the protected VibeScript
   result reports `"ok": true`. Source and packaged build-tree copies match,
@@ -1357,7 +1357,7 @@ implementation changes:
   externally projected, face-attached sketch; repeated read-only equality;
   unchanged undo/redo/booked-transaction boundaries; incomplete Sketch
   provider fail-closure; and FCStd save/reopen. It emits
-  `VIBECAD_NATIVE_SKETCH_STATE_GUI_OK`. The focused suite is 821/821 green,
+  `STEVECAD_NATIVE_SKETCH_STATE_GUI_OK`. The focused suite is 821/821 green,
   the 527-action live ribbon gate is green, and the complete protected Part
   Design VibeScript lifecycle again reports `"ok": true`.
 - Contextual Sketch Point is the first exact `sketch.geometry` mutation. Its
@@ -1513,11 +1513,11 @@ implementation changes:
   without history mutation, the exact three-geometry/two-constraint parabola
   delta, one-step undo/redo, unchanged active Sketch/ribbon/workbench identity,
   and all eight operations after FCStd save/reopen. It emits
-  `VIBECAD_NATIVE_SKETCH_GEOMETRY_GUI_OK operations=create_point,create_line,create_polyline,create_arc,create3_point_arc,create_arc_of_ellipse,create_arc_of_hyperbola,create_arc_of_parabola`.
+  `STEVECAD_NATIVE_SKETCH_GEOMETRY_GUI_OK operations=create_point,create_line,create_polyline,create_arc,create3_point_arc,create_arc_of_ellipse,create_arc_of_hyperbola,create_arc_of_parabola`.
   The focused suite is 932/932 green, the Sketch state and 527-action live
   ribbon gates remain green, the full protected Sketcher VibeScript lifecycle
-  emits `VIBECAD_SKETCHER_VIBESCRIPT_FINAL_OK_TRUE`, and all 17 protected Part
-  Design phases emit `VIBECAD_VIBESCRIPT_FINAL_OK_TRUE`, both with exit code
+  emits `STEVECAD_SKETCHER_VIBESCRIPT_FINAL_OK_TRUE`, and all 17 protected Part
+  Design phases emit `STEVECAD_VIBESCRIPT_FINAL_OK_TRUE`, both with exit code
   zero.
 - Contextual Sketch center-radius Circle is the ninth exact `sketch.geometry`
   variant and maps only `Sketcher_CreateCircle`; the dropdown parent and
@@ -1537,11 +1537,11 @@ implementation changes:
   identity, and all nine operations after FCStd save/reopen. Reload validation
   deliberately compares the durable Circle contract rather than FreeCAD's
   document-local numeric geometry ID. The gate emits
-  `VIBECAD_NATIVE_SKETCH_GEOMETRY_GUI_OK operations=create_point,create_line,create_polyline,create_arc,create3_point_arc,create_arc_of_ellipse,create_arc_of_hyperbola,create_arc_of_parabola,create_circle`.
+  `STEVECAD_NATIVE_SKETCH_GEOMETRY_GUI_OK operations=create_point,create_line,create_polyline,create_arc,create3_point_arc,create_arc_of_ellipse,create_arc_of_hyperbola,create_arc_of_parabola,create_circle`.
   The focused suite is 938/938 green, the 527-action live ribbon gate remains
   green, the protected Sketcher VibeScript lifecycle emits
-  `VIBECAD_SKETCHER_VIBESCRIPT_FINAL_OK_TRUE`, and all 17 protected Part Design
-  phases emit `VIBECAD_VIBESCRIPT_FINAL_OK_TRUE`, both with exit code zero.
+  `STEVECAD_SKETCHER_VIBESCRIPT_FINAL_OK_TRUE`, and all 17 protected Part Design
+  phases emit `STEVECAD_VIBESCRIPT_FINAL_OK_TRUE`, both with exit code zero.
 - Contextual Sketch three-point Circle is the tenth exact `sketch.geometry`
   variant and maps only `Sketcher_Create3PointCircle`. Its closed contract
   names three bounded points and refuses every duplicate pair, collinear or
@@ -1561,11 +1561,11 @@ implementation changes:
   three-point Circle creation, one-step undo/redo, unchanged active Sketch/
   ribbon/workbench identity, and all ten operations after FCStd save/reopen.
   It emits
-  `VIBECAD_NATIVE_SKETCH_GEOMETRY_GUI_OK operations=create_point,create_line,create_polyline,create_arc,create3_point_arc,create_arc_of_ellipse,create_arc_of_hyperbola,create_arc_of_parabola,create_circle,create3_point_circle`.
+  `STEVECAD_NATIVE_SKETCH_GEOMETRY_GUI_OK operations=create_point,create_line,create_polyline,create_arc,create3_point_arc,create_arc_of_ellipse,create_arc_of_hyperbola,create_arc_of_parabola,create_circle,create3_point_circle`.
   The focused suite is 944/944 green, the 527-action live ribbon gate remains
   green, the protected Sketcher VibeScript lifecycle emits
-  `VIBECAD_SKETCHER_VIBESCRIPT_FINAL_OK_TRUE`, and all 17 protected Part Design
-  phases emit `VIBECAD_VIBESCRIPT_FINAL_OK_TRUE`, both with exit code zero.
+  `STEVECAD_SKETCHER_VIBESCRIPT_FINAL_OK_TRUE`, and all 17 protected Part Design
+  phases emit `STEVECAD_VIBESCRIPT_FINAL_OK_TRUE`, both with exit code zero.
 - Contextual Sketch center-based Ellipse is the eleventh exact
   `sketch.geometry` variant and maps only `Sketcher_CreateEllipseByCenter`;
   three-point Ellipse remains a separate action. Its closed contract
@@ -1586,11 +1586,11 @@ implementation changes:
   geometry/four-constraint delta, one-step undo/redo, unchanged active Sketch/
   ribbon/workbench identity, and all eleven operations after FCStd save/reopen.
   It emits
-  `VIBECAD_NATIVE_SKETCH_GEOMETRY_GUI_OK operations=create_point,create_line,create_polyline,create_arc,create3_point_arc,create_arc_of_ellipse,create_arc_of_hyperbola,create_arc_of_parabola,create_circle,create3_point_circle,create_ellipse`.
+  `STEVECAD_NATIVE_SKETCH_GEOMETRY_GUI_OK operations=create_point,create_line,create_polyline,create_arc,create3_point_arc,create_arc_of_ellipse,create_arc_of_hyperbola,create_arc_of_parabola,create_circle,create3_point_circle,create_ellipse`.
   The focused suite is 953/953 green, the 527-action live ribbon gate remains
   green, the protected Sketcher VibeScript lifecycle emits
-  `VIBECAD_SKETCHER_VIBESCRIPT_FINAL_OK_TRUE`, and all 17 protected Part Design
-  phases emit `VIBECAD_VIBESCRIPT_FINAL_OK_TRUE`, both with exit code zero.
+  `STEVECAD_SKETCHER_VIBESCRIPT_FINAL_OK_TRUE`, and all 17 protected Part Design
+  phases emit `STEVECAD_VIBESCRIPT_FINAL_OK_TRUE`, both with exit code zero.
 - Contextual Sketch three-point Ellipse is the twelfth exact
   `sketch.geometry` variant and maps only `Sketcher_CreateEllipseBy3Points`.
   Its contract follows the human command precisely: the first two points are
@@ -1610,11 +1610,11 @@ implementation changes:
   exact five-geometry/four-constraint delta, one-step undo/redo, unchanged
   active Sketch/ribbon/workbench identity, and all twelve operations after
   FCStd save/reopen. It emits
-  `VIBECAD_NATIVE_SKETCH_GEOMETRY_GUI_OK operations=create_point,create_line,create_polyline,create_arc,create3_point_arc,create_arc_of_ellipse,create_arc_of_hyperbola,create_arc_of_parabola,create_circle,create3_point_circle,create_ellipse,create3_point_ellipse`.
+  `STEVECAD_NATIVE_SKETCH_GEOMETRY_GUI_OK operations=create_point,create_line,create_polyline,create_arc,create3_point_arc,create_arc_of_ellipse,create_arc_of_hyperbola,create_arc_of_parabola,create_circle,create3_point_circle,create_ellipse,create3_point_ellipse`.
   The focused suite is 961/961 green, the 527-action live ribbon gate remains
   green, the protected Sketcher VibeScript lifecycle emits
-  `VIBECAD_SKETCHER_VIBESCRIPT_FINAL_OK_TRUE`, and all 17 protected Part Design
-  phases emit `VIBECAD_VIBESCRIPT_FINAL_OK_TRUE`, both with exit code zero.
+  `STEVECAD_SKETCHER_VIBESCRIPT_FINAL_OK_TRUE`, and all 17 protected Part Design
+  phases emit `STEVECAD_VIBESCRIPT_FINAL_OK_TRUE`, both with exit code zero.
 - Contextual Sketch corner Rectangle is the thirteenth exact
   `sketch.geometry` variant and maps only `Sketcher_CreateRectangle`; the
   dropdown parent and center Rectangle remain unimplemented. Its closed
@@ -1638,11 +1638,11 @@ implementation changes:
   diagonal ordering, one-step undo/redo, unchanged active Sketch/ribbon/
   workbench identity, and all thirteen operations after FCStd save/reopen. It
   emits
-  `VIBECAD_NATIVE_SKETCH_GEOMETRY_GUI_OK operations=create_point,create_line,create_polyline,create_arc,create3_point_arc,create_arc_of_ellipse,create_arc_of_hyperbola,create_arc_of_parabola,create_circle,create3_point_circle,create_ellipse,create3_point_ellipse,create_rectangle`.
+  `STEVECAD_NATIVE_SKETCH_GEOMETRY_GUI_OK operations=create_point,create_line,create_polyline,create_arc,create3_point_arc,create_arc_of_ellipse,create_arc_of_hyperbola,create_arc_of_parabola,create_circle,create3_point_circle,create_ellipse,create3_point_ellipse,create_rectangle`.
   The focused suite is 969/969 green, the 527-action live ribbon gate remains
   green, the protected Sketcher VibeScript lifecycle emits
-  `VIBECAD_SKETCHER_VIBESCRIPT_FINAL_OK_TRUE`, and all 17 protected Part Design
-  phases emit `VIBECAD_VIBESCRIPT_FINAL_OK_TRUE`, both with exit code zero.
+  `STEVECAD_SKETCHER_VIBESCRIPT_FINAL_OK_TRUE`, and all 17 protected Part Design
+  phases emit `STEVECAD_VIBESCRIPT_FINAL_OK_TRUE`, both with exit code zero.
 - Contextual Sketch center Rectangle is the fourteenth exact
   `sketch.geometry` variant and maps only `Sketcher_CreateRectangle_Center`;
   Oblong is now the next unfinished geometry action. Its closed contract names
@@ -1664,11 +1664,11 @@ implementation changes:
   without history mutation, the exact five-geometry/nine-constraint delta,
   one-step undo/redo, unchanged active Sketch/ribbon/workbench identity, and
   all fourteen operations after FCStd save/reopen. It emits
-  `VIBECAD_NATIVE_SKETCH_GEOMETRY_GUI_OK operations=create_point,create_line,create_polyline,create_arc,create3_point_arc,create_arc_of_ellipse,create_arc_of_hyperbola,create_arc_of_parabola,create_circle,create3_point_circle,create_ellipse,create3_point_ellipse,create_rectangle,create_center_rectangle`.
+  `STEVECAD_NATIVE_SKETCH_GEOMETRY_GUI_OK operations=create_point,create_line,create_polyline,create_arc,create3_point_arc,create_arc_of_ellipse,create_arc_of_hyperbola,create_arc_of_parabola,create_circle,create3_point_circle,create_ellipse,create3_point_ellipse,create_rectangle,create_center_rectangle`.
   The focused suite is 977/977 green, the 527-action live ribbon gate remains
   green, the protected Sketcher VibeScript lifecycle emits
-  `VIBECAD_SKETCHER_VIBESCRIPT_FINAL_OK_TRUE`, and all 17 protected Part Design
-  phases emit `VIBECAD_VIBESCRIPT_FINAL_OK_TRUE`, both with exit code zero.
+  `STEVECAD_SKETCHER_VIBESCRIPT_FINAL_OK_TRUE`, and all 17 protected Part Design
+  phases emit `STEVECAD_VIBESCRIPT_FINAL_OK_TRUE`, both with exit code zero.
 - Contextual Sketch Oblong is the fifteenth exact `sketch.geometry` variant and
   maps only `Sketcher_CreateOblong`; Triangle is now the next unfinished
   geometry action. Its closed contract names two bounded opposite corners and
@@ -1691,12 +1691,12 @@ implementation changes:
   mutation, the exact ten-geometry/nineteen-constraint delta, one-step undo/
   redo, unchanged active Sketch/ribbon/workbench identity, and all fifteen
   operations after FCStd save/reopen. It emits
-  `VIBECAD_NATIVE_SKETCH_GEOMETRY_GUI_OK operations=create_point,create_line,create_polyline,create_arc,create3_point_arc,create_arc_of_ellipse,create_arc_of_hyperbola,create_arc_of_parabola,create_circle,create3_point_circle,create_ellipse,create3_point_ellipse,create_rectangle,create_center_rectangle,create_oblong`.
+  `STEVECAD_NATIVE_SKETCH_GEOMETRY_GUI_OK operations=create_point,create_line,create_polyline,create_arc,create3_point_arc,create_arc_of_ellipse,create_arc_of_hyperbola,create_arc_of_parabola,create_circle,create3_point_circle,create_ellipse,create3_point_ellipse,create_rectangle,create_center_rectangle,create_oblong`.
   The focused suite is 985/985 green, the 527-action live ribbon gate remains
   green, source and built runtime copies are byte-identical, and the touched
   Python files pass Ruff. The protected Sketcher VibeScript lifecycle emits
-  `VIBECAD_SKETCHER_VIBESCRIPT_FINAL_OK_TRUE`, and all 17 protected Part Design
-  phases emit `VIBECAD_VIBESCRIPT_FINAL_OK_TRUE`, both with exit code zero.
+  `STEVECAD_SKETCHER_VIBESCRIPT_FINAL_OK_TRUE`, and all 17 protected Part Design
+  phases emit `STEVECAD_VIBESCRIPT_FINAL_OK_TRUE`, both with exit code zero.
 - Contextual Sketch Triangle is the sixteenth exact `sketch.geometry` variant
   and maps only `Sketcher_CreateTriangle`; Square is now the next unfinished
   geometry action. Its closed contract names a bounded center and first corner,
@@ -1720,13 +1720,13 @@ implementation changes:
   mutation, the exact four-geometry/eight-constraint delta, one-step undo/
   redo, unchanged active Sketch/ribbon/workbench identity, and all sixteen
   operations after FCStd save/reopen. It emits
-  `VIBECAD_NATIVE_SKETCH_GEOMETRY_GUI_OK operations=create_point,create_line,create_polyline,create_arc,create3_point_arc,create_arc_of_ellipse,create_arc_of_hyperbola,create_arc_of_parabola,create_circle,create3_point_circle,create_ellipse,create3_point_ellipse,create_rectangle,create_center_rectangle,create_oblong,create_triangle`.
+  `STEVECAD_NATIVE_SKETCH_GEOMETRY_GUI_OK operations=create_point,create_line,create_polyline,create_arc,create3_point_arc,create_arc_of_ellipse,create_arc_of_hyperbola,create_arc_of_parabola,create_circle,create3_point_circle,create_ellipse,create3_point_ellipse,create_rectangle,create_center_rectangle,create_oblong,create_triangle`.
   The focused contract suite is 1,117/1,117 green with four intentional skips,
   the 527-action live ribbon gate remains green, source and built runtime
   copies are byte-identical, and the touched Python files pass Ruff. The
   protected Sketcher VibeScript lifecycle emits
-  `VIBECAD_SKETCHER_VIBESCRIPT_FINAL_OK_TRUE`, and all 17 protected Part Design
-  phases emit `VIBECAD_VIBESCRIPT_FINAL_OK_TRUE`, both with exit code zero.
+  `STEVECAD_SKETCHER_VIBESCRIPT_FINAL_OK_TRUE`, and all 17 protected Part Design
+  phases emit `STEVECAD_VIBESCRIPT_FINAL_OK_TRUE`, both with exit code zero.
 - Contextual Sketch Square is the seventeenth exact `sketch.geometry` variant
   and maps only `Sketcher_CreateSquare`; Pentagon is now the next unfinished
   geometry action. Its closed center/corner contract and all derived-bound
@@ -1748,13 +1748,13 @@ implementation changes:
   constraint delta, one-step undo/redo, unchanged active Sketch/ribbon/
   workbench identity, and all seventeen operations after FCStd save/reopen.
   It emits
-  `VIBECAD_NATIVE_SKETCH_GEOMETRY_GUI_OK operations=create_point,create_line,create_polyline,create_arc,create3_point_arc,create_arc_of_ellipse,create_arc_of_hyperbola,create_arc_of_parabola,create_circle,create3_point_circle,create_ellipse,create3_point_ellipse,create_rectangle,create_center_rectangle,create_oblong,create_triangle,create_square`.
+  `STEVECAD_NATIVE_SKETCH_GEOMETRY_GUI_OK operations=create_point,create_line,create_polyline,create_arc,create3_point_arc,create_arc_of_ellipse,create_arc_of_hyperbola,create_arc_of_parabola,create_circle,create3_point_circle,create_ellipse,create3_point_ellipse,create_rectangle,create_center_rectangle,create_oblong,create_triangle,create_square`.
   The focused contract suite is 1,121/1,121 green with four intentional skips,
   the 527-action live ribbon gate remains green, source and built runtime
   copies are byte-identical, and the touched Python files pass Ruff. The
   protected Sketcher VibeScript lifecycle emits
-  `VIBECAD_SKETCHER_VIBESCRIPT_FINAL_OK_TRUE`, and all 17 protected Part Design
-  phases emit `VIBECAD_VIBESCRIPT_FINAL_OK_TRUE`, both with exit code zero.
+  `STEVECAD_SKETCHER_VIBESCRIPT_FINAL_OK_TRUE`, and all 17 protected Part Design
+  phases emit `STEVECAD_VIBESCRIPT_FINAL_OK_TRUE`, both with exit code zero.
 - Contextual Sketch Pentagon is the eighteenth exact `sketch.geometry`
   variant and maps only `Sketcher_CreatePentagon`; Hexagon is now the next
   unfinished geometry action. Its 51-line fixed-five-side adapter reuses the
@@ -1775,13 +1775,13 @@ implementation changes:
   constraint delta, one-step undo/redo, unchanged active Sketch/ribbon/
   workbench identity, and all eighteen operations after FCStd save/reopen.
   It emits
-  `VIBECAD_NATIVE_SKETCH_GEOMETRY_GUI_OK operations=create_point,create_line,create_polyline,create_arc,create3_point_arc,create_arc_of_ellipse,create_arc_of_hyperbola,create_arc_of_parabola,create_circle,create3_point_circle,create_ellipse,create3_point_ellipse,create_rectangle,create_center_rectangle,create_oblong,create_triangle,create_square,create_pentagon`.
+  `STEVECAD_NATIVE_SKETCH_GEOMETRY_GUI_OK operations=create_point,create_line,create_polyline,create_arc,create3_point_arc,create_arc_of_ellipse,create_arc_of_hyperbola,create_arc_of_parabola,create_circle,create3_point_circle,create_ellipse,create3_point_ellipse,create_rectangle,create_center_rectangle,create_oblong,create_triangle,create_square,create_pentagon`.
   The focused contract suite is 1,125/1,125 green with four intentional skips,
   the 527-action live ribbon gate remains green, source and built runtime
   copies are byte-identical, and the touched Python files pass Ruff. The
   protected Sketcher VibeScript lifecycle emits
-  `VIBECAD_SKETCHER_VIBESCRIPT_FINAL_OK_TRUE`, and all 17 protected Part Design
-  phases emit `VIBECAD_VIBESCRIPT_FINAL_OK_TRUE`, both with exit code zero.
+  `STEVECAD_SKETCHER_VIBESCRIPT_FINAL_OK_TRUE`, and all 17 protected Part Design
+  phases emit `STEVECAD_VIBESCRIPT_FINAL_OK_TRUE`, both with exit code zero.
 - Contextual Sketch Hexagon is the nineteenth exact `sketch.geometry` variant
   and maps only `Sketcher_CreateHexagon`; Heptagon is now the next unfinished
   geometry action. Its 51-line fixed-six-side adapter reuses the unchanged
@@ -1801,13 +1801,13 @@ implementation changes:
   seventeen-constraint delta, one-step undo/redo, unchanged active Sketch/
   ribbon/workbench identity, and all nineteen operations after FCStd save/
   reopen. It emits
-  `VIBECAD_NATIVE_SKETCH_GEOMETRY_GUI_OK operations=create_point,create_line,create_polyline,create_arc,create3_point_arc,create_arc_of_ellipse,create_arc_of_hyperbola,create_arc_of_parabola,create_circle,create3_point_circle,create_ellipse,create3_point_ellipse,create_rectangle,create_center_rectangle,create_oblong,create_triangle,create_square,create_pentagon,create_hexagon`.
+  `STEVECAD_NATIVE_SKETCH_GEOMETRY_GUI_OK operations=create_point,create_line,create_polyline,create_arc,create3_point_arc,create_arc_of_ellipse,create_arc_of_hyperbola,create_arc_of_parabola,create_circle,create3_point_circle,create_ellipse,create3_point_ellipse,create_rectangle,create_center_rectangle,create_oblong,create_triangle,create_square,create_pentagon,create_hexagon`.
   The focused contract suite is 1,129/1,129 green with four intentional skips,
   the 527-action live ribbon gate remains green, source and built runtime
   copies are byte-identical, and the touched Python files pass Ruff. The
   protected Sketcher VibeScript lifecycle emits
-  `VIBECAD_SKETCHER_VIBESCRIPT_FINAL_OK_TRUE`, and all 17 protected Part Design
-  phases emit `VIBECAD_VIBESCRIPT_FINAL_OK_TRUE`, both with exit code zero.
+  `STEVECAD_SKETCHER_VIBESCRIPT_FINAL_OK_TRUE`, and all 17 protected Part Design
+  phases emit `STEVECAD_VIBESCRIPT_FINAL_OK_TRUE`, both with exit code zero.
 - Contextual Sketch Heptagon is the twentieth exact `sketch.geometry` variant
   and maps only `Sketcher_CreateHeptagon`; Octagon is now the next unfinished
   geometry action. Its 51-line fixed-seven-side adapter reuses the unchanged
@@ -1826,13 +1826,13 @@ implementation changes:
   mutation, the exact eight-geometry/twenty-constraint delta, one-step undo/
   redo, unchanged active Sketch/ribbon/workbench identity, and all twenty
   operations after FCStd save/reopen. It emits
-  `VIBECAD_NATIVE_SKETCH_GEOMETRY_GUI_OK operations=create_point,create_line,create_polyline,create_arc,create3_point_arc,create_arc_of_ellipse,create_arc_of_hyperbola,create_arc_of_parabola,create_circle,create3_point_circle,create_ellipse,create3_point_ellipse,create_rectangle,create_center_rectangle,create_oblong,create_triangle,create_square,create_pentagon,create_hexagon,create_heptagon`.
+  `STEVECAD_NATIVE_SKETCH_GEOMETRY_GUI_OK operations=create_point,create_line,create_polyline,create_arc,create3_point_arc,create_arc_of_ellipse,create_arc_of_hyperbola,create_arc_of_parabola,create_circle,create3_point_circle,create_ellipse,create3_point_ellipse,create_rectangle,create_center_rectangle,create_oblong,create_triangle,create_square,create_pentagon,create_hexagon,create_heptagon`.
   The focused contract suite is 1,133/1,133 green with four intentional skips,
   the 527-action live ribbon gate remains green, source and built runtime
   copies are byte-identical, and the touched Python files pass Ruff. The
   protected Sketcher VibeScript lifecycle emits
-  `VIBECAD_SKETCHER_VIBESCRIPT_FINAL_OK_TRUE`, and all 17 protected Part Design
-  phases emit `VIBECAD_VIBESCRIPT_FINAL_OK_TRUE`, both with exit code zero.
+  `STEVECAD_SKETCHER_VIBESCRIPT_FINAL_OK_TRUE`, and all 17 protected Part Design
+  phases emit `STEVECAD_VIBESCRIPT_FINAL_OK_TRUE`, both with exit code zero.
 - Contextual Sketch Octagon is the twenty-first exact `sketch.geometry`
   variant and maps only `Sketcher_CreateOctagon`; arbitrary Regular Polygon is
   now the next unfinished geometry action. Its 51-line fixed-eight-side
@@ -1855,13 +1855,13 @@ implementation changes:
   twenty-entry undo retention limit; the gate proves the new named Octagon
   transaction replaces only the oldest retained entry and still undoes and
   redoes as one coherent step. It emits
-  `VIBECAD_NATIVE_SKETCH_GEOMETRY_GUI_OK operations=create_point,create_line,create_polyline,create_arc,create3_point_arc,create_arc_of_ellipse,create_arc_of_hyperbola,create_arc_of_parabola,create_circle,create3_point_circle,create_ellipse,create3_point_ellipse,create_rectangle,create_center_rectangle,create_oblong,create_triangle,create_square,create_pentagon,create_hexagon,create_heptagon,create_octagon`.
+  `STEVECAD_NATIVE_SKETCH_GEOMETRY_GUI_OK operations=create_point,create_line,create_polyline,create_arc,create3_point_arc,create_arc_of_ellipse,create_arc_of_hyperbola,create_arc_of_parabola,create_circle,create3_point_circle,create_ellipse,create3_point_ellipse,create_rectangle,create_center_rectangle,create_oblong,create_triangle,create_square,create_pentagon,create_hexagon,create_heptagon,create_octagon`.
   The focused contract suite is 1,137/1,137 green with four intentional skips,
   the 527-action live ribbon gate remains green, source and built runtime
   copies are byte-identical, and the touched Python files pass Ruff. The
   protected Sketcher VibeScript lifecycle emits
-  `VIBECAD_SKETCHER_VIBESCRIPT_FINAL_OK_TRUE`, and all 17 protected Part Design
-  phases emit `VIBECAD_VIBESCRIPT_FINAL_OK_TRUE`, both with exit code zero.
+  `STEVECAD_SKETCHER_VIBESCRIPT_FINAL_OK_TRUE`, and all 17 protected Part Design
+  phases emit `STEVECAD_VIBESCRIPT_FINAL_OK_TRUE`, both with exit code zero.
 - Contextual Sketch arbitrary Regular Polygon is the twenty-second exact
   `sketch.geometry` variant and maps only `Sketcher_CreateRegularPolygon`;
   straight Slot is now the next unfinished geometry action. Its 65-line
@@ -1884,13 +1884,13 @@ implementation changes:
   named transaction at the twenty-entry undo limit, one-step undo/redo,
   unchanged active Sketch/ribbon/workbench identity, and all twenty-two
   operations after FCStd save/reopen. It emits
-  `VIBECAD_NATIVE_SKETCH_GEOMETRY_GUI_OK operations=create_point,create_line,create_polyline,create_arc,create3_point_arc,create_arc_of_ellipse,create_arc_of_hyperbola,create_arc_of_parabola,create_circle,create3_point_circle,create_ellipse,create3_point_ellipse,create_rectangle,create_center_rectangle,create_oblong,create_triangle,create_square,create_pentagon,create_hexagon,create_heptagon,create_octagon,create_regular_polygon`.
+  `STEVECAD_NATIVE_SKETCH_GEOMETRY_GUI_OK operations=create_point,create_line,create_polyline,create_arc,create3_point_arc,create_arc_of_ellipse,create_arc_of_hyperbola,create_arc_of_parabola,create_circle,create3_point_circle,create_ellipse,create3_point_ellipse,create_rectangle,create_center_rectangle,create_oblong,create_triangle,create_square,create_pentagon,create_hexagon,create_heptagon,create_octagon,create_regular_polygon`.
   The focused contract suite is 1,144/1,144 green with four intentional skips,
   the 527-action live ribbon gate remains green, source and built runtime
   copies are byte-identical, and the touched Python files pass Ruff. The
   protected Sketcher VibeScript lifecycle emits
-  `VIBECAD_SKETCHER_VIBESCRIPT_FINAL_OK_TRUE`, and all 17 protected Part Design
-  phases emit `VIBECAD_VIBESCRIPT_FINAL_OK_TRUE`, both with exit code zero.
+  `STEVECAD_SKETCHER_VIBESCRIPT_FINAL_OK_TRUE`, and all 17 protected Part Design
+  phases emit `STEVECAD_VIBESCRIPT_FINAL_OK_TRUE`, both with exit code zero.
 - Contextual Sketch straight Slot is the twenty-third exact `sketch.geometry`
   variant and maps only `Sketcher_CreateSlot`; arc Slot is now the next
   unfinished geometry action. Its 359-line domain follows
@@ -1913,13 +1913,13 @@ implementation changes:
   transaction at FreeCAD's twenty-entry undo limit, one-step undo/redo,
   unchanged active Sketch/ribbon/workbench identity, and all twenty-three
   operations after FCStd save/reopen. It emits
-  `VIBECAD_NATIVE_SKETCH_GEOMETRY_GUI_OK operations=create_point,create_line,create_polyline,create_arc,create3_point_arc,create_arc_of_ellipse,create_arc_of_hyperbola,create_arc_of_parabola,create_circle,create3_point_circle,create_ellipse,create3_point_ellipse,create_rectangle,create_center_rectangle,create_oblong,create_triangle,create_square,create_pentagon,create_hexagon,create_heptagon,create_octagon,create_regular_polygon,create_slot`.
+  `STEVECAD_NATIVE_SKETCH_GEOMETRY_GUI_OK operations=create_point,create_line,create_polyline,create_arc,create3_point_arc,create_arc_of_ellipse,create_arc_of_hyperbola,create_arc_of_parabola,create_circle,create3_point_circle,create_ellipse,create3_point_ellipse,create_rectangle,create_center_rectangle,create_oblong,create_triangle,create_square,create_pentagon,create_hexagon,create_heptagon,create_octagon,create_regular_polygon,create_slot`.
   The focused contract suite is 1,151/1,151 green with four intentional skips,
   the 527-action live ribbon gate remains green, source and built runtime
   copies are byte-identical, and the touched Python files pass Ruff. The
   protected Sketcher VibeScript lifecycle emits
-  `VIBECAD_SKETCHER_VIBESCRIPT_FINAL_OK_TRUE`, and all 17 protected Part Design
-  phases emit `VIBECAD_VIBESCRIPT_FINAL_OK_TRUE`, both with exit code zero.
+  `STEVECAD_SKETCHER_VIBESCRIPT_FINAL_OK_TRUE`, and all 17 protected Part Design
+  phases emit `STEVECAD_VIBESCRIPT_FINAL_OK_TRUE`, both with exit code zero.
 - Contextual Sketch Arc Slot is the twenty-fourth exact `sketch.geometry`
   variant and maps only `Sketcher_CreateArcSlot`; non-periodic B-spline is now
   the next unfinished geometry action. Its 458-line domain follows the shipped
@@ -1946,13 +1946,13 @@ implementation changes:
   retains its newest named transaction at the twenty-entry undo limit, exact
   one-step undo/redo, unchanged active Sketch/ribbon/workbench identity, and
   all twenty-four operations after FCStd save/reopen. It emits
-  `VIBECAD_NATIVE_SKETCH_GEOMETRY_GUI_OK operations=create_point,create_line,create_polyline,create_arc,create3_point_arc,create_arc_of_ellipse,create_arc_of_hyperbola,create_arc_of_parabola,create_circle,create3_point_circle,create_ellipse,create3_point_ellipse,create_rectangle,create_center_rectangle,create_oblong,create_triangle,create_square,create_pentagon,create_hexagon,create_heptagon,create_octagon,create_regular_polygon,create_slot,create_arc_slot`.
+  `STEVECAD_NATIVE_SKETCH_GEOMETRY_GUI_OK operations=create_point,create_line,create_polyline,create_arc,create3_point_arc,create_arc_of_ellipse,create_arc_of_hyperbola,create_arc_of_parabola,create_circle,create3_point_circle,create_ellipse,create3_point_ellipse,create_rectangle,create_center_rectangle,create_oblong,create_triangle,create_square,create_pentagon,create_hexagon,create_heptagon,create_octagon,create_regular_polygon,create_slot,create_arc_slot`.
   The focused contract suite is 1,161/1,161 green with four intentional skips,
   the 527-action live ribbon gate remains green, source and built runtime
   copies are byte-identical, and the touched Python files pass Ruff. The
   protected Sketcher VibeScript lifecycle emits
-  `VIBECAD_SKETCHER_VIBESCRIPT_FINAL_OK_TRUE`, and all 17 protected Part Design
-  phases emit `VIBECAD_VIBESCRIPT_FINAL_OK_TRUE`, both with exit code zero.
+  `STEVECAD_SKETCHER_VIBESCRIPT_FINAL_OK_TRUE`, and all 17 protected Part Design
+  phases emit `STEVECAD_VIBESCRIPT_FINAL_OK_TRUE`, both with exit code zero.
 - Contextual non-periodic control-point B-spline is the twenty-fifth exact
   `sketch.geometry` variant and maps only `Sketcher_CreateBSpline`; periodic
   B-spline is now the next unfinished geometry action and continues to keep
@@ -1979,13 +1979,13 @@ implementation changes:
   of the newest named transaction at FreeCAD's twenty-entry undo limit,
   one-step undo/redo, unchanged active Sketch/ribbon/workbench identity, and
   all twenty-five operations after FCStd save/reopen. It emits
-  `VIBECAD_NATIVE_SKETCH_GEOMETRY_GUI_OK operations=create_point,create_line,create_polyline,create_arc,create3_point_arc,create_arc_of_ellipse,create_arc_of_hyperbola,create_arc_of_parabola,create_circle,create3_point_circle,create_ellipse,create3_point_ellipse,create_rectangle,create_center_rectangle,create_oblong,create_triangle,create_square,create_pentagon,create_hexagon,create_heptagon,create_octagon,create_regular_polygon,create_slot,create_arc_slot,create_b_spline`.
+  `STEVECAD_NATIVE_SKETCH_GEOMETRY_GUI_OK operations=create_point,create_line,create_polyline,create_arc,create3_point_arc,create_arc_of_ellipse,create_arc_of_hyperbola,create_arc_of_parabola,create_circle,create3_point_circle,create_ellipse,create3_point_ellipse,create_rectangle,create_center_rectangle,create_oblong,create_triangle,create_square,create_pentagon,create_hexagon,create_heptagon,create_octagon,create_regular_polygon,create_slot,create_arc_slot,create_b_spline`.
   The focused contract suite is 1,171/1,171 green with four intentional skips,
   the 527-action live ribbon gate remains green, source and built runtime
   copies are byte-identical, and the touched Python files pass Ruff. The
   protected Sketcher VibeScript lifecycle emits
-  `VIBECAD_SKETCHER_VIBESCRIPT_FINAL_OK_TRUE`, and all 17 protected Part Design
-  phases emit `VIBECAD_VIBESCRIPT_FINAL_OK_TRUE`, both with exit code zero.
+  `STEVECAD_SKETCHER_VIBESCRIPT_FINAL_OK_TRUE`, and all 17 protected Part Design
+  phases emit `STEVECAD_VIBESCRIPT_FINAL_OK_TRUE`, both with exit code zero.
 - Contextual periodic control-point B-spline is the twenty-sixth exact
   `sketch.geometry` variant and maps only `Sketcher_CreatePeriodicBSpline`;
   interpolated B-spline is now the next unfinished geometry action and keeps
@@ -2013,13 +2013,13 @@ implementation changes:
   named transaction at FreeCAD's twenty-entry undo limit, one-step undo/redo,
   unchanged active Sketch/ribbon/workbench identity, and all twenty-six
   operations after FCStd save/reopen. It emits
-  `VIBECAD_NATIVE_SKETCH_GEOMETRY_GUI_OK operations=create_point,create_line,create_polyline,create_arc,create3_point_arc,create_arc_of_ellipse,create_arc_of_hyperbola,create_arc_of_parabola,create_circle,create3_point_circle,create_ellipse,create3_point_ellipse,create_rectangle,create_center_rectangle,create_oblong,create_triangle,create_square,create_pentagon,create_hexagon,create_heptagon,create_octagon,create_regular_polygon,create_slot,create_arc_slot,create_b_spline,create_periodic_b_spline`.
+  `STEVECAD_NATIVE_SKETCH_GEOMETRY_GUI_OK operations=create_point,create_line,create_polyline,create_arc,create3_point_arc,create_arc_of_ellipse,create_arc_of_hyperbola,create_arc_of_parabola,create_circle,create3_point_circle,create_ellipse,create3_point_ellipse,create_rectangle,create_center_rectangle,create_oblong,create_triangle,create_square,create_pentagon,create_hexagon,create_heptagon,create_octagon,create_regular_polygon,create_slot,create_arc_slot,create_b_spline,create_periodic_b_spline`.
   The focused contract suite is 1,180/1,180 green with four intentional skips,
   the 527-action live ribbon gate remains green, source and built runtime
   copies are byte-identical, and the touched Python files pass Ruff. The
   protected Sketcher VibeScript lifecycle emits
-  `VIBECAD_SKETCHER_VIBESCRIPT_FINAL_OK_TRUE`, and all 17 protected Part Design
-  phases emit `VIBECAD_VIBESCRIPT_FINAL_OK_TRUE`, both with exit code zero.
+  `STEVECAD_SKETCHER_VIBESCRIPT_FINAL_OK_TRUE`, and all 17 protected Part Design
+  phases emit `STEVECAD_VIBESCRIPT_FINAL_OK_TRUE`, both with exit code zero.
 - Contextual non-periodic interpolated B-spline is the twenty-seventh exact
   `sketch.geometry` variant and maps only
   `Sketcher_CreateBSplineByInterpolation`; periodic interpolated B-spline is
@@ -2050,13 +2050,13 @@ implementation changes:
   retention of the newest named transaction at FreeCAD's twenty-entry undo
   limit, one-step undo/redo, unchanged active Sketch/ribbon/workbench identity,
   and all twenty-seven operations after FCStd save/reopen. It emits
-  `VIBECAD_NATIVE_SKETCH_GEOMETRY_GUI_OK operations=create_point,create_line,create_polyline,create_arc,create3_point_arc,create_arc_of_ellipse,create_arc_of_hyperbola,create_arc_of_parabola,create_circle,create3_point_circle,create_ellipse,create3_point_ellipse,create_rectangle,create_center_rectangle,create_oblong,create_triangle,create_square,create_pentagon,create_hexagon,create_heptagon,create_octagon,create_regular_polygon,create_slot,create_arc_slot,create_b_spline,create_periodic_b_spline,create_b_spline_by_interpolation`.
+  `STEVECAD_NATIVE_SKETCH_GEOMETRY_GUI_OK operations=create_point,create_line,create_polyline,create_arc,create3_point_arc,create_arc_of_ellipse,create_arc_of_hyperbola,create_arc_of_parabola,create_circle,create3_point_circle,create_ellipse,create3_point_ellipse,create_rectangle,create_center_rectangle,create_oblong,create_triangle,create_square,create_pentagon,create_hexagon,create_heptagon,create_octagon,create_regular_polygon,create_slot,create_arc_slot,create_b_spline,create_periodic_b_spline,create_b_spline_by_interpolation`.
   The focused contract suite is 1,186/1,186 green with four intentional skips,
   the 527-action live ribbon gate remains green, source and built runtime
   copies are byte-identical, and the touched Python files pass Ruff. The
   protected Sketcher VibeScript lifecycle emits
-  `VIBECAD_SKETCHER_VIBESCRIPT_FINAL_OK_TRUE`, and all 17 protected Part Design
-  phases emit `VIBECAD_VIBESCRIPT_FINAL_OK_TRUE`, both with exit code zero.
+  `STEVECAD_SKETCHER_VIBESCRIPT_FINAL_OK_TRUE`, and all 17 protected Part Design
+  phases emit `STEVECAD_VIBESCRIPT_FINAL_OK_TRUE`, both with exit code zero.
 - Contextual periodic interpolated B-spline is the twenty-eighth exact
   `sketch.geometry` variant and maps only
   `Sketcher_CreatePeriodicBSplineByInterpolation`; Sketch text is now the next
@@ -2083,13 +2083,13 @@ implementation changes:
   retention of the newest named transaction at FreeCAD's twenty-entry undo
   limit, one-step undo/redo, unchanged active Sketch/ribbon/workbench identity,
   and all twenty-eight operations after FCStd save/reopen. It emits
-  `VIBECAD_NATIVE_SKETCH_GEOMETRY_GUI_OK operations=create_point,create_line,create_polyline,create_arc,create3_point_arc,create_arc_of_ellipse,create_arc_of_hyperbola,create_arc_of_parabola,create_circle,create3_point_circle,create_ellipse,create3_point_ellipse,create_rectangle,create_center_rectangle,create_oblong,create_triangle,create_square,create_pentagon,create_hexagon,create_heptagon,create_octagon,create_regular_polygon,create_slot,create_arc_slot,create_b_spline,create_periodic_b_spline,create_b_spline_by_interpolation,create_periodic_b_spline_by_interpolation`.
+  `STEVECAD_NATIVE_SKETCH_GEOMETRY_GUI_OK operations=create_point,create_line,create_polyline,create_arc,create3_point_arc,create_arc_of_ellipse,create_arc_of_hyperbola,create_arc_of_parabola,create_circle,create3_point_circle,create_ellipse,create3_point_ellipse,create_rectangle,create_center_rectangle,create_oblong,create_triangle,create_square,create_pentagon,create_hexagon,create_heptagon,create_octagon,create_regular_polygon,create_slot,create_arc_slot,create_b_spline,create_periodic_b_spline,create_b_spline_by_interpolation,create_periodic_b_spline_by_interpolation`.
   The focused contract suite is 1,193/1,193 green with four intentional skips,
   the 527-action live ribbon gate remains green, source and built runtime copies
   are byte-identical, and the touched Python files pass Ruff. The protected
   Sketcher VibeScript lifecycle emits
-  `VIBECAD_SKETCHER_VIBESCRIPT_FINAL_OK_TRUE`, and all 17 protected Part Design
-  phases emit `VIBECAD_VIBESCRIPT_FINAL_OK_TRUE`, both with exit code zero.
+  `STEVECAD_SKETCHER_VIBESCRIPT_FINAL_OK_TRUE`, and all 17 protected Part Design
+  phases emit `STEVECAD_VIBESCRIPT_FINAL_OK_TRUE`, both with exit code zero.
 - Contextual Sketch Text is the twenty-ninth exact `sketch.geometry` variant
   and maps only `Sketcher_CreateText`; at that checkpoint Construction-state
   changes remained the next unfinished Sketch action and production Sketch
@@ -2124,13 +2124,13 @@ implementation changes:
   undo limit, one-step undo/redo, unchanged active Sketch/ribbon/workbench
   identity, the new read-only constraint properties, and all twenty-nine
   operations after FCStd save/reopen. It emits
-  `VIBECAD_NATIVE_SKETCH_GEOMETRY_GUI_OK operations=create_point,create_line,create_polyline,create_arc,create3_point_arc,create_arc_of_ellipse,create_arc_of_hyperbola,create_arc_of_parabola,create_circle,create3_point_circle,create_ellipse,create3_point_ellipse,create_rectangle,create_center_rectangle,create_oblong,create_triangle,create_square,create_pentagon,create_hexagon,create_heptagon,create_octagon,create_regular_polygon,create_slot,create_arc_slot,create_b_spline,create_periodic_b_spline,create_b_spline_by_interpolation,create_periodic_b_spline_by_interpolation,create_text`.
-  The rebuilt Sketcher core and VibeCAD scripts are green, the focused contract
+  `STEVECAD_NATIVE_SKETCH_GEOMETRY_GUI_OK operations=create_point,create_line,create_polyline,create_arc,create3_point_arc,create_arc_of_ellipse,create_arc_of_hyperbola,create_arc_of_parabola,create_circle,create3_point_circle,create_ellipse,create3_point_ellipse,create_rectangle,create_center_rectangle,create_oblong,create_triangle,create_square,create_pentagon,create_hexagon,create_heptagon,create_octagon,create_regular_polygon,create_slot,create_arc_slot,create_b_spline,create_periodic_b_spline,create_b_spline_by_interpolation,create_periodic_b_spline_by_interpolation,create_text`.
+  The rebuilt Sketcher core and SteveCAD scripts are green, the focused contract
   suite is 1,208/1,208 green with four intentional skips, the 527-action live
   ribbon gate remains green, source and built runtime copies are byte-identical,
   and the touched Python files pass Ruff. The protected Sketcher VibeScript
-  lifecycle emits `VIBECAD_SKETCHER_VIBESCRIPT_FINAL_OK_TRUE`, and all 17
-  protected Part Design phases emit `VIBECAD_VIBESCRIPT_FINAL_OK_TRUE`, both
+  lifecycle emits `STEVECAD_SKETCHER_VIBESCRIPT_FINAL_OK_TRUE`, and all 17
+  protected Part Design phases emit `STEVECAD_VIBESCRIPT_FINAL_OK_TRUE`, both
   with exit code zero.
 - Sketch Construction is the thirtieth exact `sketch.geometry` variant and
   maps only `Sketcher_ToggleConstruction`; at that checkpoint,
@@ -2166,9 +2166,9 @@ implementation changes:
   exact concise response and receipt, unchanged active Sketch/ribbon/workbench,
   and both durable states plus all thirty operations after FCStd save/reopen.
   It emits
-  `VIBECAD_NATIVE_SKETCH_GEOMETRY_GUI_OK operations=create_point,create_line,create_polyline,create_arc,create3_point_arc,create_arc_of_ellipse,create_arc_of_hyperbola,create_arc_of_parabola,create_circle,create3_point_circle,create_ellipse,create3_point_ellipse,create_rectangle,create_center_rectangle,create_oblong,create_triangle,create_square,create_pentagon,create_hexagon,create_heptagon,create_octagon,create_regular_polygon,create_slot,create_arc_slot,create_b_spline,create_periodic_b_spline,create_b_spline_by_interpolation,create_periodic_b_spline_by_interpolation,create_text,toggle_construction`.
+  `STEVECAD_NATIVE_SKETCH_GEOMETRY_GUI_OK operations=create_point,create_line,create_polyline,create_arc,create3_point_arc,create_arc_of_ellipse,create_arc_of_hyperbola,create_arc_of_parabola,create_circle,create3_point_circle,create_ellipse,create3_point_ellipse,create_rectangle,create_center_rectangle,create_oblong,create_triangle,create_square,create_pentagon,create_hexagon,create_heptagon,create_octagon,create_regular_polygon,create_slot,create_arc_slot,create_b_spline,create_periodic_b_spline,create_b_spline_by_interpolation,create_periodic_b_spline_by_interpolation,create_text,toggle_construction`.
   Construction/schema/state tests are 49/49 green, and the full current
-  `vibecad_tests` sweep is 1,561/1,561 green with four intentional skips. The
+  `stevecad_tests` sweep is 1,561/1,561 green with four intentional skips. The
   rebuilt runtime passed the real GUI lifecycle, and the previously completed
   527-action live ribbon and protected Sketcher/Part Design VibeScript gates
   remain green.
@@ -2213,9 +2213,9 @@ implementation changes:
   preserves the human selection, reaches FreeCAD's twenty-entry undo cap,
   proves one-step undo/redo, and verifies all thirty geometry operations plus
   the inferred dimension after FCStd save/reopen. It emits
-  `VIBECAD_NATIVE_SKETCH_GEOMETRY_GUI_OK operations=create_point,create_line,create_polyline,create_arc,create3_point_arc,create_arc_of_ellipse,create_arc_of_hyperbola,create_arc_of_parabola,create_circle,create3_point_circle,create_ellipse,create3_point_ellipse,create_rectangle,create_center_rectangle,create_oblong,create_triangle,create_square,create_pentagon,create_hexagon,create_heptagon,create_octagon,create_regular_polygon,create_slot,create_arc_slot,create_b_spline,create_periodic_b_spline,create_b_spline_by_interpolation,create_periodic_b_spline_by_interpolation,create_text,toggle_construction,infer_dimension`.
+  `STEVECAD_NATIVE_SKETCH_GEOMETRY_GUI_OK operations=create_point,create_line,create_polyline,create_arc,create3_point_arc,create_arc_of_ellipse,create_arc_of_hyperbola,create_arc_of_parabola,create_circle,create3_point_circle,create_ellipse,create3_point_ellipse,create_rectangle,create_center_rectangle,create_oblong,create_triangle,create_square,create_pentagon,create_hexagon,create_heptagon,create_octagon,create_regular_polygon,create_slot,create_arc_slot,create_b_spline,create_periodic_b_spline,create_b_spline_by_interpolation,create_periodic_b_spline_by_interpolation,create_text,toggle_construction,infer_dimension`.
   Dimension/schema tests are 34/34 green, and the full current
-  `vibecad_tests` sweep is 1,595/1,595 green with four intentional skips. The
+  `stevecad_tests` sweep is 1,595/1,595 green with four intentional skips. The
   rebuilt runtime passed the real GUI lifecycle, the 527-action live ribbon
   gate remains green, source and built runtime copies are byte-identical, and
   touched Python passes Ruff. The protected Sketcher VibeScript lifecycle and
@@ -2269,9 +2269,9 @@ implementation changes:
   receipt, unchanged active Sketch/ribbon/workbench, final 173-geometry and
   244-constraint counts, and all prior operations plus horizontal Distance
   after FCStd save/reopen. It emits
-  `VIBECAD_NATIVE_SKETCH_GEOMETRY_GUI_OK operations=create_point,create_line,create_polyline,create_arc,create3_point_arc,create_arc_of_ellipse,create_arc_of_hyperbola,create_arc_of_parabola,create_circle,create3_point_circle,create_ellipse,create3_point_ellipse,create_rectangle,create_center_rectangle,create_oblong,create_triangle,create_square,create_pentagon,create_hexagon,create_heptagon,create_octagon,create_regular_polygon,create_slot,create_arc_slot,create_b_spline,create_periodic_b_spline,create_b_spline_by_interpolation,create_periodic_b_spline_by_interpolation,create_text,toggle_construction,infer_dimension,constrain_distance_x`.
+  `STEVECAD_NATIVE_SKETCH_GEOMETRY_GUI_OK operations=create_point,create_line,create_polyline,create_arc,create3_point_arc,create_arc_of_ellipse,create_arc_of_hyperbola,create_arc_of_parabola,create_circle,create3_point_circle,create_ellipse,create3_point_ellipse,create_rectangle,create_center_rectangle,create_oblong,create_triangle,create_square,create_pentagon,create_hexagon,create_heptagon,create_octagon,create_regular_polygon,create_slot,create_arc_slot,create_b_spline,create_periodic_b_spline,create_b_spline_by_interpolation,create_periodic_b_spline_by_interpolation,create_text,toggle_construction,infer_dimension,constrain_distance_x`.
   The focused constraint/schema/dispatcher suite is 75/75 green, and the full
-  current `vibecad_tests` sweep is 1,626/1,626 green with four intentional
+  current `stevecad_tests` sweep is 1,626/1,626 green with four intentional
   skips. The rebuilt runtime passes the rolling Sketch lifecycle; the
   representative completed Model bracket workflow and 527-action live ribbon
   gate remain green. Source and built runtime copies are byte-identical,
@@ -2318,9 +2318,9 @@ implementation changes:
   one-step undo/redo, unchanged active Sketch/ribbon/workbench, final
   174-geometry and 245-constraint counts, and every prior operation plus
   vertical Distance after FCStd save/reopen. It emits
-  `VIBECAD_NATIVE_SKETCH_GEOMETRY_GUI_OK operations=create_point,create_line,create_polyline,create_arc,create3_point_arc,create_arc_of_ellipse,create_arc_of_hyperbola,create_arc_of_parabola,create_circle,create3_point_circle,create_ellipse,create3_point_ellipse,create_rectangle,create_center_rectangle,create_oblong,create_triangle,create_square,create_pentagon,create_hexagon,create_heptagon,create_octagon,create_regular_polygon,create_slot,create_arc_slot,create_b_spline,create_periodic_b_spline,create_b_spline_by_interpolation,create_periodic_b_spline_by_interpolation,create_text,toggle_construction,infer_dimension,constrain_distance_x,constrain_distance_y`.
+  `STEVECAD_NATIVE_SKETCH_GEOMETRY_GUI_OK operations=create_point,create_line,create_polyline,create_arc,create3_point_arc,create_arc_of_ellipse,create_arc_of_hyperbola,create_arc_of_parabola,create_circle,create3_point_circle,create_ellipse,create3_point_ellipse,create_rectangle,create_center_rectangle,create_oblong,create_triangle,create_square,create_pentagon,create_hexagon,create_heptagon,create_octagon,create_regular_polygon,create_slot,create_arc_slot,create_b_spline,create_periodic_b_spline,create_b_spline_by_interpolation,create_periodic_b_spline_by_interpolation,create_text,toggle_construction,infer_dimension,constrain_distance_x,constrain_distance_y`.
   The focused constraint/schema/dispatcher suite is 105/105 green, and the
-  full current `vibecad_tests` sweep is 1,653/1,653 green with four intentional
+  full current `stevecad_tests` sweep is 1,653/1,653 green with four intentional
   skips. The rebuilt runtime passes the rolling Sketch lifecycle; the
   representative completed Model bracket workflow and 527-action live ribbon
   gate remain green. All packaged touched source/build copies are
@@ -2373,9 +2373,9 @@ implementation changes:
   unchanged active Sketch/ribbon/workbench, final 175-geometry and
   246-constraint counts, and every prior operation plus general Distance after
   FCStd save/reopen. It emits
-  `VIBECAD_NATIVE_SKETCH_GEOMETRY_GUI_OK operations=create_point,create_line,create_polyline,create_arc,create3_point_arc,create_arc_of_ellipse,create_arc_of_hyperbola,create_arc_of_parabola,create_circle,create3_point_circle,create_ellipse,create3_point_ellipse,create_rectangle,create_center_rectangle,create_oblong,create_triangle,create_square,create_pentagon,create_hexagon,create_heptagon,create_octagon,create_regular_polygon,create_slot,create_arc_slot,create_b_spline,create_periodic_b_spline,create_b_spline_by_interpolation,create_periodic_b_spline_by_interpolation,create_text,toggle_construction,infer_dimension,constrain_distance_x,constrain_distance_y,constrain_distance`.
+  `STEVECAD_NATIVE_SKETCH_GEOMETRY_GUI_OK operations=create_point,create_line,create_polyline,create_arc,create3_point_arc,create_arc_of_ellipse,create_arc_of_hyperbola,create_arc_of_parabola,create_circle,create3_point_circle,create_ellipse,create3_point_ellipse,create_rectangle,create_center_rectangle,create_oblong,create_triangle,create_square,create_pentagon,create_hexagon,create_heptagon,create_octagon,create_regular_polygon,create_slot,create_arc_slot,create_b_spline,create_periodic_b_spline,create_b_spline_by_interpolation,create_periodic_b_spline_by_interpolation,create_text,toggle_construction,infer_dimension,constrain_distance_x,constrain_distance_y,constrain_distance`.
   The focused constraint/schema/dispatcher suite is 137/137 green, and the
-  full current `vibecad_tests` sweep is 1,685/1,685 green with four intentional
+  full current `stevecad_tests` sweep is 1,685/1,685 green with four intentional
   skips. The rebuilt runtime passes the clean rolling Sketch lifecycle; the
   representative completed Model bracket workflow and 527-action live ribbon
   gate remain green. All packaged touched source/build copies are
@@ -2425,9 +2425,9 @@ implementation changes:
   exact receipt, one-step undo/redo, active Sketch/ribbon/workbench identity,
   final 176-geometry and 247-constraint counts, and every prior operation plus
   combined Radius/Diameter after FCStd save/reopen. It emits
-  `VIBECAD_NATIVE_SKETCH_GEOMETRY_GUI_OK operations=create_point,create_line,create_polyline,create_arc,create3_point_arc,create_arc_of_ellipse,create_arc_of_hyperbola,create_arc_of_parabola,create_circle,create3_point_circle,create_ellipse,create3_point_ellipse,create_rectangle,create_center_rectangle,create_oblong,create_triangle,create_square,create_pentagon,create_hexagon,create_heptagon,create_octagon,create_regular_polygon,create_slot,create_arc_slot,create_b_spline,create_periodic_b_spline,create_b_spline_by_interpolation,create_periodic_b_spline_by_interpolation,create_text,toggle_construction,infer_dimension,constrain_distance_x,constrain_distance_y,constrain_distance,constrain_radius_diameter`.
+  `STEVECAD_NATIVE_SKETCH_GEOMETRY_GUI_OK operations=create_point,create_line,create_polyline,create_arc,create3_point_arc,create_arc_of_ellipse,create_arc_of_hyperbola,create_arc_of_parabola,create_circle,create3_point_circle,create_ellipse,create3_point_ellipse,create_rectangle,create_center_rectangle,create_oblong,create_triangle,create_square,create_pentagon,create_hexagon,create_heptagon,create_octagon,create_regular_polygon,create_slot,create_arc_slot,create_b_spline,create_periodic_b_spline,create_b_spline_by_interpolation,create_periodic_b_spline_by_interpolation,create_text,toggle_construction,infer_dimension,constrain_distance_x,constrain_distance_y,constrain_distance,constrain_radius_diameter`.
   The focused constraint/schema/dispatcher suite is 164/164 green, and the
-  full current `vibecad_tests` sweep is 1,712/1,712 green with four intentional
+  full current `stevecad_tests` sweep is 1,712/1,712 green with four intentional
   skips. The rebuilt runtime passes the rolling Sketch lifecycle; the
   representative completed Model bracket workflow and 527-action live ribbon
   gate remain green. All packaged touched source/build copies are
@@ -2479,9 +2479,9 @@ implementation changes:
   transaction, one-step undo/redo restoring 4/7.5 mm states, final
   177-geometry and 248-constraint counts, and every prior operation plus
   explicit Radius after FCStd save/reopen. It emits
-  `VIBECAD_NATIVE_SKETCH_GEOMETRY_GUI_OK operations=create_point,create_line,create_polyline,create_arc,create3_point_arc,create_arc_of_ellipse,create_arc_of_hyperbola,create_arc_of_parabola,create_circle,create3_point_circle,create_ellipse,create3_point_ellipse,create_rectangle,create_center_rectangle,create_oblong,create_triangle,create_square,create_pentagon,create_hexagon,create_heptagon,create_octagon,create_regular_polygon,create_slot,create_arc_slot,create_b_spline,create_periodic_b_spline,create_b_spline_by_interpolation,create_periodic_b_spline_by_interpolation,create_text,toggle_construction,infer_dimension,constrain_distance_x,constrain_distance_y,constrain_distance,constrain_radius_diameter,constrain_radius`.
+  `STEVECAD_NATIVE_SKETCH_GEOMETRY_GUI_OK operations=create_point,create_line,create_polyline,create_arc,create3_point_arc,create_arc_of_ellipse,create_arc_of_hyperbola,create_arc_of_parabola,create_circle,create3_point_circle,create_ellipse,create3_point_ellipse,create_rectangle,create_center_rectangle,create_oblong,create_triangle,create_square,create_pentagon,create_hexagon,create_heptagon,create_octagon,create_regular_polygon,create_slot,create_arc_slot,create_b_spline,create_periodic_b_spline,create_b_spline_by_interpolation,create_periodic_b_spline_by_interpolation,create_text,toggle_construction,infer_dimension,constrain_distance_x,constrain_distance_y,constrain_distance,constrain_radius_diameter,constrain_radius`.
   The focused constraint/schema/dispatcher suite is 189/189 green, and the
-  full current `vibecad_tests` sweep is 1,737/1,737 green with four intentional
+  full current `stevecad_tests` sweep is 1,737/1,737 green with four intentional
   skips. The rebuilt runtime passes the clean rolling Sketch lifecycle; the
   representative completed Model bracket workflow and 527-action live ribbon
   gate remain green. All packaged touched source/build copies are
@@ -2531,9 +2531,9 @@ implementation changes:
   exact receipt, named transaction, one-step undo/redo restoring 3/5 mm
   radius states, final 178-geometry and 249-constraint counts, and all earlier
   operations plus Diameter after FCStd save/reopen. It emits
-  `VIBECAD_NATIVE_SKETCH_GEOMETRY_GUI_OK operations=create_point,create_line,create_polyline,create_arc,create3_point_arc,create_arc_of_ellipse,create_arc_of_hyperbola,create_arc_of_parabola,create_circle,create3_point_circle,create_ellipse,create3_point_ellipse,create_rectangle,create_center_rectangle,create_oblong,create_triangle,create_square,create_pentagon,create_hexagon,create_heptagon,create_octagon,create_regular_polygon,create_slot,create_arc_slot,create_b_spline,create_periodic_b_spline,create_b_spline_by_interpolation,create_periodic_b_spline_by_interpolation,create_text,toggle_construction,infer_dimension,constrain_distance_x,constrain_distance_y,constrain_distance,constrain_radius_diameter,constrain_radius,constrain_diameter`.
+  `STEVECAD_NATIVE_SKETCH_GEOMETRY_GUI_OK operations=create_point,create_line,create_polyline,create_arc,create3_point_arc,create_arc_of_ellipse,create_arc_of_hyperbola,create_arc_of_parabola,create_circle,create3_point_circle,create_ellipse,create3_point_ellipse,create_rectangle,create_center_rectangle,create_oblong,create_triangle,create_square,create_pentagon,create_hexagon,create_heptagon,create_octagon,create_regular_polygon,create_slot,create_arc_slot,create_b_spline,create_periodic_b_spline,create_b_spline_by_interpolation,create_periodic_b_spline_by_interpolation,create_text,toggle_construction,infer_dimension,constrain_distance_x,constrain_distance_y,constrain_distance,constrain_radius_diameter,constrain_radius,constrain_diameter`.
   The focused constraint/schema/dispatcher suite is 214/214 green, and the
-  full current `vibecad_tests` sweep is 1,762/1,762 green with four intentional
+  full current `stevecad_tests` sweep is 1,762/1,762 green with four intentional
   skips. The rebuilt runtime passes the clean rolling Sketch lifecycle; the
   representative Model bracket workflow and 527-action live ribbon gate are
   green. All packaged touched source/build copies are byte-identical, touched
@@ -2591,9 +2591,9 @@ implementation changes:
   one-step undo/redo restoring the 60/45-degree states, final 180-geometry and
   250-constraint counts, and every earlier operation plus Angle after FCStd
   save/reopen. It emits
-  `VIBECAD_NATIVE_SKETCH_GEOMETRY_GUI_OK operations=create_point,create_line,create_polyline,create_arc,create3_point_arc,create_arc_of_ellipse,create_arc_of_hyperbola,create_arc_of_parabola,create_circle,create3_point_circle,create_ellipse,create3_point_ellipse,create_rectangle,create_center_rectangle,create_oblong,create_triangle,create_square,create_pentagon,create_hexagon,create_heptagon,create_octagon,create_regular_polygon,create_slot,create_arc_slot,create_b_spline,create_periodic_b_spline,create_b_spline_by_interpolation,create_periodic_b_spline_by_interpolation,create_text,toggle_construction,infer_dimension,constrain_distance_x,constrain_distance_y,constrain_distance,constrain_radius_diameter,constrain_radius,constrain_diameter,constrain_angle`.
+  `STEVECAD_NATIVE_SKETCH_GEOMETRY_GUI_OK operations=create_point,create_line,create_polyline,create_arc,create3_point_arc,create_arc_of_ellipse,create_arc_of_hyperbola,create_arc_of_parabola,create_circle,create3_point_circle,create_ellipse,create3_point_ellipse,create_rectangle,create_center_rectangle,create_oblong,create_triangle,create_square,create_pentagon,create_hexagon,create_heptagon,create_octagon,create_regular_polygon,create_slot,create_arc_slot,create_b_spline,create_periodic_b_spline,create_b_spline_by_interpolation,create_periodic_b_spline_by_interpolation,create_text,toggle_construction,infer_dimension,constrain_distance_x,constrain_distance_y,constrain_distance,constrain_radius_diameter,constrain_radius,constrain_diameter,constrain_angle`.
   The focused constraint/schema/dispatcher suite is 262/262 green, and the
-  full current `vibecad_tests` sweep is 1,810/1,810 green with four intentional
+  full current `stevecad_tests` sweep is 1,810/1,810 green with four intentional
   skips. The rebuilt runtime passes the clean rolling Sketch lifecycle; the
   representative Model bracket workflow and 527-action live ribbon gate are
   green. All packaged touched source/build copies are byte-identical, touched
@@ -2655,9 +2655,9 @@ implementation changes:
   removing both constraints, one-step redo restoring both, final 181-geometry
   and 252-constraint counts, and every earlier operation plus Lock after FCStd
   save/reopen. It emits
-  `VIBECAD_NATIVE_SKETCH_GEOMETRY_GUI_OK operations=create_point,create_line,create_polyline,create_arc,create3_point_arc,create_arc_of_ellipse,create_arc_of_hyperbola,create_arc_of_parabola,create_circle,create3_point_circle,create_ellipse,create3_point_ellipse,create_rectangle,create_center_rectangle,create_oblong,create_triangle,create_square,create_pentagon,create_hexagon,create_heptagon,create_octagon,create_regular_polygon,create_slot,create_arc_slot,create_b_spline,create_periodic_b_spline,create_b_spline_by_interpolation,create_periodic_b_spline_by_interpolation,create_text,toggle_construction,infer_dimension,constrain_distance_x,constrain_distance_y,constrain_distance,constrain_radius_diameter,constrain_radius,constrain_diameter,constrain_angle,constrain_lock`.
+  `STEVECAD_NATIVE_SKETCH_GEOMETRY_GUI_OK operations=create_point,create_line,create_polyline,create_arc,create3_point_arc,create_arc_of_ellipse,create_arc_of_hyperbola,create_arc_of_parabola,create_circle,create3_point_circle,create_ellipse,create3_point_ellipse,create_rectangle,create_center_rectangle,create_oblong,create_triangle,create_square,create_pentagon,create_hexagon,create_heptagon,create_octagon,create_regular_polygon,create_slot,create_arc_slot,create_b_spline,create_periodic_b_spline,create_b_spline_by_interpolation,create_periodic_b_spline_by_interpolation,create_text,toggle_construction,infer_dimension,constrain_distance_x,constrain_distance_y,constrain_distance,constrain_radius_diameter,constrain_radius,constrain_diameter,constrain_angle,constrain_lock`.
   The focused constraint/schema/dispatcher suite is 295/295 green, and the
-  full current `vibecad_tests` sweep is 1,843/1,843 green with four intentional
+  full current `stevecad_tests` sweep is 1,843/1,843 green with four intentional
   skips. The rebuilt rolling Sketch lifecycle, representative Model bracket
   workflow, and 527-action live ribbon gate are green. All packaged touched
   source/build copies are byte-identical, touched Python passes Ruff, and
@@ -2705,7 +2705,7 @@ implementation changes:
   255-constraint counts. It emits the complete rolling marker ending in
   `constrain_angle,constrain_lock,constrain_coincident`.
   The focused constraint/schema/dispatcher suite is 332/332 green, and the
-  full current `vibecad_tests` sweep is 1,880/1,880 green with four intentional
+  full current `stevecad_tests` sweep is 1,880/1,880 green with four intentional
   skips. The ten constraint variants serialize to exactly 8,056 bytes; the
   thirty geometry plus ten constraint variants total 19,973 bytes against the
   unchanged 65,536-byte cap. The rebuilt rolling Sketch lifecycle,
@@ -2754,7 +2754,7 @@ implementation changes:
   complete rolling marker ending in
   `constrain_coincident,constrain_horizontal_vertical`.
   The focused constraint/schema/dispatcher suite is 365/365 green, and the
-  full current `vibecad_tests` sweep is 1,913/1,913 green with four intentional
+  full current `stevecad_tests` sweep is 1,913/1,913 green with four intentional
   skips. The individual Horizontal/Vertical schema is exactly 1,772 bytes;
   all eleven constraint variants serialize to exactly 10,030 bytes, and the
   thirty geometry plus eleven constraint variants total 21,947 bytes against
@@ -2811,7 +2811,7 @@ implementation changes:
   counts. It emits the complete rolling marker ending in
   `constrain_horizontal_vertical,constrain_horizontal`.
   The focused constraint/schema/dispatcher suite is 407/407 green, and the
-  full current `vibecad_tests` sweep is 1,941/1,941 green with four intentional
+  full current `stevecad_tests` sweep is 1,941/1,941 green with four intentional
   skips. The individual Horizontal schema is exactly 1,670 bytes; all twelve
   constraint variants serialize to exactly 10,197 bytes, and the thirty
   geometry plus twelve constraint variants total 22,114 bytes against the
@@ -2862,7 +2862,7 @@ implementation changes:
   the complete rolling marker ending in
   `constrain_horizontal,constrain_vertical`.
   The focused constraint/schema/dispatcher suite is 435/435 green, and the
-  full current `vibecad_tests` sweep is 1,969/1,969 green with four intentional
+  full current `stevecad_tests` sweep is 1,969/1,969 green with four intentional
   skips. The individual Vertical schema is exactly 1,668 bytes; all thirteen
   constraint variants serialize to exactly 10,257 bytes, and the thirty
   geometry plus thirteen constraint variants total 22,174 bytes against the
@@ -2915,7 +2915,7 @@ implementation changes:
   final 200-geometry and 264-constraint counts. It emits the complete rolling
   marker ending in `constrain_vertical,constrain_parallel`.
   The focused constraint/schema/dispatcher suite is 464/464 green, and the
-  full current `vibecad_tests` sweep is 1,998/1,998 green with four intentional
+  full current `stevecad_tests` sweep is 1,998/1,998 green with four intentional
   skips. The individual Parallel schema is exactly 1,228 bytes; all fourteen
   constraint variants serialize to exactly 10,730 bytes, and the thirty
   geometry plus fourteen constraint variants total 22,647 bytes against the
@@ -2968,7 +2968,7 @@ implementation changes:
   counts. The rolling marker now ends in
   `constrain_parallel,constrain_perpendicular`.
   The focused constraint/schema/dispatcher suite is 473/473 green, and the
-  full current `vibecad_tests` sweep is 2,024/2,024 green with four intentional
+  full current `stevecad_tests` sweep is 2,024/2,024 green with four intentional
   skips. The individual Perpendicular schema is exactly 6,190 bytes; all
   fifteen constraint variants serialize to exactly 16,181 bytes, and the
   thirty geometry plus fifteen constraint variants total 28,097 bytes against
@@ -3038,7 +3038,7 @@ implementation changes:
   after FCStd save/reopen at final 240-geometry and 291-constraint counts. The
   rolling marker now ends in
   `constrain_perpendicular,constrain_tangent`.
-  The full current `vibecad_tests` sweep is 2,077/2,077 green with four
+  The full current `stevecad_tests` sweep is 2,077/2,077 green with four
   intentional skips. The individual Tangent schema is exactly 6,920 bytes;
   all sixteen constraint variants serialize to exactly 22,350 bytes, and the
   thirty geometry plus sixteen constraint variants total 34,266 bytes against
@@ -3062,9 +3062,9 @@ implementation changes:
   transitive membership in the existing Equal graph are both rejected before
   mutation rather than relying on the host solver's permissive redundant-call
   diagnosis.
-  `VibeCADNativeSketchEqual.py` is a 175-line transaction domain,
-  `VibeCADNativeSketchEqualMeasure.py` is a 196-line family/postcondition
-  module, and `VibeCADNativeSketchEqualTarget.py` is a 305-line exact target
+  `SteveCADNativeSketchEqual.py` is a 175-line transaction domain,
+  `SteveCADNativeSketchEqualMeasure.py` is a 196-line family/postcondition
+  module, and `SteveCADNativeSketchEqualTarget.py` is a 305-line exact target
   validator. They freeze geometry, constraints, external geometry, solver
   state, owning B-spline alignment, and family measurements; diagnose the
   complete proposed constraint chain; recheck every target immediately before
@@ -3082,7 +3082,7 @@ implementation changes:
   pole owners, fixed/external limits, stale state, solver rejection,
   feasibility side effects, and preflight/postcondition drift without retained
   mutation. The complete Native Sketch suite is 804/804 green, and the full
-  current `vibecad_tests` sweep is 2,106/2,106 green with four intentional
+  current `stevecad_tests` sweep is 2,106/2,106 green with four intentional
   skips. The individual Equal schema is exactly 1,226 bytes; all seventeen
   constraint variants serialize to exactly 22,815 bytes; and the thirty
   geometry plus seventeen constraint variants total 34,731 bytes against the
@@ -3117,10 +3117,10 @@ implementation changes:
   point order is canonical, and the curve forms expand to exact start/end
   references so an equivalent existing endpoint-pair Symmetric constraint is
   also refused as a duplicate.
-  `VibeCADNativeSketchSymmetric.py` is a 180-line transaction domain,
-  `VibeCADNativeSketchSymmetricMeasure.py` is a 148-line reflection and
+  `SteveCADNativeSketchSymmetric.py` is a 180-line transaction domain,
+  `SteveCADNativeSketchSymmetricMeasure.py` is a 148-line reflection and
   midpoint postcondition module, and
-  `VibeCADNativeSketchSymmetricTarget.py` is a 334-line exact target validator.
+  `SteveCADNativeSketchSymmetricTarget.py` is a 334-line exact target validator.
   They support line segments, circular, elliptical, hyperbolic, and parabolic
   arcs, and non-periodic B-splines; full conics, periodic B-splines,
   non-straight symmetry lines, self-reference, own-endpoint references,
@@ -3140,7 +3140,7 @@ implementation changes:
   group, and internal geometry, solver rejection, incomplete diagnostics,
   feasibility side effects, preflight drift, postcondition drift, and exact
   runtime routing. The complete Native Sketch suite is 846/846 green, and the
-  full current `vibecad_tests` sweep is 2,148/2,148 green with four intentional
+  full current `stevecad_tests` sweep is 2,148/2,148 green with four intentional
   skips. The individual Symmetric schema is exactly 5,352 bytes; all eighteen
   constraint variants serialize to exactly 27,420 bytes; and the thirty
   geometry plus eighteen constraint variants total 39,336 bytes against the
@@ -3158,7 +3158,7 @@ implementation changes:
   291-constraint and Equal sketches, and reopens all three successfully. Its
   final marker now ends in
   `constrain_tangent,constrain_equal,constrain_symmetric`.
-  The rebuilt Sketcher and VibeCAD script targets, representative Model bracket
+  The rebuilt Sketcher and SteveCAD script targets, representative Model bracket
   workflow, and 527-action live ribbon gate are green. All ten packaged
   touched source/build copies are byte-identical, touched Python passes Ruff,
   and `git diff --check` is clean. The protected Sketcher VibeScript lifecycle
@@ -3179,8 +3179,8 @@ implementation changes:
   blocked facades without matching constraints are refused before mutation.
   An exact group handle remains a valid whole-edge target; creation and
   behavior of Constraint Groups remains the next unfinished action.
-  `VibeCADNativeSketchBlock.py` is a 204-line atomic transaction domain and
-  `VibeCADNativeSketchBlockTarget.py` is a 144-line exact target validator.
+  `SteveCADNativeSketchBlock.py` is a 204-line atomic transaction domain and
+  `SteveCADNativeSketchBlockTarget.py` is a 144-line exact target validator.
   Preflight freezes all geometry, constraints, external geometry, and solver
   issues; proves counts and exact targets are current; diagnoses the complete
   proposed Block set on copied geometry; proves diagnosis did not alter live
@@ -3199,7 +3199,7 @@ implementation changes:
   existing, and malformed targets, stale counts, solver rejection, incomplete
   or inconsistent diagnostics, diagnostic side effects, preflight drift, and
   postcondition movement or missing Blocked state. The complete Native Sketch
-  suite is 886/886 green, and the full current `vibecad_tests` sweep is
+  suite is 886/886 green, and the full current `stevecad_tests` sweep is
   2,188/2,188 green with four intentional skips. The individual Block schema
   is exactly 1,226 bytes; all nineteen constraint variants serialize to exactly
   27,885 bytes; the thirty geometry variants serialize to 11,917 bytes; and
@@ -3217,7 +3217,7 @@ implementation changes:
   turn, replays the case after the existing geometry, Equal, and Symmetric
   cases, and reopens all results successfully. Its final marker now ends in
   `constrain_tangent,constrain_equal,constrain_symmetric,constrain_block`.
-  The rebuilt Sketcher and VibeCAD script targets, representative Model bracket
+  The rebuilt Sketcher and SteveCAD script targets, representative Model bracket
   workflow, and 527-action live ribbon gate are green. All eleven packaged
   touched source/build copies are byte-identical, touched Python passes Ruff,
   `python -m compileall` and `git diff --check` are clean, and the largest
@@ -3237,9 +3237,9 @@ implementation changes:
   nested groups, stale counts, existing solver issues, unavailable or duplicate
   persistent tags, and invalid, infinite, or zero-height combined bounds are
   refused before mutation.
-  `VibeCADNativeSketchGroup.py` is a 163-line atomic transaction domain,
-  `VibeCADNativeSketchGroupTarget.py` is a 259-line exact target validator, and
-  `VibeCADNativeSketchGroupState.py` is a 328-line exact postcondition verifier.
+  `SteveCADNativeSketchGroup.py` is a 163-line atomic transaction domain,
+  `SteveCADNativeSketchGroupTarget.py` is a 259-line exact target validator, and
+  `SteveCADNativeSketchGroupState.py` is a 328-line exact postcondition verifier.
   Preflight freezes all geometry, constraints, external geometry, solver state,
   persistent identities, and the finite OCC bounding box. Creation follows the
   human command exactly: it removes only unused exposed internal geometry for
@@ -3256,7 +3256,7 @@ implementation changes:
   sixteen-member boundary, exact constructor and runtime routing, allowed
   internal cleanup and index rewrites, every target refusal above, stale state,
   preflight drift, and exact postcondition failures. The complete Native Sketch
-  suite is 924/924 green, and the full current `vibecad_tests` sweep is
+  suite is 924/924 green, and the full current `stevecad_tests` sweep is
   2,226/2,226 green with four intentional skips. The individual Group schema is
   exactly 1,226 bytes; all twenty constraint variants serialize to exactly
   28,350 bytes; the thirty geometry variants serialize to 11,917 bytes; and the
@@ -3273,7 +3273,7 @@ implementation changes:
   provider turn, replays and reopens it after every earlier geometry and
   constraint case, and reports all 51 implemented operations ending in
   `constrain_equal,constrain_symmetric,constrain_block,constrain_group`.
-  The rebuilt Sketcher and VibeCAD script targets, representative Model bracket
+  The rebuilt Sketcher and SteveCAD script targets, representative Model bracket
   workflow, and exact 527-action live ribbon gate are green. All twelve packaged
   touched source/build copies are byte-identical, touched Python passes Ruff and
   `python -m compileall`, `git diff --check` is clean, and the rolling modules
@@ -3293,9 +3293,9 @@ implementation changes:
   external-only references becoming driving, existing solver issues, and
   incomplete, inconsistent, mutating, or refusing diagnostics are rejected
   before mutation.
-  `VibeCADNativeSketchDriving.py` is a 272-line atomic transaction domain,
-  `VibeCADNativeSketchDrivingState.py` is a 285-line exact state and
-  postcondition verifier, and `VibeCADNativeSketchDrivingTarget.py` is a
+  `SteveCADNativeSketchDriving.py` is a 272-line atomic transaction domain,
+  `SteveCADNativeSketchDrivingState.py` is a 285-line exact state and
+  postcondition verifier, and `SteveCADNativeSketchDrivingTarget.py` is a
   101-line exact target parser. The additive Sketcher
   `diagnoseDrivingChanges` API evaluates the complete proposed batch against a
   cloned constraint list, reports exact solver diagnostics, and restores the
@@ -3317,7 +3317,7 @@ implementation changes:
   shape and path resolution, postcondition drift, solver motion, and exact
   transaction routing. Driving plus the complete geometry and constraint
   schema suites are 118/118 green. The complete Native Sketch suite is
-  969/969 green, and the full current `vibecad_tests` sweep is 2,271/2,271
+  969/969 green, and the full current `stevecad_tests` sweep is 2,271/2,271
   green with four intentional skips. The individual Driving schema is exactly
   1,104 bytes; all twenty-one constraint variants serialize to exactly 28,824
   bytes; the thirty geometry plus twenty-one constraint surfaces total 40,742
@@ -3336,14 +3336,14 @@ implementation changes:
   reopens it after every earlier geometry and constraint case, and reports all
   52 implemented operations ending in
   `constrain_symmetric,constrain_block,constrain_group,toggle_driving_reference`.
-  The rebuilt Sketcher and VibeCAD script targets, representative Model bracket
+  The rebuilt Sketcher and SteveCAD script targets, representative Model bracket
   workflow, and exact 527-action live ribbon gate are green. All twelve checked
   packaged source/build copies are byte-identical, touched Python passes Ruff
   and `python -m compileall`, `git diff --check` is clean, and the rolling
   modules remain split at 995 and 54 lines. The protected Sketcher VibeScript
   integration returns zero; all 17 protected Part Design phases complete, the
   final structured result contains `"ok": true`, and the forced process marker
-  is `VIBECAD_PARTDESIGN_VIBESCRIPT_FINAL_EXIT 0`.
+  is `STEVECAD_PARTDESIGN_VIBESCRIPT_FINAL_EXIT 0`.
 - Active/Inactive Toggle is the twenty-second exact `sketch.constraint`
   variant and maps only the live `Sketcher_ToggleActiveConstraint` action.
   It accepts the exact human-opened Sketch, all three observed Sketch counts,
@@ -3376,7 +3376,7 @@ implementation changes:
   Driving and Virtual flags, solver movement, and Distance, Horizontal,
   Coincident, Block, Group, Text, and InternalAlignment semantic categories,
   along with every refusal and drift condition above. The complete Native
-  Sketch suite is 1,008/1,008 green, and the full current `vibecad_tests` sweep
+  Sketch suite is 1,008/1,008 green, and the full current `stevecad_tests` sweep
   is 2,310/2,310 green with four intentional skips. The individual Active
   schema is exactly 1,100 bytes; all twenty-two constraint variants serialize
   to exactly 28,914 bytes; the thirty geometry plus twenty-two constraint
@@ -3394,7 +3394,7 @@ implementation changes:
   replays and reopens it after every earlier geometry and constraint case, and
   reports all 52 implemented Sketch mutations ending in
   `constrain_group,toggle_driving_reference,toggle_active_inactive`.
-  The sequential Sketcher and VibeCAD script builds, representative Model
+  The sequential Sketcher and SteveCAD script builds, representative Model
   bracket workflow, and exact 527-action live ribbon gate are green. All 18
   checked packaged source/build copies are byte-identical; touched Python
   passes Ruff formatting and lint plus `python -m compileall`;
@@ -3402,7 +3402,7 @@ implementation changes:
   964-, 75-, and 85-line modules. The protected Sketcher VibeScript integration
   exits zero. All 17 protected Part Design phases report `PHASE_OK`, its final
   structured result contains `"ok": true`, and the forced process marker is
-  `VIBECAD_PARTDESIGN_VIBESCRIPT_FINAL_EXIT 0`.
+  `STEVECAD_PARTDESIGN_VIBESCRIPT_FINAL_EXIT 0`.
 - Sketch Fillet is the thirty-first exact `sketch.geometry` variant and maps
   only the live `Sketcher_CreateFillet` action. It accepts the exact
   human-opened Sketch, all three observed Sketch counts, `preserve_corner`,
@@ -3422,9 +3422,9 @@ implementation changes:
   solver, incomplete or inconsistent host diagnostics, diagnostic side
   effects, preflight drift, and any postcondition mismatch are refused before
   a result can be retained.
-  `VibeCADNativeSketchFillet.py` is a 558-line atomic transaction domain,
-  `VibeCADNativeSketchFilletDiagnostic.py` is a 288-line strict diagnostic
-  validator, and `VibeCADNativeSketchFilletTarget.py` is a 165-line exact
+  `SteveCADNativeSketchFillet.py` is a 558-line atomic transaction domain,
+  `SteveCADNativeSketchFilletDiagnostic.py` is a 288-line strict diagnostic
+  validator, and `SteveCADNativeSketchFilletTarget.py` is a 165-line exact
   target parser. The additive Sketcher `diagnoseFillet` overloads execute the
   existing production fillet implementation against a detached diagnostic
   clone, with a narrowly scoped detached `PropertyConstraintList` mode that
@@ -3445,7 +3445,7 @@ implementation changes:
   refusal, preflight drift, malformed diagnostics and group data, receipt
   integrity, topology changes, solver state, and exact transaction behavior.
   The complete Native Sketch suite is 1,036/1,036 green, and the full current
-  `vibecad_tests` sweep is 2,338 passed with four intentional skips. The
+  `stevecad_tests` sweep is 2,338 passed with four intentional skips. The
   individual Fillet schema is exactly 1,732 bytes in the provider's wrapped
   measurement; all thirty-one geometry variants serialize to exactly 13,000
   bytes; all twenty-two constraint variants serialize to 28,914 bytes; and
@@ -3463,13 +3463,13 @@ implementation changes:
   regenerates geometry UUID tags when an FCStd document reopens, so the reopen
   contract correctly proves exact persisted geometry and constraints plus
   nonempty, unique regenerated tags rather than claiming UUID equality across
-  serialization. The sequential VibeCADScripts and Sketcher builds, exact
+  serialization. The sequential SteveCADScripts and Sketcher builds, exact
   527-action live ribbon gate, representative Model bracket workflow, and all
   82 host Sketcher tests are green with one intentional host skip. The
   protected Sketcher VibeScript integration exits zero; all 17 protected Part
   Design VibeScript phases complete, its final structured result contains
   `"ok": true`, and its forced process marker is
-  `VIBECAD_PARTDESIGN_VIBESCRIPT_FINAL_EXIT 0`. All fourteen checked
+  `STEVECAD_PARTDESIGN_VIBESCRIPT_FINAL_EXIT 0`. All fourteen checked
   source/build Python copies are byte-identical; touched Python passes Ruff
   formatting and lint plus `python -m compileall`; `git diff --check` is
   clean. Fillet production modules remain split at 558, 288, and 165 lines,
@@ -3509,7 +3509,7 @@ implementation changes:
   integrity, rollback, solver state, and exact transaction behavior. The
   combined Fillet/Chamfer/schema focused run is 92/92 green, the complete
   Native Sketch suite is 1,068/1,068 green, and the full current
-  `vibecad_tests` sweep is 2,370 passed with four intentional skips. The
+  `stevecad_tests` sweep is 2,370 passed with four intentional skips. The
   individual Chamfer schema is exactly 1,733 bytes, all thirty-two geometry
   variants serialize to 13,048 bytes, all twenty-two constraint variants to
   28,916 bytes, and both Sketch schemas total 41,964 bytes against the
@@ -3520,7 +3520,7 @@ implementation changes:
   stale refusal with no undo entry, unchanged selection and edit context, one
   transaction per mutation, undo/redo, and FCStd save/reopen. The accumulated
   real-GUI lifecycle now covers 54 Sketch operations and saves and reopens the
-  shared document after each operation. The sequential VibeCADScripts and
+  shared document after each operation. The sequential SteveCADScripts and
   Sketcher builds, refactored Fillet GUI gate, exact 527-action live ribbon
   census, representative Model bracket workflow, and all 84 host Sketcher
   tests are green with one intentional host skip. The protected Sketcher and
@@ -3562,7 +3562,7 @@ implementation changes:
   stale-state refusal, exact state, receipts, identity, expressions, rollback,
   and runtime routing. The individual Trim schema is exactly 1,190 bytes; all
   thirty-three geometry variants serialize to 13,576 bytes against the
-  unchanged 65,536-byte cap. The complete current `vibecad_tests` sweep is
+  unchanged 65,536-byte cap. The complete current `stevecad_tests` sweep is
   2,406 passed with four intentional skips.
   Three real-kernel Trim host tests prove delete, shorten, split, and the exact
   normalized split intervals. The complete Sketcher host suite is 87/87 green
@@ -3571,7 +3571,7 @@ implementation changes:
   refusal without an undo entry, unchanged selection and edit context, one
   transaction, undo/redo, and FCStd save/reopen. The accumulated real-GUI
   lifecycle now covers 55 Sketch operations and saves and reopens the shared
-  document after every operation. Sequential VibeCADScripts, Sketcher, and
+  document after every operation. Sequential SteveCADScripts, Sketcher, and
   SketcherScripts builds, the exact 527-action live ribbon census, and the
   representative Model bracket workflow are green. The protected Sketcher and
   Part Design VibeScript integrations both exit zero, and the latter's final
@@ -3608,7 +3608,7 @@ implementation changes:
   identities, receipts, rollback, transaction behavior, and runtime routing.
   The individual Split schema is exactly 1,191 bytes; all thirty-four geometry
   variants serialize to 13,597 bytes against the unchanged 65,536-byte cap.
-  The complete current `vibecad_tests` sweep is 2,438 passed with four
+  The complete current `stevecad_tests` sweep is 2,438 passed with four
   intentional skips.
   Four real-kernel Split host tests prove a line's two normalized connected
   pieces and coincident constraint, closed-circle and closed-ellipse opening,
@@ -3623,7 +3623,7 @@ implementation changes:
   every operation. The exact 527-action live ribbon census and representative
   Model bracket workflow remain green. Both protected VibeScript integrations
   exit zero and the Part Design result contains `"ok": true`. The final
-  sequential VibeCADScripts and Sketcher builds are green; all 18 applicable
+  sequential SteveCADScripts and Sketcher builds are green; all 18 applicable
   source/build copies are byte-identical; the 20 touched Python files pass Ruff
   lint, Ruff formatting, and `python -m compileall`; and `git diff --check` is
   clean. Extend is now the deliberate fail-closed `sketch.geometry` surface
@@ -3667,7 +3667,7 @@ implementation changes:
   identities, expressions, receipts, rollback, and runtime routing. The
   individual Extend schema is exactly 1,249 bytes; all thirty-five geometry
   variants serialize to 14,078 bytes against the unchanged 65,536-byte cap.
-  The complete current `vibecad_tests` sweep is 2,484 passed with four
+  The complete current `stevecad_tests` sweep is 2,484 passed with four
   intentional skips. Five focused real-kernel Extend host tests prove line and
   circular-arc endpoints and directions, construction preservation, exact
   receipts, diagnostic purity, endpoint-switch refusal, unsupported-target
@@ -3681,7 +3681,7 @@ implementation changes:
   durable state after save/reopen. The exact 527-action live ribbon census and
   representative Model bracket workflow remain green. Both protected
   VibeScript integrations exit zero and the Part Design result contains
-  `"ok": true`. Final sequential VibeCADScripts and Sketcher builds are green;
+  `"ok": true`. Final sequential SteveCADScripts and Sketcher builds are green;
   all 15 applicable source/build copies are byte-identical; the 16 focused
   Python files pass Ruff lint, Ruff formatting, and `python -m compileall`; and
   `git diff --check` is clean. External-geometry Projection is now the
@@ -3722,7 +3722,7 @@ implementation changes:
   The focused Projection/schema suite has 83 passing tests. The individual
   Projection schema is exactly 1,460 bytes; all thirty-six geometry variants
   serialize to 14,911 bytes against the unchanged 65,536-byte cap. The complete
-  current `vibecad_tests` sweep is 2,530 passed with four intentional skips.
+  current `stevecad_tests` sweep is 2,530 passed with four intentional skips.
   Nine focused real-kernel host tests prove defining and reference projections,
   mapped compound keys, Edge/Vertex/Face targets, duplicate and invalid-state
   refusal, role-preserving Intersection-to-Both upgrade, diagnostic purity,
@@ -3735,7 +3735,7 @@ implementation changes:
   incomplete. The accumulated real-GUI lifecycle now covers 58 Sketch
   operations in one shared editable document and verifies the durable state
   after save/reopen. Both protected Sketcher and Part Design VibeScript
-  integrations exit zero; the final sequential VibeCADScripts and Sketcher
+  integrations exit zero; the final sequential SteveCADScripts and Sketcher
   builds, focused Ruff check, and `git diff --check` are green. External-
   geometry Intersection is now the deliberate fail-closed `sketch.geometry`
   surface boundary.
@@ -3768,7 +3768,7 @@ implementation changes:
   The focused schema/Projection/Intersection suite has 104 passing tests. The
   individual Intersection schema is exactly 1,462 bytes; all thirty-seven
   geometry variants serialize to 14,998 bytes against the unchanged
-  65,536-byte cap. The complete current `vibecad_tests` sweep is 2,551 passed
+  65,536-byte cap. The complete current `stevecad_tests` sweep is 2,551 passed
   with four intentional skips. Five focused Intersection host tests and the
   complete 110-test Sketcher host suite pass with one intentional skip. The
   focused real-GUI gate proves crossing-edge point creation, explicit reference
@@ -3779,7 +3779,7 @@ implementation changes:
   durable state after save/reopen. It also proves Projection and Intersection
   remain present on the human ribbon while Native fails closed at Carbon Copy.
   Both protected Sketcher and Part Design VibeScript integrations exit zero.
-  Final sequential VibeCADScripts and Sketcher builds, focused Ruff lint and
+  Final sequential SteveCADScripts and Sketcher builds, focused Ruff lint and
   formatting, and `git diff --check` are green, and no GUI process remains.
   Carbon Copy is now the deliberate fail-closed `sketch.geometry` surface
   boundary.
@@ -3821,7 +3821,7 @@ implementation changes:
   mapping host regression also passes. The focused Native Carbon Copy suite is
   15/15 green, its schema/Carbon/snapshot group is 59/59 green, all Native
   Sketch tests are 1,266/1,266 green, all Native tests are 1,889/1,889 green,
-  and the complete current `vibecad_tests` sweep is 2,568 passed with four
+  and the complete current `stevecad_tests` sweep is 2,568 passed with four
   intentional skips. The individual Carbon Copy schema is exactly 1,818 bytes
   and all thirty-eight geometry variants serialize to 16,066 bytes against the
   unchanged 65,536-byte cap.
@@ -3833,7 +3833,7 @@ implementation changes:
   save/reopen. It also proves Carbon Copy and Translate remain on the human
   ribbon while production Native fails closed at the unfinished Translate
   action. Both protected Sketcher and Part Design VibeScript integrations exit
-  zero. Final sequential VibeCADScripts and Sketcher builds, focused Ruff lint
+  zero. Final sequential SteveCADScripts and Sketcher builds, focused Ruff lint
   and formatting, and `git diff --check` are green. The read-only 5-axis crash
   fixture remains byte-identical at SHA-256
   `f896d1c44bcf3249ac3c5b32e343dfe36210af3b0d4683527b1b3623612c7f37`.
@@ -3872,7 +3872,7 @@ implementation changes:
   exact undo/redo. The focused Native Translate suite is 21/21 green; its
   schema and adjacent operation group is 62/62 green; all Native Sketch tests
   are 1,288/1,288 green; all Native tests are 1,911/1,911 green; and the
-  complete current `vibecad_tests` sweep is 2,590 passed with four intentional
+  complete current `stevecad_tests` sweep is 2,590 passed with four intentional
   skips. The individual Translate schema is exactly 1,793 bytes and all
   thirty-nine geometry variants serialize to 17,107 bytes against the
   unchanged 65,536-byte cap.
@@ -3885,7 +3885,7 @@ implementation changes:
   proves Translate and Rotate remain on the human ribbon while production
   Native fails closed at the unfinished Rotate action. Both protected Sketcher
   and Part Design VibeScript integrations exit zero. Final sequential
-  VibeCADScripts and Sketcher builds, focused Ruff lint and formatting, the
+  SteveCADScripts and Sketcher builds, focused Ruff lint and formatting, the
   seven-test real-host rerun, and `git diff --check` are green; no FreeCAD
   process remains. The read-only 5-axis crash fixture was never modified and
   remains byte-identical at SHA-256
@@ -3923,7 +3923,7 @@ implementation changes:
   semantics, external geometry, invalid-input purity, and exact undo/redo. The
   focused Native Rotate suite is 21/21 green; its schema and adjacent operation
   group is 84/84 green; all Native Sketch tests are 1,310/1,310 green; all
-  Native tests are 1,933/1,933 green; and the complete current `vibecad_tests`
+  Native tests are 1,933/1,933 green; and the complete current `stevecad_tests`
   sweep is 2,612 passed with four intentional skips. The individual Rotate
   schema is exactly 1,680 bytes and all forty geometry variants serialize to
   17,539 bytes against the unchanged 65,536-byte cap.
@@ -3935,7 +3935,7 @@ implementation changes:
   save/reopen. It also proves Translate, Rotate, and Scale remain on the human
   ribbon while production Native fails closed at the unfinished Scale action.
   Both protected Sketcher and Part Design VibeScript integrations exit zero.
-  Final sequential VibeCADScripts and Sketcher builds, an explicit SketcherGui
+  Final sequential SteveCADScripts and Sketcher builds, an explicit SketcherGui
   build, focused Ruff lint and formatting, the seven-test real-host rerun, and
   `git diff --check` are green; no FreeCAD process remains. The implementation
   is split across bounded modules (the shared host transform file is 672 lines
@@ -3974,7 +3974,7 @@ implementation changes:
   and exact undo/redo. The focused Native Scale suite is 21/21 green; its
   Translate/Rotate/Scale/schema group is 106/106 green; all Native Sketch tests
   are 1,332/1,332 green; all Native tests are 1,955/1,955 green; and the
-  complete current `vibecad_tests` sweep is 2,634 passed with four intentional
+  complete current `stevecad_tests` sweep is 2,634 passed with four intentional
   skips. The individual Scale schema is exactly 1,428 bytes and all forty-one
   geometry variants serialize to 17,852 bytes against the unchanged
   65,536-byte cap.
@@ -3986,12 +3986,12 @@ implementation changes:
   durable state after save/reopen. It also proves Translate, Rotate, Scale, and
   Offset remain on the human ribbon while production Native fails closed at
   unfinished Offset. Both protected Sketcher and Part Design VibeScript
-  integrations exit zero. Final sequential VibeCADScripts and Sketcher builds,
+  integrations exit zero. Final sequential SteveCADScripts and Sketcher builds,
   an explicit SketcherGui build, focused Ruff lint, the eight-test real-host
   rerun, and `git diff --check` are green; no FreeCAD process remains. The
   Scale implementation is split across bounded host, target, state, runtime,
   GUI-case, integration, and test modules, each below 1,000 lines.
-  The VibeCAD nested-link preselection fix was also verified against a
+  The SteveCAD nested-link preselection fix was also verified against a
   byte-identical disposable copy of the real 5-axis machine by scanning its
   viewport with mouse preselection and resolving nested App::Link subelements;
   the regression exits normally, the upstream `TestViewProviderLink` suite is
@@ -4032,7 +4032,7 @@ implementation changes:
   The focused Native Offset suite is 17/17 green; its adjacent
   Translate/Rotate/Scale/Offset/schema group is 123/123 green; all Native
   Sketch tests are 1,350/1,350 green; all Native tests are 1,973/1,973 green;
-  and the complete current `vibecad_tests` sweep is 2,652 passed with four
+  and the complete current `stevecad_tests` sweep is 2,652 passed with four
   intentional skips. The individual Offset schema is exactly 1,530 bytes and
   all forty-two geometry variants serialize to 18,482 bytes against the
   unchanged 65,536-byte cap.
@@ -4046,7 +4046,7 @@ implementation changes:
   permitting eviction of the oldest entry. It also proves Symmetry remains on
   the human ribbon while production Native fails closed at unfinished
   `Sketcher_Symmetry`. Both protected Sketcher and Part Design VibeScript
-  integrations exit zero. Final sequential VibeCADScripts and Sketcher builds,
+  integrations exit zero. Final sequential SteveCADScripts and Sketcher builds,
   an explicit SketcherGui build, focused Ruff lint and formatting, the
   ten-test real-host rerun, and `git diff --check` are green; no FreeCAD process
   remains. The Offset implementation is split across bounded host, constraint,
@@ -4091,7 +4091,7 @@ implementation changes:
   focused Native Symmetry suite is 17/17 green; its adjacent
   Translate/Rotate/Scale/Offset/Symmetry/schema group is 142/142 green; all
   Native Sketch tests are 1,368/1,368 green; all Native tests are 1,991/1,991
-  green; and the complete current `vibecad_tests` sweep is 2,670 passed with
+  green; and the complete current `stevecad_tests` sweep is 2,670 passed with
   four intentional skips. The individual Symmetry schema is exactly 1,435
   bytes and all forty-three geometry variants serialize to 18,954 bytes
   against the unchanged 65,536-byte cap.
@@ -4105,7 +4105,7 @@ implementation changes:
   after save/reopen. It also proves removal of axis alignment remains on the
   human ribbon while production Native fails closed at unfinished
   `Sketcher_RemoveAxesAlignment`. Both protected Sketcher and Part Design
-  VibeScript integrations exit zero. Final sequential VibeCADScripts and
+  VibeScript integrations exit zero. Final sequential SteveCADScripts and
   Sketcher builds, an explicit SketcherGui build, focused Ruff lint and
   formatting, the nine-test real-host rerun, and `git diff --check` are green;
   no FreeCAD process remains. The Symmetry implementation is split across
@@ -4151,7 +4151,7 @@ implementation changes:
   and exact undo/redo. The focused Native suite is 14/14 green; the adjacent
   Translate/Rotate/Scale/Offset/Symmetry/Remove-Axes-Alignment/schema group is
   157/157 green; all Native Sketch tests are 1,383/1,383 green; all Native
-  tests are 2,006/2,006 green; and the complete current `vibecad_tests` sweep
+  tests are 2,006/2,006 green; and the complete current `stevecad_tests` sweep
   is 2,685 passed with four intentional skips. The individual schema is
   exactly 1,068 bytes, all forty-four geometry variants serialize to 19,165
   bytes against the unchanged 65,536-byte cap, and the preceding forty-three
@@ -4172,7 +4172,7 @@ implementation changes:
   exits cleanly. The file was never saved or repaired and remains exactly
   SHA-256 `f896d1c44bcf3249ac3c5b32e343dfe36210af3b0d4683527b1b3623612c7f37`.
   Both protected Sketcher and Part Design VibeScript integrations exit zero.
-  Final sequential VibeCADScripts and Sketcher builds, an explicit SketcherGui
+  Final sequential SteveCADScripts and Sketcher builds, an explicit SketcherGui
   build, focused Ruff lint/formatting, `git diff --check`, line-size checks,
   and process cleanup are green. The new host, target, state, runtime,
   GUI-case, integration, and test modules are each below 500 lines. B-spline
@@ -4212,7 +4212,7 @@ implementation changes:
   expression, invalid-target purity, legacy API, and exact undo/redo behavior.
   The focused Native/schema suite is 18/18 green; all Native Sketch tests are
   1,401/1,401 green; all Native tests are 2,024/2,024 green; and the complete
-  current `vibecad_tests` sweep is 2,703 passed with four intentional skips.
+  current `stevecad_tests` sweep is 2,703 passed with four intentional skips.
   The individual schema is exactly 1,093 bytes and all forty-five geometry
   variants serialize to 19,357 bytes against the unchanged 65,536-byte cap.
   The focused real-GUI gate proves mixed internal/external conversion, controls,
@@ -4221,7 +4221,7 @@ implementation changes:
   real-GUI lifecycle covers all 67 implemented Sketch operations in one shared
   editable document and verifies durable state after save/reopen. Both
   protected Sketcher and Part Design VibeScript lifecycles exit zero. Final
-  sequential VibeCADScripts and Sketcher builds and the explicit SketcherGui
+  sequential SteveCADScripts and Sketcher builds and the explicit SketcherGui
   build are green. All row modules are below 500 lines. The original read-only
   5-axis fixture was never saved or modified and remains byte-identical at
   SHA-256 `f896d1c44bcf3249ac3c5b32e343dfe36210af3b0d4683527b1b3623612c7f37`.
@@ -4266,7 +4266,7 @@ implementation changes:
   exact undo/redo. The focused Native/schema suite is 21/21 green; the
   complete geometry-schema group is 50/50 green; all Native Sketch tests are
   1,420/1,420 green; all Native tests are 2,043/2,043 green; and the complete
-  current `vibecad_tests` sweep is 2,722 passed with four intentional skips.
+  current `stevecad_tests` sweep is 2,722 passed with four intentional skips.
   The individual schema is exactly 1,070 bytes and all forty-six geometry
   variants serialize to 19,432 bytes against the unchanged 65,536-byte cap.
   The focused real-GUI gate proves degree/shape/identity preservation,
@@ -4276,13 +4276,13 @@ implementation changes:
   lifecycle covers all 68 implemented Sketch operations in one shared editable
   document and verifies every separate operation Sketch after save/reopen.
   Both protected Sketcher and Part Design VibeScript lifecycles exit zero.
-  Final sequential VibeCADScripts, SketcherScripts, Sketcher, and explicit
+  Final sequential SteveCADScripts, SketcherScripts, Sketcher, and explicit
   SketcherGui builds are green; focused Ruff lint/format checks and
   `git diff --check` are green. The installed clang-format 18.1.3 cannot parse
   the repository configuration's `BreakTemplateDeclarations` key, so no false
   C++ formatting-pass claim is recorded. Every new row module is below 500
-  lines. No VibeCAD/FreeCAD process remains, the retired generated
-  `VibeCADWorkbenchTools.py` artifact is absent, and the original read-only
+  lines. No SteveCAD/FreeCAD process remains, the retired generated
+  `SteveCADWorkbenchTools.py` artifact is absent, and the original read-only
   5-axis fixture was never saved or modified and remains byte-identical at
   SHA-256
   `f896d1c44bcf3249ac3c5b32e343dfe36210af3b0d4683527b1b3623612c7f37`.
@@ -4330,7 +4330,7 @@ implementation changes:
   The focused Native/schema suite is 21/21 green, the complete geometry-schema
   group is 52/52 green, all Native Sketch tests are 1,441/1,441 green, all
   Native tests are 2,064/2,064 green, and the complete current
-  `vibecad_tests` sweep is 2,743 passed with four intentional skips. The
+  `stevecad_tests` sweep is 2,743 passed with four intentional skips. The
   individual schema is exactly 1,088 bytes and all forty-seven geometry
   variants serialize to 19,804 bytes against the unchanged 65,536-byte cap.
   The focused real-GUI gate proves explicit loss-limit refusal, degree and root
@@ -4340,11 +4340,11 @@ implementation changes:
   The accumulated real-GUI lifecycle covers all 69 implemented Sketch
   operations in one shared editable document and verifies every separate
   operation Sketch after save/reopen. Both protected Sketcher and Part Design
-  VibeScript lifecycles exit zero. Final sequential VibeCADScripts,
+  VibeScript lifecycles exit zero. Final sequential SteveCADScripts,
   SketcherScripts, Sketcher, and explicit SketcherGui builds are green; focused
   Ruff lint/format checks and `git diff --check` are green. Every row module is
-  below 500 lines. No VibeCAD/FreeCAD process remains, the retired generated
-  `VibeCADWorkbenchTools.py` artifact is absent, and the original 5-axis
+  below 500 lines. No SteveCAD/FreeCAD process remains, the retired generated
+  `SteveCADWorkbenchTools.py` artifact is absent, and the original 5-axis
   fixture passed a final read-only GUI hover/preselection regression without
   being saved or modified; its SHA-256 remains
   `f896d1c44bcf3249ac3c5b32e343dfe36210af3b0d4683527b1b3623612c7f37`.
@@ -4391,7 +4391,7 @@ implementation changes:
   and constraint identities remain exact. The focused operation/schema plus
   degree-decrease and geometry-schema regression set is 82/82 green; all
   Native Sketch tests are 1,456/1,456 green; all Native tests are
-  2,079/2,079 green; and the complete current `vibecad_tests` sweep is 2,758
+  2,079/2,079 green; and the complete current `stevecad_tests` sweep is 2,758
   passed with four intentional skips. The individual schema is exactly 1,079
   bytes and all forty-eight geometry variants serialize to 20,124 bytes
   against the unchanged 65,536-byte cap.
@@ -4403,13 +4403,13 @@ implementation changes:
   covers all 70 implemented Sketch operations in one shared editable document
   and verifies every separate operation Sketch after save/reopen. Both
   protected Sketcher and Part Design VibeScript lifecycles exit zero. Final
-  sequential VibeCADScripts, SketcherScripts, Sketcher, and explicit
+  sequential SteveCADScripts, SketcherScripts, Sketcher, and explicit
   SketcherGui builds are green; focused Ruff lint/format checks and
   `git diff --check` are green. Every row module is below 500 lines. The
   degree-decrease helper state was cleanly generalized for both B-spline
   mutations, with no stale source reference or generated build copy. No
-  VibeCAD/FreeCAD process remains, the retired generated
-  `VibeCADWorkbenchTools.py` artifact is absent, and the original read-only
+  SteveCAD/FreeCAD process remains, the retired generated
+  `SteveCADWorkbenchTools.py` artifact is absent, and the original read-only
   5-axis fixture was never saved or modified and remains byte-identical at
   SHA-256
   `f896d1c44bcf3249ac3c5b32e343dfe36210af3b0d4683527b1b3623612c7f37`.
@@ -4467,7 +4467,7 @@ implementation changes:
   The focused increase/decrease/schema plus degree-decrease and
   geometry-schema regression set is 97/97 green; all Native Sketch tests are
   1,471/1,471 green; all Native tests are 2,094/2,094 green; and the complete
-  current `vibecad_tests` sweep is 2,773 passed with four intentional skips.
+  current `stevecad_tests` sweep is 2,773 passed with four intentional skips.
   The individual schema is exactly 1,173 bytes and all forty-nine geometry
   variants serialize to 20,404 bytes against the unchanged 65,536-byte cap.
   The focused real-GUI gate proves stale-count, zero-loss-limit,
@@ -4478,11 +4478,11 @@ implementation changes:
   The accumulated real-GUI lifecycle covers all 71 implemented Sketch
   operations in one shared editable document and verifies every separate
   operation Sketch after save/reopen. Both protected Sketcher and Part Design
-  VibeScript lifecycles exit zero. Final sequential VibeCADScripts,
+  VibeScript lifecycles exit zero. Final sequential SteveCADScripts,
   SketcherScripts, Sketcher, and explicit SketcherGui builds are green; focused
-  Ruff lint/format checks and `git diff --check` are green. No VibeCAD/FreeCAD
+  Ruff lint/format checks and `git diff --check` are green. No SteveCAD/FreeCAD
   process remains; the old multiplicity-increase source filenames, their stale
-  generated build copy, the retired generated `VibeCADWorkbenchTools.py`, and
+  generated build copy, the retired generated `SteveCADWorkbenchTools.py`, and
   the earlier degree-decrease helper artifact are absent. The protected 5-axis
   fixture was never saved or modified and remains byte-identical at SHA-256
   `f896d1c44bcf3249ac3c5b32e343dfe36210af3b0d4683527b1b3623612c7f37`.
@@ -4528,7 +4528,7 @@ implementation changes:
   variants serialize to 20,690 bytes against the unchanged 65,536-byte cap.
   The focused B-spline/schema regression set is 112/112 green; all Native
   Sketch tests are 1,486/1,486 green; all Native tests are 2,109/2,109 green;
-  and the complete current `vibecad_tests` sweep is 2,788 passed with four
+  and the complete current `stevecad_tests` sweep is 2,788 passed with four
   intentional skips.
   The focused real-GUI gate proves stale-count, before-domain, after-domain,
   non-spline, and maximum-endpoint refusal; detached-diagnosis purity; exact
@@ -4537,11 +4537,11 @@ implementation changes:
   real-GUI lifecycle covers all 72 implemented Sketch operations and verifies
   every separate operation Sketch after one shared save/reopen. Both protected
   Sketcher and Part Design VibeScript lifecycles exit zero. Final sequential
-  VibeCADScripts, SketcherScripts, Sketcher, and SketcherGui builds are green;
+  SteveCADScripts, SketcherScripts, Sketcher, and SketcherGui builds are green;
   focused Ruff checks and `git diff --check` are clean. Every row module is
   below 500 lines. The old multiplicity-increase source/build artifacts, the
   earlier degree-decrease helper artifact, and retired generated
-  `VibeCADWorkbenchTools.py` remain absent; no VibeCAD/FreeCAD process remains.
+  `SteveCADWorkbenchTools.py` remain absent; no SteveCAD/FreeCAD process remains.
   The protected 5-axis fixture was never saved or modified and remains
   byte-identical at SHA-256
   `f896d1c44bcf3249ac3c5b32e343dfe36210af3b0d4683527b1b3623612c7f37`.
@@ -4590,7 +4590,7 @@ implementation changes:
   and configuration token to the frozen diagnostic plan.
   The focused Native/schema set is 20/20 green; all Native Sketch tests are
   1,506/1,506 green; all Native tests are 2,129/2,129 green; and the complete
-  current `vibecad_tests` sweep is 2,808 passed with four intentional skips.
+  current `stevecad_tests` sweep is 2,808 passed with four intentional skips.
   The individual schema is exactly 1,374 bytes and all fifty-one geometry
   variants serialize to 21,324 bytes against the unchanged 65,536-byte cap.
   The focused compiled real-GUI gate proves stale-count, duplicate-curve, and
@@ -4601,11 +4601,11 @@ implementation changes:
   implemented Sketch operations in one long-lived document and verifies every
   separate operation Sketch after the shared save/reopen cycle. Both protected
   Sketcher and Part Design VibeScript lifecycles exit zero. Final sequential
-  VibeCADScripts, SketcherScripts, Sketcher, and SketcherGui builds are green;
+  SteveCADScripts, SketcherScripts, Sketcher, and SketcherGui builds are green;
   focused Ruff format/lint checks and `git diff --check` are clean. The row's
   host and Native implementation modules range from 100 to 366 lines. No
-  VibeCAD/FreeCAD process remains, and the retired generated
-  `VibeCADWorkbenchTools.py` stays absent from source and build output. The
+  SteveCAD/FreeCAD process remains, and the retired generated
+  `SteveCADWorkbenchTools.py` stays absent from source and build output. The
   protected 5-axis fixture was never opened for mutation, saved, or modified
   and remains byte-identical at SHA-256
   `f896d1c44bcf3249ac3c5b32e343dfe36210af3b0d4683527b1b3623612c7f37`.
@@ -4641,10 +4641,10 @@ implementation changes:
   implemented Sketch operations and verifies every separate operation Sketch
   after one shared save/reopen. The individual provider schema is 1,291 bytes
   and the complete three-tool rolling Sketch schema is 51,529 bytes against
-  the unchanged 65,536-byte limit. The complete current `vibecad_tests` sweep
+  the unchanged 65,536-byte limit. The complete current `stevecad_tests` sweep
   is 2,832 passed with four intentional skips. Both protected Sketcher and
   Part Design VibeScript lifecycles exit zero with the final Part Design
-  result reporting `"ok": true`. Final sequential VibeCADScripts,
+  result reporting `"ok": true`. Final sequential SteveCADScripts,
   SketcherScripts, Sketcher, and SketcherGui builds are green; the row's nine
   implementation/test modules range from 42 to 360 lines. The upstream
   `TestViewProviderLink` suite is 5/5 green. The original 5-axis machine was
@@ -4686,10 +4686,10 @@ implementation changes:
   `select_elements` provider schema is 1,213 bytes, the combined inspect schema
   is 2,002 bytes, and the complete three-tool rolling Sketch schema is 52,240
   bytes against the unchanged 65,536-byte cap. The complete current
-  `vibecad_tests` sweep is 2,855 passed with four intentional skips. Both
+  `stevecad_tests` sweep is 2,855 passed with four intentional skips. Both
   protected Sketcher and Part Design VibeScript lifecycles exit zero, with the
   final Part Design result reporting `"ok": true`. Final sequential
-  VibeCADScripts, SketcherScripts, Sketcher, and SketcherGui builds are green;
+  SteveCADScripts, SketcherScripts, Sketcher, and SketcherGui builds are green;
   focused Ruff lint/format checks and `git diff --check` are clean. Shared and
   reverse inspect implementation modules are split from 61 to 242 lines, and
   the real-GUI case remains 344 lines. The upstream `TestViewProviderLink`
@@ -4736,10 +4736,10 @@ implementation changes:
   deliberately unavailable because later `sketch.presentation` actions are
   still incomplete; the family is now reported as incomplete rather than
   missing.
-  The complete current `vibecad_tests` sweep is 2,871 passed with four
+  The complete current `stevecad_tests` sweep is 2,871 passed with four
   intentional skips. Both protected Sketcher and Part Design VibeScript
   lifecycles exit zero, with the final Part Design result reporting
-  `"ok": true`. Final sequential VibeCADScripts, SketcherScripts, Sketcher,
+  `"ok": true`. Final sequential SteveCADScripts, SketcherScripts, Sketcher,
   and SketcherGui builds are green; focused Ruff lint/format checks and
   `git diff --check` are clean. New production modules range from 44 to 190
   lines and the focused GUI modules from 175 to 215 lines. The upstream
@@ -4784,10 +4784,10 @@ implementation changes:
   unchanged 65,536-byte cap. Production remains deliberately unavailable
   because later `sketch.presentation` actions are incomplete; B-spline
   control-polygon visibility in row 10.79 is now the fail-closed boundary.
-  The complete current `vibecad_tests` sweep is 2,887 passed with four
+  The complete current `stevecad_tests` sweep is 2,887 passed with four
   intentional skips. Both protected Sketcher and Part Design VibeScript
   lifecycles exit zero, with the final Part Design result reporting
-  `"ok": true`. Final sequential VibeCADScripts, SketcherScripts, Sketcher,
+  `"ok": true`. Final sequential SteveCADScripts, SketcherScripts, Sketcher,
   and SketcherGui builds are green; focused Ruff lint/format checks and
   `git diff --check` are clean. New production modules remain between 73 and
   204 lines and the focused GUI modules between 98 and 175 lines.
@@ -4825,9 +4825,9 @@ implementation changes:
   65,536-byte cap. Production remains deliberately unavailable because the
   later `sketch.presentation` actions are incomplete; B-spline
   curvature-comb visibility in row 10.80 is now the fail-closed boundary.
-  The complete current `vibecad_tests` sweep is 2,900 passed with four
+  The complete current `stevecad_tests` sweep is 2,900 passed with four
   intentional skips. Both protected Sketcher and Part Design VibeScript
-  lifecycles exit zero. Final sequential VibeCADScripts, SketcherScripts,
+  lifecycles exit zero. Final sequential SteveCADScripts, SketcherScripts,
   Sketcher, and SketcherGui builds are green; focused Ruff lint/format checks
   and `git diff --check` are clean. The upstream `TestViewProviderLink` suite
   remains 5/5 green. The original 5-axis file was never saved or repaired and
@@ -4837,7 +4837,7 @@ implementation changes:
   copy, found 29 links, exercised four representative linked objects through
   eight explicit `Face1`/`Edge1` preselection calls and 35 real viewport mouse
   moves, then closed normally without a SIGSEGV. Both original and disposable
-  copy retained the exact hash, and no VibeCAD process remains.
+  copy retained the exact hash, and no SteveCAD process remains.
 - B-spline curvature-comb visibility is now the fourth
   `sketch.presentation` variant and maps only the live
   `Sketcher_BSplineComb` action through the explicit
@@ -4871,10 +4871,10 @@ implementation changes:
   65,536-byte cap. Production remains deliberately unavailable because later
   `sketch.presentation` actions are incomplete; B-spline knot-multiplicity
   visibility in row 10.81 is now the fail-closed boundary.
-  The complete current `vibecad_tests` sweep is 2,913 passed with four
+  The complete current `stevecad_tests` sweep is 2,913 passed with four
   intentional skips. Both protected Sketcher and Part Design VibeScript
   lifecycles exit zero, with the final Part Design result reporting
-  `"ok": true`. Final sequential VibeCADScripts, SketcherScripts, Sketcher,
+  `"ok": true`. Final sequential SteveCADScripts, SketcherScripts, Sketcher,
   and SketcherGui builds are green; the upstream `TestViewProviderLink` suite
   is 5/5 green. The original 5-axis file was never saved or repaired and its
   SHA-256 remains exactly
@@ -4883,7 +4883,7 @@ implementation changes:
   copy, found 29 links, exercised four representative linked objects through
   eight explicit `Face1`/`Edge1` preselection calls and 35 real viewport mouse
   moves, then closed normally without a SIGSEGV. Independent before/after
-  hashes for the original and disposable copy remained exact, and no VibeCAD
+  hashes for the original and disposable copy remained exact, and no SteveCAD
   process remains.
 - B-spline knot-multiplicity visibility is now the fifth
   `sketch.presentation` variant and maps only the live
@@ -4919,10 +4919,10 @@ implementation changes:
   65,536-byte cap. Production remains deliberately unavailable because later
   `sketch.presentation` actions are incomplete; B-spline pole-weight
   visibility in row 10.82 is now the fail-closed boundary.
-  The complete current `vibecad_tests` sweep is 2,926 passed with four
+  The complete current `stevecad_tests` sweep is 2,926 passed with four
   intentional skips. Both protected Sketcher and Part Design VibeScript
   lifecycles exit zero, with the final Part Design result reporting
-  `"ok": true`. Final sequential VibeCADScripts, SketcherScripts, Sketcher,
+  `"ok": true`. Final sequential SteveCADScripts, SketcherScripts, Sketcher,
   and SketcherGui builds are green; the upstream `TestViewProviderLink` suite
   is 5/5 green. The original 5-axis file was never saved or repaired and its
   SHA-256 remains exactly
@@ -4932,7 +4932,7 @@ implementation changes:
   eight explicit `Face1`/`Edge1` preselection calls and 35 real viewport mouse
   moves, then closed normally without a SIGSEGV. Independent before/after
   hashes for the original and disposable copy remained exact, the temporary
-  copy was moved to Trash, and no VibeCAD process remains.
+  copy was moved to Trash, and no SteveCAD process remains.
 - B-spline pole-weight visibility is now the sixth `sketch.presentation`
   variant and maps only the live `Sketcher_BSplinePoleWeight` action through
   the explicit `bspline_pole_weight` operation. Its closed request retains the
@@ -4967,10 +4967,10 @@ implementation changes:
   65,536-byte cap. Production remains deliberately unavailable because later
   `sketch.presentation` actions are incomplete; internal-alignment geometry
   restoration in row 10.83 is now the fail-closed boundary.
-  The complete current `vibecad_tests` sweep is 2,939 passed with four
+  The complete current `stevecad_tests` sweep is 2,939 passed with four
   intentional skips. Both protected Sketcher and Part Design VibeScript
   lifecycles exit zero, with the final Part Design result reporting
-  `"ok": true`. Final sequential VibeCADScripts, SketcherScripts, Sketcher,
+  `"ok": true`. Final sequential SteveCADScripts, SketcherScripts, Sketcher,
   and SketcherGui builds are green; the upstream `TestViewProviderLink` suite
   is 5/5 green. The original 5-axis file was never saved or repaired and its
   SHA-256 remains exactly
@@ -4980,7 +4980,7 @@ implementation changes:
   eight explicit `Face1`/`Edge1` preselection calls and 35 real viewport mouse
   moves, then closed normally without a SIGSEGV. Independent before/after
   hashes for the original and disposable copy remained exact, the temporary
-  copy was moved to Trash, and no VibeCAD process remains.
+  copy was moved to Trash, and no SteveCAD process remains.
 - Internal-alignment restoration in row 10.83 is implemented as the explicit
   `restore_internal_alignment_geometry` variant of `sketch.geometry`. The
   request names the exact active Sketch, exact geometry, expected internal
@@ -5030,9 +5030,9 @@ implementation changes:
 - The post-split rolling compiled GUI gate passes all 85 Sketch operations,
   including internal alignment, both view actions, and both virtual-space
   modes. The focused provider/unit slice passes 60/60, and the full current
-  `vibecad_tests` sweep passes 2,966 tests with four intentional skips. Both
+  `stevecad_tests` sweep passes 2,966 tests with four intentional skips. Both
   protected Sketcher and Part Design VibeScript integration lifecycles exit
-  zero. Sequential VibeCADScripts, SketcherScripts, Sketcher, and SketcherGui
+  zero. Sequential SteveCADScripts, SketcherScripts, Sketcher, and SketcherGui
   builds are green, and the GUI-hosted `TestViewProviderLink` suite is 5/5
   green. The shared GUI support module was split at 1,076 lines into focused
   950-line support and 133-line provider-turn modules without changing its
@@ -5068,8 +5068,8 @@ implementation changes:
   workbench, the current turn is invalidated, and a fresh turn resolves the
   post-edit surface where Save is available. This supersedes the earlier
   human-only Leave Sketch boundary.
-  Final verification passes the sequential VibeCADScripts, SketcherScripts,
-  Sketcher, and SketcherGui builds; the complete `vibecad_tests` sweep; both
+  Final verification passes the sequential SteveCADScripts, SketcherScripts,
+  Sketcher, and SketcherGui builds; the complete `stevecad_tests` sweep; both
   protected VibeScript lifecycles; the exact Leave GUI lifecycle; and both
   provider-worker dispatch regressions. The existing human Leave Sketch test
   also accepts a provisional Sketch as one global history operation. Broader
@@ -5122,7 +5122,7 @@ implementation changes:
   Manufacture 57, Drawing 107, Parameters 24, Sketch setup 15, and Sketch edit
   105. The real Model provider workflow, fresh-Sketch inter-turn swap, and
   exact Leave Sketch lifecycle all pass. The complete current Python suite,
-  final sequential VibeCADScripts/SketcherScripts/Sketcher/SketcherGui builds,
+  final sequential SteveCADScripts/SketcherScripts/Sketcher/SketcherGui builds,
   and both protected VibeScript integrations are green. The Drawing preference
   is restored to `false`, and the immutable 5-axis fixture remains exactly
   `19a445d49a18b6cd997e51eadd2c0c8f89eca29533281e2015601874c0f58cbe`.
@@ -5158,7 +5158,7 @@ implementation changes:
   undo/redo, and FCStd save/reopen. A second rolled-back catalog batch exercises
   point, circle, arc, Parallel, Perpendicular, Equal, Angle, Radius, Diameter,
   and Distance construction paths. It reports
-  `VIBECAD_NATIVE_SKETCH_BATCH_GUI_OK schema_bytes=63246 profile_mutations=1
+  `STEVECAD_NATIVE_SKETCH_BATCH_GUI_OK schema_bytes=63246 profile_mutations=1
   catalog_mutations=1 geometry=4 constraints=11`. The complete pure suite is
   2,934 passed with four intentional skips, Ruff is green, both protected
   VibeScript integrations exit zero, and the 5-axis fixture remains exactly
@@ -5186,10 +5186,10 @@ implementation changes:
   non-identity flexible external-subassembly insertion, exact native clone
   resources, new-Part timeline ownership, duplicate replay, five independent
   undo/redo entries, unchanged human activation, and two-document FCStd
-  save/reopen. It reports `VIBECAD_NATIVE_ASSEMBLY_STRUCTURE_GUI_OK
+  save/reopen. It reports `STEVECAD_NATIVE_ASSEMBLY_STRUCTURE_GUI_OK
   assemblies=2 components=4 transactions=5 active_read=true`. The complete
   pure suite is 2,948 passed with four intentional skips; Ruff and sequential
-  VibeCADScripts, AssemblyScripts, Assembly, and AssemblyGui builds are green.
+  SteveCADScripts, AssemblyScripts, Assembly, and AssemblyGui builds are green.
   The protected Sketcher, Part Design, and Assembly VibeScript integrations all
   exit zero; the Part Design result reports `"ok": true`.
 - Assemble Ground and Unground are one desired-state `assembly.joint`
@@ -5206,9 +5206,9 @@ implementation changes:
   created, deleted, and changed-object receipts. A dispatcher-backed compiled
   GUI gate proves two-component atomic ground, duplicate replay, one-step
   undo/redo, partial unground, a second undo/redo cycle, and FCStd save/reopen;
-  it reports `VIBECAD_NATIVE_ASSEMBLY_GROUNDING_GUI_OK components=2
+  it reports `STEVECAD_NATIVE_ASSEMBLY_GROUNDING_GUI_OK components=2
   ground_batch=2 unground=1 transactions=2 reopen=true`. The complete suite is
-  2,953 passed with four intentional skips; Ruff and sequential VibeCADScripts,
+  2,953 passed with four intentional skips; Ruff and sequential SteveCADScripts,
   AssemblyScripts, Assembly, and AssemblyGui builds are green. The protected
   Sketcher, Part Design, and Assembly VibeScript integrations all exit zero,
   no FreeCAD process remains, and the immutable 5-axis fixture remains exactly
@@ -5236,12 +5236,12 @@ implementation changes:
   Fixed joints with full offsets, reverse behavior, exact duplicate replay,
   undo/redo after each transaction, and FCStd save/close/reopen with both model
   and view proxies restored. It reports
-  `VIBECAD_NATIVE_ASSEMBLY_FIXED_JOINT_GUI_OK components=3 joints=2
+  `STEVECAD_NATIVE_ASSEMBLY_FIXED_JOINT_GUI_OK components=3 joints=2
   reverse=true transactions=2 reopen=true`. The complete suite is 2,969
   passed with four intentional skips; Ruff, compileall, diff checks, and the
-  VibeCADScripts, AssemblyScripts, Assembly, and AssemblyGui build targets are
+  SteveCADScripts, AssemblyScripts, Assembly, and AssemblyGui build targets are
   green. The protected Sketcher, Part Design, and Assembly VibeScript
-  integrations all exit zero, no VibeCAD test process remains, and the
+  integrations all exit zero, no SteveCAD test process remains, and the
   immutable 5-axis fixture remains exactly
   `19a445d49a18b6cd997e51eadd2c0c8f89eca29533281e2015601874c0f58cbe`.
 - Assemble Revolute Joint is an exact `assembly.joint/create_revolute`
@@ -5263,13 +5263,13 @@ implementation changes:
   reverse behavior, final solver success, duplicate replay, one-step
   undo/redo, and FCStd save/close/reopen with native model and view proxies,
   references, offsets, and limits restored. It reports
-  `VIBECAD_NATIVE_ASSEMBLY_REVOLUTE_JOINT_GUI_OK components=2 joints=1
+  `STEVECAD_NATIVE_ASSEMBLY_REVOLUTE_JOINT_GUI_OK components=2 joints=1
   limits=true reverse=true transactions=1 reopen=true`; the original Fixed
   lifecycle gate remains green after extraction. The complete suite is 2,978
   passed with four intentional skips; Ruff, compileall, diff checks, and the
-  VibeCADScripts, AssemblyScripts, Assembly, and AssemblyGui build targets are
+  SteveCADScripts, AssemblyScripts, Assembly, and AssemblyGui build targets are
   green. The protected Sketcher, Part Design, and Assembly VibeScript
-  integrations all exit zero, no VibeCAD test process remains, and the
+  integrations all exit zero, no SteveCAD test process remains, and the
   immutable 5-axis fixture remains exactly
   `19a445d49a18b6cd997e51eadd2c0c8f89eca29533281e2015601874c0f58cbe`.
 - Assemble Cylindrical Joint is an exact
@@ -5293,14 +5293,14 @@ implementation changes:
   bounds, reverse behavior, final solver success, duplicate replay, one-step
   undo/redo, and FCStd save/close/reopen with model/view proxies, references,
   offsets, and both limit families restored. It reports
-  `VIBECAD_NATIVE_ASSEMBLY_CYLINDRICAL_JOINT_GUI_OK components=2 joints=1
+  `STEVECAD_NATIVE_ASSEMBLY_CYLINDRICAL_JOINT_GUI_OK components=2 joints=1
   length_limits=true angle_limits=true reverse=true transactions=1
   reopen=true`; the Fixed and Revolute lifecycle gates remain green against
   the expanded shared engine. The complete suite is 2,995 passed with four
-  intentional skips; Ruff, compileall, diff checks, and the VibeCADScripts,
+  intentional skips; Ruff, compileall, diff checks, and the SteveCADScripts,
   AssemblyScripts, Assembly, and AssemblyGui build targets are green. The
   protected Sketcher, Part Design, and Assembly VibeScript integrations all
-  exit zero, no VibeCAD test process remains, and the immutable 5-axis fixture
+  exit zero, no SteveCAD test process remains, and the immutable 5-axis fixture
   remains exactly
   `19a445d49a18b6cd997e51eadd2c0c8f89eca29533281e2015601874c0f58cbe`.
 - Assemble Slider Joint is an exact `assembly.joint/create_slider` operation
@@ -5326,13 +5326,13 @@ implementation changes:
   linear bounds, reverse behavior, final solver success, duplicate replay,
   one-step undo/redo, and FCStd save/close/reopen with model/view proxies,
   references, offsets, limits, and bounded state restored. It reports
-  `VIBECAD_NATIVE_ASSEMBLY_SLIDER_JOINT_GUI_OK components=2 joints=1
+  `STEVECAD_NATIVE_ASSEMBLY_SLIDER_JOINT_GUI_OK components=2 joints=1
   limits=true reverse=true transactions=1 reopen=true`; the Fixed, Revolute,
   and Cylindrical lifecycle gates remain green against the expanded shared
   engine. The complete suite is 3,009 passed with four intentional skips;
-  Ruff, compileall, diff checks, and the VibeCADScripts, AssemblyScripts,
+  Ruff, compileall, diff checks, and the SteveCADScripts, AssemblyScripts,
   Assembly, and AssemblyGui build targets are green. The protected Sketcher,
-  Part Design, and Assembly VibeScript integrations all exit zero, no VibeCAD
+  Part Design, and Assembly VibeScript integrations all exit zero, no SteveCAD
   test process remains, and the immutable 5-axis fixture remains exactly
   `19a445d49a18b6cd997e51eadd2c0c8f89eca29533281e2015601874c0f58cbe`.
 - Assemble Ball Joint is an exact `assembly.joint/create_ball` operation mapped
@@ -5356,14 +5356,14 @@ implementation changes:
   vertex connectors, independent full offsets, final solver success,
   idempotent replay, one-step undo/redo, and FCStd save/close/reopen with
   model/view proxies, references, offsets, and bounded state restored. It
-  reports `VIBECAD_NATIVE_ASSEMBLY_BALL_JOINT_GUI_OK components=2 joints=1
+  reports `STEVECAD_NATIVE_ASSEMBLY_BALL_JOINT_GUI_OK components=2 joints=1
   point_connectors=true offsets=true transactions=1 reopen=true`; the Fixed,
   Revolute, Cylindrical, and Slider lifecycle gates remain green against the
   expanded shared engine. The complete suite is 3,016 passed with four
-  intentional skips; Ruff, compileall, diff checks, and the VibeCADScripts,
+  intentional skips; Ruff, compileall, diff checks, and the SteveCADScripts,
   AssemblyScripts, Assembly, and AssemblyGui build targets are green. The
   protected Sketcher, Part Design, and Assembly VibeScript integrations all
-  exit zero, no VibeCAD test process remains, and the immutable 5-axis fixture
+  exit zero, no SteveCAD test process remains, and the immutable 5-axis fixture
   remains exactly
   `19a445d49a18b6cd997e51eadd2c0c8f89eca29533281e2015601874c0f58cbe`.
 - Assemble Distance Joint is an exact `assembly.joint/create_distance`
@@ -5395,14 +5395,14 @@ implementation changes:
   value, final solver success, idempotent replay, one-step undo/redo, and FCStd
   save/close/reopen with model/view proxies, references, offsets, mode, and
   bounded state restored. It reports
-  `VIBECAD_NATIVE_ASSEMBLY_DISTANCE_JOINT_GUI_OK components=2 joints=1
+  `STEVECAD_NATIVE_ASSEMBLY_DISTANCE_JOINT_GUI_OK components=2 joints=1
   mode=point_plane canonicalized=true distance_mm=18 reverse=true
   transactions=1 reopen=true`; the Fixed, Revolute, Cylindrical, Slider, and
   Ball lifecycle gates remain green. The complete suite is 3,042 passed with
   four intentional skips; Ruff, compileall, diff checks, and the
-  VibeCADScripts, AssemblyScripts, Assembly, and AssemblyGui build targets are
+  SteveCADScripts, AssemblyScripts, Assembly, and AssemblyGui build targets are
   green. The protected Sketcher, Part Design, and Assembly VibeScript
-  integrations all exit zero, no VibeCAD test process remains, and the
+  integrations all exit zero, no SteveCAD test process remains, and the
   immutable 5-axis fixture remains exactly
   `19a445d49a18b6cd997e51eadd2c0c8f89eca29533281e2015601874c0f58cbe`.
 - Assemble Parallel Joint is an exact `assembly.joint/create_parallel`
@@ -5429,14 +5429,14 @@ implementation changes:
   Reverse, idempotent replay, one-step undo/redo, and FCStd
   save/close/reopen with model/view proxies, references, offsets, and bounded
   state restored. It reports
-  `VIBECAD_NATIVE_ASSEMBLY_PARALLEL_JOINT_GUI_OK components=2 joints=1
+  `STEVECAD_NATIVE_ASSEMBLY_PARALLEL_JOINT_GUI_OK components=2 joints=1
   axes_parallel=true reverse=true offsets=true transactions=1 reopen=true`;
   the Fixed, Revolute, Cylindrical, Slider, Ball, and Distance lifecycle gates
   remain green. The complete suite is 3,052 passed with four intentional
-  skips; Ruff, compileall, diff checks, and the VibeCADScripts,
+  skips; Ruff, compileall, diff checks, and the SteveCADScripts,
   AssemblyScripts, Assembly, and AssemblyGui build targets are green. The
   protected Sketcher, Part Design, and Assembly VibeScript integrations all
-  exit zero, no VibeCAD test process remains, and the immutable 5-axis fixture
+  exit zero, no SteveCAD test process remains, and the immutable 5-axis fixture
   remains exactly
   `19a445d49a18b6cd997e51eadd2c0c8f89eca29533281e2015601874c0f58cbe`.
 - Assemble Perpendicular Joint is an exact
@@ -5465,14 +5465,14 @@ implementation changes:
   idempotent replay, one-step undo/redo, and FCStd save/close/reopen with model
   and view proxies, references, offsets, semantic state, and bounded summary
   restored. It reports
-  `VIBECAD_NATIVE_ASSEMBLY_PERPENDICULAR_JOINT_GUI_OK components=2 joints=1
+  `STEVECAD_NATIVE_ASSEMBLY_PERPENDICULAR_JOINT_GUI_OK components=2 joints=1
   initial_parallel=true axes_perpendicular=true offsets=true transactions=1
   reopen=true`; the Fixed, Revolute, Cylindrical, Slider, Ball, Distance, and
   Parallel lifecycle gates remain green. The complete suite is 3,064 passed
   with four intentional skips; Ruff, compileall, diff checks, source/build-tree
-  byte comparison, and the VibeCADScripts, AssemblyScripts, Assembly, and
+  byte comparison, and the SteveCADScripts, AssemblyScripts, Assembly, and
   AssemblyGui build targets are green. The protected Sketcher, Part Design,
-  and Assembly VibeScript integrations all exit zero, no VibeCAD test process
+  and Assembly VibeScript integrations all exit zero, no SteveCAD test process
   remains, and the immutable 5-axis fixture remains exactly
   `19a445d49a18b6cd997e51eadd2c0c8f89eca29533281e2015601874c0f58cbe`.
 - Assemble Angle Joint is an exact `assembly.joint/create_angle` operation
@@ -5504,14 +5504,14 @@ implementation changes:
   offset persistence, moved-component reporting, idempotent replay, one-step
   undo/redo, and FCStd save/close/reopen with model and view proxies,
   references, semantic state, and bounded summary restored. It reports
-  `VIBECAD_NATIVE_ASSEMBLY_ANGLE_JOINT_GUI_OK components=2 joints=1
+  `STEVECAD_NATIVE_ASSEMBLY_ANGLE_JOINT_GUI_OK components=2 joints=1
   initial_parallel=true angle_degrees=60 angle_satisfied=true offsets=true
   transactions=1 reopen=true`; all eight previously completed compiled joint
   lifecycle gates remain green. The complete suite is 3,086 passed with four
   intentional skips; Ruff, compileall, diff checks, source/build-tree byte
-  comparison, and the VibeCADScripts, AssemblyScripts, Assembly, and AssemblyGui
+  comparison, and the SteveCADScripts, AssemblyScripts, Assembly, and AssemblyGui
   build targets are green. The protected Sketcher, Part Design, and Assembly
-  VibeScript integrations all exit zero, no VibeCAD test process remains, and
+  VibeScript integrations all exit zero, no SteveCAD test process remains, and
   the immutable 5-axis fixture remains exactly
   `19a445d49a18b6cd997e51eadd2c0c8f89eca29533281e2015601874c0f58cbe`.
 - Assemble Rack-and-Pinion Joint is an exact
@@ -5548,14 +5548,14 @@ implementation changes:
   one-step undo/redo that preserves both prerequisites, and FCStd
   save/close/reopen with model and view proxies, references, offsets, ratio,
   axis semantics, and bounded state restored. It reports
-  `VIBECAD_NATIVE_ASSEMBLY_RACK_PINION_JOINT_GUI_OK components=3 joints=3
+  `STEVECAD_NATIVE_ASSEMBLY_RACK_PINION_JOINT_GUI_OK components=3 joints=3
   prerequisites=true pitch_radius_mm=20 ratio=-20 axes_perpendicular=true
   transactions=1 reopen=true`; all nine previously completed compiled joint
   lifecycle gates remain green. The complete suite is 3,109 passed with four
   intentional skips; Ruff, compileall, diff checks, source/build-tree byte
-  comparison, and the VibeCADScripts, AssemblyScripts, Assembly, and AssemblyGui
+  comparison, and the SteveCADScripts, AssemblyScripts, Assembly, and AssemblyGui
   build targets are green. The protected Sketcher, all 17 Part Design phases,
-  and Assembly VibeScript integrations exit zero, no VibeCAD test process
+  and Assembly VibeScript integrations exit zero, no SteveCAD test process
   remains, and the immutable 5-axis fixture remains exactly
   `19a445d49a18b6cd997e51eadd2c0c8f89eca29533281e2015601874c0f58cbe`.
 - Assemble Screw Joint is an exact `assembly.joint/create_screw` operation
@@ -5593,15 +5593,15 @@ implementation changes:
   reuse, canonical side order, idempotent replay, one-step undo/redo preserving
   both prerequisites, and FCStd save/close/reopen with model and view proxies,
   references, offsets, rates, axis semantics, and bounded state restored. It
-  reports `VIBECAD_NATIVE_ASSEMBLY_SCREW_JOINT_GUI_OK components=3 joints=3
+  reports `STEVECAD_NATIVE_ASSEMBLY_SCREW_JOINT_GUI_OK components=3 joints=3
   prerequisites=true thread_pitch_mm=-2 slider_travel_mm_per_revolution=2
   axes_collinear=true transactions=1 reopen=true`; all ten previously completed
   compiled joint lifecycle gates remain green. The complete suite is 3,133
   passed with four intentional skips; Ruff lint, new-file Ruff formatting,
   compileall, diff checks, ten applicable source/build-tree byte comparisons,
-  and the VibeCADScripts, AssemblyScripts, Assembly, and AssemblyGui build
+  and the SteveCADScripts, AssemblyScripts, Assembly, and AssemblyGui build
   targets are green. The protected Sketcher, all 17 Part Design phases, and
-  Assembly VibeScript integrations all exit zero, no VibeCAD test process
+  Assembly VibeScript integrations all exit zero, no SteveCAD test process
   remains, and the immutable 5-axis fixture remains exactly
   `19a445d49a18b6cd997e51eadd2c0c8f89eca29533281e2015601874c0f58cbe`.
 - Assemble Gears Joint is an exact `assembly.joint/create_gears` operation
@@ -5635,15 +5635,15 @@ implementation changes:
   one-step undo/redo preserving both prerequisites, and FCStd
   save/close/reopen with model and view proxies, references, offsets, semantic
   state, and bounded summary restored. It reports
-  `VIBECAD_NATIVE_ASSEMBLY_GEARS_JOINT_GUI_OK components=3 joints=3
+  `STEVECAD_NATIVE_ASSEMBLY_GEARS_JOINT_GUI_OK components=3 joints=3
   prerequisites=true radius1_mm=20 radius2_mm=40 ratio=-0.5
   direction=opposite transactions=1 reopen=true`; all eleven previously
   completed compiled joint lifecycle gates remain green. The complete suite is
   3,158 passed with four intentional skips; Ruff lint, new-file Ruff formatting,
   compileall, diff checks, eight applicable source/build-tree byte comparisons,
-  and the VibeCADScripts, AssemblyScripts, Assembly, and AssemblyGui build
+  and the SteveCADScripts, AssemblyScripts, Assembly, and AssemblyGui build
   targets are green. The protected Sketcher, all 17 Part Design phases, and
-  Assembly VibeScript integrations all exit zero, no VibeCAD test process or
+  Assembly VibeScript integrations all exit zero, no SteveCAD test process or
   test-created crash lock remains, and the immutable 5-axis fixture remains
   exactly `19a445d49a18b6cd997e51eadd2c0c8f89eca29533281e2015601874c0f58cbe`.
 - Assemble Belt Joint is an exact `assembly.joint/create_belt` operation mapped
@@ -5676,17 +5676,17 @@ implementation changes:
   order, `+0.5` same-direction output, idempotent replay, one-step undo/redo,
   and FCStd save/close/reopen with model/view proxies, references, offsets, and
   state restored. It reports
-  `VIBECAD_NATIVE_ASSEMBLY_BELT_JOINT_GUI_OK components=3 joints=3
+  `STEVECAD_NATIVE_ASSEMBLY_BELT_JOINT_GUI_OK components=3 joints=3
   prerequisites=true radius1_mm=20 radius2_mm=40 ratio=0.5 direction=same
   transactions=1 reopen=true`. Completing Belt makes the entire
   `assembly.joint` capability definition and implementation complete while
   Native remains globally unavailable until the rest of this plan is done.
-  All thirteen compiled joint lifecycle gates pass. The complete VibeCAD suite
+  All thirteen compiled joint lifecycle gates pass. The complete SteveCAD suite
   is 3,184 passed with four intentional skips; Ruff, compileall, diff checks,
-  source/build parity, and the VibeCADScripts, AssemblyScripts, Assembly, and
+  source/build parity, and the SteveCADScripts, AssemblyScripts, Assembly, and
   AssemblyGui targets are green. The protected Sketcher gate exits zero, all
-  17 Part Design phases report `VIBECAD_VIBESCRIPT_PHASE_OK`, and the Assembly
-  VibeScript gate returns `VIBECAD_ASSEMBLY_VIBESCRIPT_GATE_EXIT 0` with every
+  17 Part Design phases report `STEVECAD_VIBESCRIPT_PHASE_OK`, and the Assembly
+  VibeScript gate returns `STEVECAD_ASSEMBLY_VIBESCRIPT_GATE_EXIT 0` with every
   published joint solver code zero. No VibeScript source changed.
   No FreeCAD or FreeCADCmd process remains, the preserved pre-existing recovery
   snapshot and lock are untouched, the prior test-created crash lock remains
@@ -5717,17 +5717,17 @@ implementation changes:
   state no-op, exact constrained movement, unchanged grounded placement,
   preserved selection and active Assembly, idempotent replay, one-step
   undo/redo, and FCStd save/close/reopen. It reports
-  `VIBECAD_NATIVE_ASSEMBLY_SOLVE_GUI_OK components=2 joints=1 grounded=1
+  `STEVECAD_NATIVE_ASSEMBLY_SOLVE_GUI_OK components=2 joints=1 grounded=1
   moved=1 free_motion=true grounding_repair=true stale_noop=true
   selection=true transactions=2 undo_redo=true reopen=true`. All thirteen
   compiled joint lifecycle gates plus the structure, grounding, and solve gates
-  pass. The complete VibeCAD suite is 3,193 passed with four intentional skips;
-  Ruff, compileall, diff checks, source/build parity, and the VibeCADScripts,
+  pass. The complete SteveCAD suite is 3,193 passed with four intentional skips;
+  Ruff, compileall, diff checks, source/build parity, and the SteveCADScripts,
   AssemblyScripts, Assembly, and AssemblyGui targets are green. The protected
   Sketcher gate exits zero, all 17 Part Design phases report
-  `VIBECAD_VIBESCRIPT_PHASE_OK`, and the Assembly VibeScript gate returns
+  `STEVECAD_VIBESCRIPT_PHASE_OK`, and the Assembly VibeScript gate returns
   explicit `"ok": true`, every published joint solver code zero, and
-  `VIBECAD_ASSEMBLY_VIBESCRIPT_GATE_EXIT 0`. No VibeScript source changed. No
+  `STEVECAD_ASSEMBLY_VIBESCRIPT_GATE_EXIT 0`. No VibeScript source changed. No
   FreeCAD or FreeCADCmd process remains, the preserved recovery snapshot and
   lock are untouched, the prior test-created crash lock remains absent, and
   the immutable 5-axis fixture remains exactly
@@ -5756,12 +5756,12 @@ implementation changes:
   pagination, stale-state no-ops, unchanged selection/objects/placements/undo
   and transaction state, idempotent replay, and FCStd save/close/reopen followed
   by another compiled solve. It reports
-  `VIBECAD_NATIVE_ASSEMBLY_CONFLICT_DIAGNOSIS_GUI_OK components=3 joints=3
+  `STEVECAD_NATIVE_ASSEMBLY_CONFLICT_DIAGNOSIS_GUI_OK components=3 joints=3
   conflicts=3 solver_status=-1 human_match=true pagination=true
   stale_noop=true selection=true transactions=0 reopen=true`. The focused
   diagnosis suite has 13 tests, all 17 Assembly GUI lifecycle gates pass, and
-  the complete VibeCAD suite is 3,206 passed with four intentional skips. Ruff,
-  compileall, diff checks, source/build parity, and the VibeCADScripts,
+  the complete SteveCAD suite is 3,206 passed with four intentional skips. Ruff,
+  compileall, diff checks, source/build parity, and the SteveCADScripts,
   AssemblyScripts, Assembly, and AssemblyGui targets are green. The protected
   Sketcher gate exits zero, all 17 Part Design phases pass, and the Assembly
   VibeScript gate returns explicit `"ok": true` with every ordinary and coupled
@@ -5795,13 +5795,13 @@ implementation changes:
   unchanged selection/objects/placements/undo/transaction/edit state,
   idempotent replay, and FCStd save/close/reopen followed by a fresh compiled
   solve and read. It reports
-  `VIBECAD_NATIVE_ASSEMBLY_REDUNDANT_DIAGNOSIS_GUI_OK components=2 joints=2
+  `STEVECAD_NATIVE_ASSEMBLY_REDUNDANT_DIAGNOSIS_GUI_OK components=2 joints=2
   redundant=1 solver_status=0 human_match=true complete_redundancy=true
   stale_noop=true selection=true transactions=0 reopen=true`. The combined
   conflict/redundancy diagnosis suite has 19 tests, all 18 Assembly GUI
-  lifecycle gates pass, and the complete VibeCAD suite is 3,212 passed with
+  lifecycle gates pass, and the complete SteveCAD suite is 3,212 passed with
   four intentional skips. Ruff, compileall, diff checks, source/build parity,
-  and the VibeCADScripts, AssemblyScripts, Assembly, and AssemblyGui targets are
+  and the SteveCADScripts, AssemblyScripts, Assembly, and AssemblyGui targets are
   green. The protected Sketcher gate exits zero, all 17 Part Design phases pass
   with final `"ok": true`, and the Assembly VibeScript gate exits zero with
   top-level `"ok": true` and every ordinary and coupled joint solver code zero.
@@ -5834,13 +5834,13 @@ implementation changes:
   stale hash/count no-ops, unchanged selection/objects/placements/undo/
   transaction/edit state, idempotent replay, and FCStd save/close/reopen
   followed by a fresh compiled solve and read. It reports
-  `VIBECAD_NATIVE_ASSEMBLY_PARTIAL_REDUNDANCY_DIAGNOSIS_GUI_OK components=2
+  `STEVECAD_NATIVE_ASSEMBLY_PARTIAL_REDUNDANCY_DIAGNOSIS_GUI_OK components=2
   joints=2 partial=1 redundant_overlap=1 solver_status=0 human_match=true
   aggregate=4_of_5 stale_noop=true selection=true transactions=0 reopen=true`.
   The combined diagnosis suite has 25 tests, all 19 Assembly GUI lifecycle
-  gates pass, and the complete VibeCAD suite is 3,218 passed with four
+  gates pass, and the complete SteveCAD suite is 3,218 passed with four
   intentional skips. Ruff, compileall, diff checks, source/build parity, and
-  the VibeCADScripts, AssemblyScripts, Assembly, and AssemblyGui targets are
+  the SteveCADScripts, AssemblyScripts, Assembly, and AssemblyGui targets are
   green. The protected Sketcher gate exits zero, all 17 Part Design phases pass
   with final `"ok": true`, and the Assembly VibeScript gate exits zero with
   top-level `"ok": true` and every ordinary and coupled joint solver code zero.
@@ -5879,13 +5879,13 @@ implementation changes:
   also proves stale hash/count no-ops, unchanged selection/objects/placements/
   undo/transaction/edit state, idempotent replay, and FCStd save/close/reopen
   followed by another compiled drag diagnosis. It reports
-  `VIBECAD_NATIVE_ASSEMBLY_MALFORMED_DIAGNOSIS_GUI_OK components=3 joints=3
+  `STEVECAD_NATIVE_ASSEMBLY_MALFORMED_DIAGNOSIS_GUI_OK components=3 joints=3
   malformed=2 fixed_member=1 intra_bundle=1 solver_status=0 human_match=true
   pagination=true stale_noop=true selection=true transactions=0 reopen=true`.
   The combined diagnosis suite has 31 tests, all 20 Assembly GUI lifecycle
-  gates pass, and the complete VibeCAD suite is 3,224 passed with four
+  gates pass, and the complete SteveCAD suite is 3,224 passed with four
   intentional skips. Ruff, compileall, diff checks, source/build parity, and
-  the VibeCADScripts, AssemblyScripts, Assembly, and AssemblyGui targets are
+  the SteveCADScripts, AssemblyScripts, Assembly, and AssemblyGui targets are
   green. The protected Sketcher gate exits zero, all 17 Part Design phases
   pass with final `"ok": true`, and the Assembly VibeScript gate exits zero
   with top-level `"ok": true`, all 13 ordinary joint solver codes zero, and
@@ -5930,14 +5930,14 @@ implementation changes:
   connector sides, two-page pagination, a zero-joint result, stale hash/count
   and wrong-target no-ops, unchanged selection/objects/placements/undo/
   transaction/edit state, idempotent replay, and FCStd save/close/reopen. It
-  reports `VIBECAD_NATIVE_ASSEMBLY_COMPONENT_JOINTS_GUI_OK components=5
+  reports `STEVECAD_NATIVE_ASSEMBLY_COMPONENT_JOINTS_GUI_OK components=5
   joints=3 attached=3 suppressed_excluded=true human_match=true
   exact_sides=true pagination=true empty=true stale_noop=true selection=true
   transactions=0 reopen=true diagnose_complete=true`. The combined diagnosis
   suite has 38 tests, all 21 Assembly GUI lifecycle gates pass, and the
-  complete VibeCAD suite is 3,231 passed with four intentional skips. Ruff,
+  complete SteveCAD suite is 3,231 passed with four intentional skips. Ruff,
   compileall, diff checks, source/build parity for touched files, and the
-  VibeCADScripts, AssemblyScripts, Assembly, and AssemblyGui targets are green.
+  SteveCADScripts, AssemblyScripts, Assembly, and AssemblyGui targets are green.
   The protected Sketcher gate exits zero, all 17 Part Design phases pass with
   exit zero, and the current-source Assembly VibeScript gate exits zero with
   top-level `"ok": true`, all 13 ordinary joint solver codes zero, and both
@@ -6003,18 +6003,18 @@ implementation changes:
   targets, single-solid scope, normal and radial moves, malformed and stale
   no-ops, exact task/edit/selection/presentation preservation, one-step
   undo/redo, view-group reuse, proxy/owner restoration, and baseline placements,
-  reporting `VIBECAD_NATIVE_ASSEMBLY_VIEW_GUI_OK views=2 normal_moves=2
+  reporting `STEVECAD_NATIVE_ASSEMBLY_VIEW_GUI_OK views=2 normal_moves=2
   radial_moves=1 nested_target=true stale_noop=true undo_redo=true reopen=true
   placements_restored=true`.
   All 22 compiled Native Assembly lifecycle gates pass against the rebuilt
   core, the focused view/structure/component suite has 19 passing tests, and
-  the complete VibeCAD suite has 3,236 passing tests with four intentional
+  the complete SteveCAD suite has 3,236 passing tests with four intentional
   skips. The new deterministic Assembly core test passes; the broader legacy
   `AssemblyTests.TestCore` module retains an independently reproducible,
   unrelated flexible-occurrence provisional-proof failure and was not hidden
   by changing production behavior or assertions. Ruff, formatting of every
   new file, compilation, diff checks, declared source/build parity, and the
-  VibeCADScripts, AssemblyScripts, FreeCADApp, FreeCADGui, Assembly, and
+  SteveCADScripts, AssemblyScripts, FreeCADApp, FreeCADGui, Assembly, and
   AssemblyGui targets are green. The protected Sketcher VibeScript lifecycle
   passes, all 17 Part Design VibeScript phases pass, and the current-source
   Assembly VibeScript integration exits zero. No VibeScript source changed.
@@ -6061,13 +6061,13 @@ implementation changes:
   counts, parameters, motion-to-joint mappings, the new state digest, and an
   explicit `kinematics_generated: false`. The shared mutation runtime provides
   one semantic undo step and idempotent call replay.
-  The focused and complete VibeCAD suites pass, with 3,242 tests passing and
+  The focused and complete SteveCAD suites pass, with 3,242 tests passing and
   four intentional skips. The compiled GUI lifecycle gate passed repeatedly
   and on the final source/build pair, reporting
-  `VIBECAD_NATIVE_ASSEMBLY_SIMULATION_GUI_OK simulations=2 motions=3
+  `STEVECAD_NATIVE_ASSEMBLY_SIMULATION_GUI_OK simulations=2 motions=3
   cylindrical_dual_motion=true kinematics_not_generated=true stale_noop=true
   idempotent=true undo_redo=true reopen=true placements_unchanged=true`.
-  VibeCADScripts and AssemblyScripts build cleanly; Ruff, Python compilation,
+  SteveCADScripts and AssemblyScripts build cleanly; Ruff, Python compilation,
   diff checks, source/build parity, the protected Sketcher and Part Design
   VibeScript lifecycles, and the current-source Assembly VibeScript integration
   are green. No VibeScript source changed. The preserved recovery cache and
@@ -6110,14 +6110,14 @@ implementation changes:
   shipped player establishes a new clean close baseline even when playback
   opened over a dirty GUI document.
   The compiled GUI gate exercises the real Assembly solver and player and
-  reports `VIBECAD_NATIVE_ASSEMBLY_PLAYBACK_GUI_OK generated=true seek=true
+  reports `STEVECAD_NATIVE_ASSEMBLY_PLAYBACK_GUI_OK generated=true seek=true
   step=true bidirectional=true pause=true mutation_blocked=true
   save_baseline=true dirty_save_clean=true manual_close=true idempotent=true
   restored=true selection_preserved=true`. All six pre-existing compiled
   saved-simulation/player lifecycle tests pass. The focused contract suite has
-  27 passing tests, and the complete VibeCAD suite has 3,250 passing tests with
+  27 passing tests, and the complete SteveCAD suite has 3,250 passing tests with
   four intentional skips. Strict Ruff checks, formatting, Python compilation,
-  diff checks, source/build parity, and the VibeCADScripts and AssemblyScripts
+  diff checks, source/build parity, and the SteveCADScripts and AssemblyScripts
   targets are green. The protected current-source Sketcher, Part Design, and
   Assembly VibeScript gates all exit zero; no VibeScript source changed. No
   FreeCAD, FreeCADCmd, pytest, or build process remains. The preserved recovery
@@ -6145,7 +6145,7 @@ implementation changes:
   applies the exact native columns and settings, and generates the table in one
   immediate document transaction without opening a task panel or spreadsheet
   view. It preserves the human command's History behavior: the core enrolls
-  the BOM in History, and Native does not invent a `VibeCADTimelineRole` that
+  the BOM in History, and Native does not invent a `SteveCADTimelineRole` that
   the human factory does not create.
   Postconditions prove the exact Assembly owner and BOM-group order, accepted
   and active History state, ordered table headers, bounded table digest and
@@ -6156,12 +6156,12 @@ implementation changes:
   columns, quantity aggregation across duplicate links, nested detail,
   parts-only filtering, group reuse, stale no-op, replay, undo/redo, save and
   reopen, ownership, and unchanged placements, reporting
-  `VIBECAD_NATIVE_ASSEMBLY_BOM_GUI_OK boms=2 rows=4 properties=true
+  `STEVECAD_NATIVE_ASSEMBLY_BOM_GUI_OK boms=2 rows=4 properties=true
   quantity_aggregation=true parts_filter=true stale_noop=true idempotent=true
   undo_redo=true reopen=true owner=true no_sheet_opened=true
   placements_unchanged=true`.
-  The complete VibeCAD suite has 3,256 passing tests and four intentional
-  skips; the focused contract suite, targeted core BOM test, VibeCADScripts,
+  The complete SteveCAD suite has 3,256 passing tests and four intentional
+  skips; the focused contract suite, targeted core BOM test, SteveCADScripts,
   AssemblyScripts, FreeCADApp, FreeCADGui, Assembly, and AssemblyGui targets,
   Ruff, formatting, Python compilation, diff checks, and declared source/build
   parity are green. The protected current-source Sketcher, Part Design, and
@@ -6196,12 +6196,12 @@ implementation changes:
   source while preserving active document, MDI subwindow, selection, task/edit
   state, touched state, transactions, undo history, and both document graphs.
   Zero- and multi-selection calls fail without mutation. It reports
-  `VIBECAD_NATIVE_ASSEMBLY_LINKED_SOURCE_GUI_OK human_navigation=true
+  `STEVECAD_NATIVE_ASSEMBLY_LINKED_SOURCE_GUI_OK human_navigation=true
   external=true read_only=true exact_selection=true stale_noop=true
   reopen=true selection_unchanged=true active_document_unchanged=true`.
-  The complete VibeCAD suite has 3,264 passing tests and four intentional
+  The complete SteveCAD suite has 3,264 passing tests and four intentional
   skips; the focused manifest, registry, schema and runtime suite has 79
-  passing tests. VibeCADScripts, Ruff, new-file formatting, Python compilation, diff
+  passing tests. SteveCADScripts, Ruff, new-file formatting, Python compilation, diff
   checks, and declared source/build parity are green. The protected
   current-source Sketcher gate, all 17 Part Design phases, and Assembly
   VibeScript integration pass; no VibeScript source changed. The preserved
@@ -6217,14 +6217,14 @@ implementation changes:
   or destination field. Preflight rejects an open transaction or recompute,
   re-resolves the exact active `Assembly::AssemblyObject`, and freezes the
   document graph, selection, undo position, transaction state, and GUI dirty
-  state before VibeCAD asks the human to choose a destination.
+  state before SteveCAD asks the human to choose a destination.
   A new shared Native output boundary creates one trusted, bounded output
   request and accepts one exact path only from a main-thread save dialog. The
   resulting grant is request-bound and one-shot. It validates the suffix,
   parent-directory identity, and destination type and identity, and rejects
   cancellation, symlinks, directories, nonexistent parents, reuse, or drift.
   The real compiled `AssemblyObject.exportAsASMT()` serializer writes only to
-  a private sibling temporary file. VibeCAD validates the ASMT header, bounds
+  a private sibling temporary file. SteveCAD validates the ASMT header, bounds
   and hashes the complete output, reauthorizes the frozen turn and unchanged
   Assembly/document/UI state before and after serialization, then atomically
   publishes with `os.replace`. A failed serializer, stale turn, changed
@@ -6234,13 +6234,13 @@ implementation changes:
   explicit preservation facts; neither the provider request nor result
   reveals the human's filesystem path.
   The compiled GUI lifecycle gate exercises the shipped C++ serializer and
-  reports `VIBECAD_NATIVE_ASSEMBLY_ASMT_EXPORT_GUI_OK human_serializer=true
+  reports `STEVECAD_NATIVE_ASSEMBLY_ASMT_EXPORT_GUI_OK human_serializer=true
   explicit_path=true provider_path_refused=true cancel_noop=true
   destination_drift_noop=true stale_noop=true atomic_overwrite=true
   idempotent=true document_unchanged=true selection_unchanged=true reopen=true`.
   The focused output/export suite has 15 passing tests and the complete
-  VibeCAD suite has 3,279 passing tests with four intentional skips.
-  VibeCADScripts, Ruff, formatting, Python compilation, diff checks, declared
+  SteveCAD suite has 3,279 passing tests with four intentional skips.
+  SteveCADScripts, Ruff, formatting, Python compilation, diff checks, declared
   source/build parity, and the compiled GUI gate are green. The protected
   current-source Sketcher lifecycle, all 17 Part Design VibeScript phases, and
   Assembly VibeScript integration pass; no VibeScript source changed. The
@@ -6251,7 +6251,7 @@ implementation changes:
   Native mode remains globally unavailable until this entire plan is complete.
 - Assemble-ribbon standard-fastener insertion is one exact
   `assembly.fastener/insert_standard_fastener` mutation mapped only from the
-  shipped `VibeCAD_InsertStandardFastener` action on the human-selected
+  shipped `SteveCAD_InsertStandardFastener` action on the human-selected
   Assemble surface. It is intentionally separate from the retained Model
   fastener graph: the shared `model.catalog/fasteners` read is available on
   both Model and Assemble, while insertion creates the same native Assembly
@@ -6284,13 +6284,13 @@ implementation changes:
   rejection, forced verifier rollback, idempotent same-call replay, one-step
   undo/redo, tree and History presentation, snapshot continuity, placement
   preservation, and save/reopen. It reports
-  `VIBECAD_NATIVE_ASSEMBLY_FASTENER_GUI_OK human_parity=true
+  `STEVECAD_NATIVE_ASSEMBLY_FASTENER_GUI_OK human_parity=true
   hidden_definition=true visible_occurrence=true exact_history=true
   stale_noop=true invalid_catalog_noop=true rollback=true idempotent=true
   undo_redo=true reopen=true snapshot=true placements_unchanged=true`.
-  The complete VibeCAD suite has 3,285 passing tests with four intentional
+  The complete SteveCAD suite has 3,285 passing tests with four intentional
   skips; the focused registry, manifest, catalog, schema, and runtime suite has
-  55 passing tests. VibeCADScripts, AssemblyScripts, Assembly, and AssemblyGui
+  55 passing tests. SteveCADScripts, AssemblyScripts, Assembly, and AssemblyGui
   build cleanly; strict Ruff checks, formatting, Python compilation, diff
   checks, and declared source/build parity are green. The protected
   current-source Sketcher lifecycle, all 17 Part Design VibeScript phases, and
@@ -6302,7 +6302,7 @@ implementation changes:
   Native mode remains globally unavailable until this entire plan is complete.
 - Assemble-ribbon standard-fastener editing is the second typed
   `assembly.fastener` variant and is mapped only from the shipped
-  `VibeCAD_EditStandardFastener` action on the human-selected Assemble
+  `SteveCAD_EditStandardFastener` action on the human-selected Assemble
   surface. The closed provider request names the exact active Assembly,
   selected visible occurrence, hidden definition source, replacement catalog
   constructor, printable label, current per-fastener SHA-256 state, and frozen
@@ -6328,15 +6328,15 @@ implementation changes:
   malformed no-ops, forced-verifier rollback, identity-preserving edit,
   idempotent same-call replay, one-step undo/redo, snapshot continuation,
   placement preservation, and FCStd save/reopen. It reports
-  `VIBECAD_NATIVE_ASSEMBLY_FASTENER_GUI_OK human_parity=true
+  `STEVECAD_NATIVE_ASSEMBLY_FASTENER_GUI_OK human_parity=true
   hidden_definition=true visible_occurrence=true exact_history=true
   edit_in_place=true exact_selected_target=true compatible_guard=true
   shared_definition_guard=true stale_noop=true invalid_catalog_noop=true
   rollback=true idempotent=true undo_redo=true reopen=true snapshot=true
   placements_unchanged=true`.
-  The complete VibeCAD suite has 3,287 passing tests with four intentional
+  The complete SteveCAD suite has 3,287 passing tests with four intentional
   skips; the focused fastener, catalog, registry, and manifest suite has 109
-  passing tests. VibeCADScripts, AssemblyScripts, Assembly, and AssemblyGui
+  passing tests. SteveCADScripts, AssemblyScripts, Assembly, and AssemblyGui
   build cleanly; strict Ruff checks, Python compilation, diff checks, and
   declared source/build parity are green. The protected current-source
   Sketcher lifecycle, all 17 Part Design VibeScript phases, and Assembly
@@ -6345,8 +6345,8 @@ implementation changes:
 - The conditional Assemble matching-hole and fastener-attachment rows require
   no Assemble provider operation on the current product. The authoritative
   live manifest contains 53 Assemble actions and exposes only Insert and Edit
-  in its Standard Components group; `VibeCAD_CreateMatchingFastenerHole` and
-  `VibeCAD_AttachStandardFastener` are Model-only actions, and the shipped
+  in its Standard Components group; `SteveCAD_CreateMatchingFastenerHole` and
+  `SteveCAD_AttachStandardFastener` are Model-only actions, and the shipped
   human matching-hole command explicitly requires `PartDesignWorkbench`.
   Existing Model rows 9.65 and 9.66 already provide their exact-target Native
   implementations on the Model surface. Mapping either action into Assemble
@@ -6355,7 +6355,7 @@ implementation changes:
   manifest test proves there is no hidden fastener context action and that the
   intersection of the four fastener actions with Assemble is exactly Insert
   and Edit. The compiled live-surface gate confirms Assemble remains the exact
-  53-action shipped graph and reports `VIBECAD_NATIVE_RIBBON_SURFACE_GUI_OK`;
+  53-action shipped graph and reports `STEVECAD_NATIVE_RIBBON_SURFACE_GUI_OK`;
   the focused action/context-manifest suite has 54 passing tests. Any future
   addition of either command to the shipped Assemble graph will fail manifest
   parity and require a new Assemble-scoped implementation before Native can be
@@ -6395,13 +6395,13 @@ implementation changes:
   and History, malformed-file and input-drift no-ops, stale-state rejection,
   cancellation, forced-verifier rollback, idempotent same-call replay, one-step
   undo/redo, selection preservation, and FCStd save/reopen. It reports
-  `VIBECAD_NATIVE_ROBOT_SETUP_GUI_OK human_parity=true
+  `STEVECAD_NATIVE_ROBOT_SETUP_GUI_OK human_parity=true
   human_input_authority=true provider_paths=false exact_history=true
   exact_state=true malformed_noop=true input_drift_noop=true stale_noop=true
   cancel_noop=true rollback=true idempotent=true undo_redo=true reopen=true
-  selection_preserved=true`. The complete VibeCAD suite has 3,301 passing tests
+  selection_preserved=true`. The complete SteveCAD suite has 3,301 passing tests
   with four intentional skips; the focused input/setup suite has 14 passing
-  tests. Robot, RobotGui, RobotScripts, and VibeCADScripts build cleanly; Ruff,
+  tests. Robot, RobotGui, RobotScripts, and SteveCADScripts build cleanly; Ruff,
   formatting, Python compilation, diff checks, and declared source/build parity
   are green. The protected current-source Sketcher lifecycle, all 17 Part Design
   VibeScript phases, and Assembly VibeScript integration exit zero; no VibeScript
@@ -6449,15 +6449,15 @@ implementation changes:
   replay, verified no-op, one-step undo/redo, selection preservation, no
   document bytes from session defaults, defaults rollback, and FCStd
   save/reopen with Part and VRML state stability. It reports
-  `VIBECAD_NATIVE_ROBOT_CONFIGURATION_GUI_OK human_tool_parity=true
+  `STEVECAD_NATIVE_ROBOT_CONFIGURATION_GUI_OK human_tool_parity=true
   exact_targets=true tool_drift_noop=true stale_noop=true rollback=true
   idempotent=true undo_redo=true reopen=true vrml=true
   human_defaults_parity=true session_only=true document_unchanged=true
   defaults_rollback=true selection_preserved=true`. The pre-existing Robot
   creation gate and all 13 shipped Robot GUI lifecycle tests remain green.
-  The complete VibeCAD suite has 3,304 passing tests with four intentional
+  The complete SteveCAD suite has 3,304 passing tests with four intentional
   skips; the focused registry, manifest, snapshot, input, and Robot suite has 78
-  passing tests. Robot, RobotGui, RobotScripts, and VibeCADScripts build cleanly;
+  passing tests. Robot, RobotGui, RobotScripts, and SteveCADScripts build cleanly;
   Ruff, Python compilation, diff checks, and declared source/build parity are
   green. The protected current-source Sketcher lifecycle, all 17
   Part Design VibeScript phases, and Assembly VibeScript integration exit zero;
@@ -6497,16 +6497,16 @@ implementation changes:
   dispatcher/state boundary.
   The compiled lifecycle gate drives all three shipped human commands and their
   Native equivalents and reports
-  `VIBECAD_NATIVE_ROBOT_TRAJECTORY_GUI_OK human_create_parity=true
+  `STEVECAD_NATIVE_ROBOT_TRAJECTORY_GUI_OK human_create_parity=true
   exact_history=true exact_targets=true human_robot_waypoint_parity=true
   human_position_waypoint_parity=true provider_preselection=false
   stale_trajectory_noop=true stale_robot_noop=true stale_defaults_noop=true
   rollback=true idempotent=true undo_redo=true reopen=true
   selection_preserved=true`. The existing Robot setup and configuration gates
-  remain green, as do all 13 shipped Robot GUI tests. The complete VibeCAD suite
+  remain green, as do all 13 shipped Robot GUI tests. The complete SteveCAD suite
   has 3,308 passing tests with four intentional skips; the focused trajectory,
   registry, manifest, capability, setup, and snapshot suite has 92 passing
-  tests. VibeCADScripts, RobotScripts, Robot, and RobotGui build cleanly; Ruff,
+  tests. SteveCADScripts, RobotScripts, Robot, and RobotGui build cleanly; Ruff,
   Python compilation, diff checks, and declared source/build parity are green.
   The protected current-source Sketcher, Part Design, and Assembly VibeScript
   lifecycles exit zero with Part Design reporting `"ok": true`; no VibeScript
@@ -6547,15 +6547,15 @@ implementation changes:
   without a second state contract.
   The compiled lifecycle gate drives the three shipped human commands and the
   Native equivalents and reports
-  `VIBECAD_NATIVE_ROBOT_TRAJECTORY_FEATURES_GUI_OK human_edge_parity=true
+  `STEVECAD_NATIVE_ROBOT_TRAJECTORY_FEATURES_GUI_OK human_edge_parity=true
   human_dress_up_parity=true human_compound_parity=true exact_history=true
   exact_targets=true manufacture_surface=true stale_noop=true cycle_noop=true
   bounded=true rollback=true verified_noop=true idempotent=true undo_redo=true
   reopen=true selection_preserved=true`. The preceding Robot creation,
   configuration, and trajectory gates remain green, as do all 13 shipped Robot
-  GUI tests. The complete VibeCAD suite has 3,312 passing tests with four
+  GUI tests. The complete SteveCAD suite has 3,312 passing tests with four
   intentional skips; the focused trajectory, setup, registry, manifest,
-  capability, and snapshot suite has 96 passing tests. VibeCADScripts,
+  capability, and snapshot suite has 96 passing tests. SteveCADScripts,
   RobotScripts, Robot, and RobotGui build cleanly; Ruff, Python compilation,
   diff checks, and declared source/build parity are green. The protected
   current-source Sketcher, all 17 Part Design phases, Assembly, and Robot
@@ -6598,15 +6598,15 @@ implementation changes:
   Assemble and Manufacture state now include the bounded Robot setup needed for
   exact simulation targeting. The compiled lifecycle gate drives the three
   shipped human commands and their Native variants and reports
-  `VIBECAD_NATIVE_ROBOT_MOTION_GUI_OK human_set_home_parity=true
+  `STEVECAD_NATIVE_ROBOT_MOTION_GUI_OK human_set_home_parity=true
   human_restore_home_parity=true human_simulation_parity=true
   exact_targets=true stale_noop=true rollback=true verified_noop=true
   idempotent=true undo_redo=true preview_only=true manufacture_surface=true
   reopen=true selection_preserved=true`. All five Native Robot compiled gates
-  and all 13 shipped Robot GUI tests are green. The complete VibeCAD suite has
+  and all 13 shipped Robot GUI tests are green. The complete SteveCAD suite has
   3,317 passing tests with four intentional skips; the focused motion,
   registry, manifest, capability, and snapshot suite has 82 passing tests.
-  VibeCADScripts, RobotScripts, Robot, and RobotGui build cleanly; Ruff, Python
+  SteveCADScripts, RobotScripts, Robot, and RobotGui build cleanly; Ruff, Python
   compilation, diff checks, and declared source/build parity are green. The
   protected current-source Sketcher lifecycle, all 17 Part Design phases,
   Assembly, and Robot VibeScript lifecycles exit zero with their success
@@ -6640,10 +6640,10 @@ implementation changes:
   Codex's typed `inputImage.imageUrl` dynamic-tool content item; provider text
   contains only bounded JSON metadata and rejects any embedded data URL.
   The compiled production gate reports
-  `VIBECAD_NATIVE_SKETCH_PROVIDER_SURFACE_GUI_OK tools=27 schemas=47616B
+  `STEVECAD_NATIVE_SKETCH_PROVIDER_SURFACE_GUI_OK tools=27 schemas=47616B
   turn_revision batch128 origin coincidence repair typed_capture delete leave
-  diagnostics`. The complete VibeCAD suite has 3,331 passing tests with four
-  intentional skips; VibeCADScripts builds cleanly and the focused corrected
+  diagnostics`. The complete SteveCAD suite has 3,331 passing tests with four
+  intentional skips; SteveCADScripts builds cleanly and the focused corrected
   contract set has 58 passing tests. VibeScript production source remains
   unchanged.
 - The human-selected 53-action Assemble ribbon now resolves as one complete
@@ -6670,18 +6670,18 @@ implementation changes:
   action, so owned joint-group creation or retirement is not misclassified as
   insertion or deletion of an unrelated user operation.
   The compiled production structure gate reports
-  `VIBECAD_NATIVE_ASSEMBLY_STRUCTURE_GUI_OK actions=53 tools=17
+  `STEVECAD_NATIVE_ASSEMBLY_STRUCTURE_GUI_OK actions=53 tools=17
   schemas=61325B assemblies=2 components=4 transactions=8
   rigid_flexible=true grounding_cleanup=true active_read=true`; it also proves
   stale-state rejection, idempotent replay, undo/redo, save/reopen, selection
   preservation, exact resource ownership, and the human-only Active control.
   The production component-interface gate reports
-  `VIBECAD_NATIVE_COMPONENT_INTERFACE_GUI_OK`. Representative real-GUI gates
+  `STEVECAD_NATIVE_COMPONENT_INTERFACE_GUI_OK`. Representative real-GUI gates
   independently pass insert/ground/revolute-joint/solve/BOM/simulation
   workflows, including stale no-ops, undo/redo, and reopen where applicable.
   The focused manifest, context, Assemble, registry, session, capability, and
   common-read suite has 103 passing tests; Ruff and Python compilation are
-  clean, and `AssemblyGui` plus `VibeCADScripts` build cleanly. No VibeScript
+  clean, and `AssemblyGui` plus `SteveCADScripts` build cleanly. No VibeScript
   production source changed. Assemble is therefore enabled as a complete
   Native surface while unfinished ribbons continue to fail closed.
 - The Assembly joint runtime has been split by responsibility without changing
@@ -6701,11 +6701,11 @@ implementation changes:
 - The human alone changes ribbons and workbenches.
 - The assistant has no workbench activation, ribbon activation, command-search,
   or arbitrary `runCommand` capability.
-- The active provider surface is derived from the visible VibeCAD ribbon and
+- The active provider surface is derived from the visible SteveCAD ribbon and
   contextual edit state, not from historical FreeCAD workbench-pack names.
 - A human ribbon change invalidates the current assistant turn before another
   mutation can run.
-- VibeCAD does not automatically continue an assistant turn after a surface
+- SteveCAD does not automatically continue an assistant turn after a surface
   change. The human resumes from the new surface.
 - Tools cannot invoke a different surface as a hidden side effect.
 - Human selection may provide exact targets, but labels and selection order are
@@ -6753,7 +6753,7 @@ The 19 context actions are tracked separately and are not included in the
 ribbon totals.
 
 Legacy FreeCAD commands available only from command search or legacy menus are
-not part of Native assistant authority. Current VibeCAD context actions that
+not part of Native assistant authority. Current SteveCAD context actions that
 complete a ribbon workflow are in scope and must be classified separately.
 
 ## Provider result contract
@@ -6858,7 +6858,7 @@ concisely.
 
 ### 2. Remove the retired Native architecture
 
-- [x] 2.1 Inventory every import and caller of `VibeCADWorkbenchTools`.
+- [x] 2.1 Inventory every import and caller of `SteveCADWorkbenchTools`.
 - [x] 2.2 Delete `WorkbenchToolPack` and the workbench-keyed pack table.
 - [x] 2.3 Delete compatibility-only Part and Part Design provider-name lists.
 - [x] 2.4 Delete the Draft, Surface, Points, Reverse Engineering, Robot,
@@ -6907,7 +6907,7 @@ concisely.
 
 ### 4. Make the human-selected ribbon authoritative
 
-- [x] 4.1 Expose a stable VibeCAD ribbon surface ID from the ribbon controller.
+- [x] 4.1 Expose a stable SteveCAD ribbon surface ID from the ribbon controller.
 - [x] 4.2 Represent Model, Assemble, Mesh, Analyze, Manufacture, Drawing, and
   Parameters as distinct permanent surface IDs.
 - [x] 4.3 Represent Sketch setup and Sketch edit as distinct contextual states.
@@ -7343,7 +7343,7 @@ concisely.
   exercises all ten variants, stale-state refusal, exact settings and source
   preservation, multi-output History and undo/redo, durable indexed-edit
   invalidation, background Gmsh, and FCStd reopen. It emits
-  `VIBECAD_NATIVE_MESH_MODIFY_GUI_OK variants=10 ...`; the existing Mesh I/O
+  `STEVECAD_NATIVE_MESH_MODIFY_GUI_OK variants=10 ...`; the existing Mesh I/O
   and conversion lifecycle gates and the 81-test registry/action suite remain
   green.
 - The third Mesh checkpoint exposes all three Boolean and all five Cut ribbon
@@ -7364,8 +7364,8 @@ concisely.
   The real GUI lifecycle proves all eight variants, stale boolean refusal,
   model-space polygon persistence, exact plane context, one-step split
   undo/redo, retained links and History, and valid FCStd recomputation after
-  reopen. It emits `VIBECAD_NATIVE_MESH_BOOLEAN_CUT_GUI_OK booleans=3 cuts=5
-  ...`; Mesh, MeshGui, and VibeCADScripts build cleanly apart from the existing
+  reopen. It emits `STEVECAD_NATIVE_MESH_BOOLEAN_CUT_GUI_OK booleans=3 cuts=5
+  ...`; Mesh, MeshGui, and SteveCADScripts build cleanly apart from the existing
   GCC/fmt warnings, and the 81-test registry/action suite remains green.
 - The fourth Mesh checkpoint exposes every human Segment-group action through
   one discriminated `mesh.segment` instrument: Merge, Split Components,
@@ -7382,7 +7382,7 @@ concisely.
   linked MeshPart shape topology. The real GUI lifecycle exercises all eight
   actions, stale-state refusal, typed native algorithms, retained boundaries,
   one-step undo/redo, FCStd reopen, and recomputation. It emits
-  `VIBECAD_NATIVE_MESH_SEGMENT_GUI_OK actions=8 ...`; all preceding Mesh I/O,
+  `STEVECAD_NATIVE_MESH_SEGMENT_GUI_OK actions=8 ...`; all preceding Mesh I/O,
   conversion, Modify, and Boolean/Cut lifecycle gates remain green.
 - The fifth Mesh checkpoint exposes all six human Analyze-group actions as two
   deliberately separate instruments. `mesh.inspect` performs bounded facet,
@@ -7396,7 +7396,7 @@ concisely.
   lifecycle exercises stale-state rejection, all six ribbon actions, event-loop
   responsiveness, read stability, exact selected facet and vertex data,
   curvature Undo/Redo, and FCStd reopen. It emits
-  `VIBECAD_NATIVE_MESH_ANALYZE_GUI_OK actions=6 ...`.
+  `STEVECAD_NATIVE_MESH_ANALYZE_GUI_OK actions=6 ...`.
 - The sixth Mesh checkpoint exposes all six human Points-group actions through
   one discriminated `mesh.points` mutation instrument plus the existing
   `mesh.export` instrument. Import and export use human-authorized paths which
@@ -7416,7 +7416,7 @@ concisely.
   validation. The real GUI lifecycle exercises all six actions, multi-source
   geometry sampling, exact stale refusal, attributes, structure, model-space
   split, path-redacted round-trip I/O, UI dispatch, one-step Undo/Redo, and
-  FCStd reopen. It emits `VIBECAD_NATIVE_MESH_POINTS_GUI_OK actions=6 ...`;
+  FCStd reopen. It emits `STEVECAD_NATIVE_MESH_POINTS_GUI_OK actions=6 ...`;
   the Boolean/Cut and Segment lifecycle gates remain green.
 - The seventh Mesh checkpoint exposes every Reverse Engineering action composed
   into the Mesh ribbon through two focused background instruments:
@@ -7431,10 +7431,10 @@ concisely.
   GUI lifecycle exercises all eight actions, UI responsiveness, all six fitting
   paths, structured triangulation, conditional Poisson behavior, one-step
   Undo/Redo, and FCStd reopen. It emits
-  `VIBECAD_NATIVE_MESH_REVERSE_GUI_OK actions=8 background=true fits=6
+  `STEVECAD_NATIVE_MESH_REVERSE_GUI_OK actions=8 background=true fits=6
   triangulation=true poisson_conditional=true undo_redo=true reopen=true`;
   the Points, Analyze, Segment, and Boolean/Cut lifecycle gates remain green.
-- The completed Mesh surface covers all 60 actions in the live VibeCAD Mesh
+- The completed Mesh surface covers all 60 actions in the live SteveCAD Mesh
   ribbon inventory. Provider context stays cheap: object state carries bounded
   identity, topology counts, bounds, and state digests; explicit inspection
   returns component, manifold, watertight, and bounded defect information only
@@ -7444,10 +7444,10 @@ concisely.
   and Reverse Engineering as interoperable current-History workflows, including
   stale refusal, background dispatch where required, one-step Undo/Redo, and
   FCStd reopen. `MeshPart_CreateFlatMesh` and `MeshPart_CreateFlatFace` remain
-  conditional legacy menu-only commands: they are not present in the VibeCAD
+  conditional legacy menu-only commands: they are not present in the SteveCAD
   Mesh ribbon action graph and therefore are deliberately not published to the
   ribbon-scoped provider. The fail-closed manifest will require an explicit
-  implementation if either command is ever added to the VibeCAD ribbon.
+  implementation if either command is ever added to the SteveCAD ribbon.
 - [x] 12.1 Implement mesh inventory reading.
 - [x] 12.2 Implement mesh import with explicit file authorization.
 - [x] 12.3 Implement mesh export with explicit file authorization.
@@ -7504,7 +7504,7 @@ concisely.
 - [x] 12.53 Implement curve approximation.
 - [x] 12.54 Audit optional flat-mesh and flat-face conversions: keep the
   compiled legacy menu-only commands outside the Native surface unless they
-  are explicitly added to the VibeCAD Mesh ribbon.
+  are explicitly added to the SteveCAD Mesh ribbon.
 - [x] 12.55 Return counts, bounds, components, manifold status, defects, and
   changed topology concisely.
 - [x] 12.56 Complete repair, convert, Points, and Reverse Engineering workflows.
@@ -7530,7 +7530,7 @@ concisely.
   mutations, all three reads, default-solver preference, solid/fluid/reinforced
   cards, typed overrides, nonlinear hardening data, stale refusal, canonical
   History, one-step Undo/Redo, and exact links, proxies, maps, UUIDs, and roles
-  after FCStd reopen. It emits `VIBECAD_NATIVE_ANALYZE_MODEL_GUI_OK actions=6
+  after FCStd reopen. It emits `STEVECAD_NATIVE_ANALYZE_MODEL_GUI_OK actions=6
   reads=3 exact_targets=true catalog=true history=true undo_redo=true
   reopen=true read_revision_stable=true`.
 - The second Analyze checkpoint covers all four live Geometry-group actions
@@ -7554,7 +7554,7 @@ concisely.
   paths, every beam/fluid discriminator, exact edge/face references, rejected
   invalid input, read-only revision stability, canonical History, one-step
   Undo/Redo, and exact values, proxies, links, and roles after FCStd reopen. It
-  emits `VIBECAD_NATIVE_ANALYZE_GEOMETRY_GUI_OK actions=4 edits=4 reads=1
+  emits `STEVECAD_NATIVE_ANALYZE_GEOMETRY_GUI_OK actions=4 edits=4 reads=1
   exact_references=true typed_sections=true history=true undo_redo=true
   reopen=true read_revision_stable=true`.
 - The third Analyze checkpoint covers all four live Electromagnetics child
@@ -7577,7 +7577,7 @@ concisely.
   topology, global-assignment safety, Elmer Cartesian serialization, stale
   refusal, canonical History, one-step Undo/Redo, and exact proxies, units,
   values, references, and hashes after FCStd reopen. It emits
-  `VIBECAD_NATIVE_ANALYZE_ELECTROMAGNETIC_GUI_OK actions=4 edits=4 reads=1
+  `STEVECAD_NATIVE_ANALYZE_ELECTROMAGNETIC_GUI_OK actions=4 edits=4 reads=1
   exact_references=true typed_modes=true history=true undo_redo=true
   reopen=true read_revision_stable=true`.
 - The fourth Analyze checkpoint covers the three live Fluid-group actions with
@@ -7597,7 +7597,7 @@ concisely.
   mixed references, invalid multiline formula refusal, native solver-facing
   fields, canonical History, Undo/Redo, and exact proxies, values, formulas,
   assignments, and hashes after FCStd reopen. It emits
-  `VIBECAD_NATIVE_ANALYZE_FLUID_GUI_OK actions=3 edits=3 reads=1
+  `STEVECAD_NATIVE_ANALYZE_FLUID_GUI_OK actions=3 edits=3 reads=1
   exact_references=true typed_velocity=true history=true undo_redo=true
   reopen=true read_revision_stable=true`.
 - The fifth Analyze checkpoint covers all three live Geometrical Analysis
@@ -7622,7 +7622,7 @@ concisely.
   three creates and edits, transform eligibility, rectangular and cylindrical
   frames, native fields, canonical History, Undo/Redo, and exact values,
   references, identities, and hashes after FCStd reopen. It emits
-  `VIBECAD_NATIVE_ANALYZE_GEOMETRICAL_GUI_OK actions=3 edits=3 reads=1
+  `STEVECAD_NATIVE_ANALYZE_GEOMETRICAL_GUI_OK actions=3 edits=3 reads=1
   exact_faces=true typed_frames=true eligibility=true history=true
   undo_redo=true reopen=true read_revision_stable=true`.
 - The sixth Analyze checkpoint covers the four mechanical support actions with
@@ -7644,7 +7644,7 @@ concisely.
   covers all four creates and edits, invalid mixed references and flow state,
   numeric/formula/load modes, solver-native fields, canonical History,
   Undo/Redo, and exact definitions, references, identities, and hashes after
-  FCStd reopen. It emits `VIBECAD_NATIVE_ANALYZE_SUPPORT_GUI_OK actions=4
+  FCStd reopen. It emits `STEVECAD_NATIVE_ANALYZE_SUPPORT_GUI_OK actions=4
   edits=4 reads=1 exact_references=true typed_dofs=true history=true
   undo_redo=true reopen=true read_revision_stable=true`.
 - The seventh Analyze checkpoint covers Contact and Tie with one focused
@@ -7667,7 +7667,7 @@ concisely.
   mixed-dimension and duplicate-endpoint refusal, face and 2D-edge pairs,
   frictionless and Coulomb contact, native properties, canonical History,
   Undo/Redo, and exact definitions, endpoints, identities, and hashes after
-  FCStd reopen. It emits `VIBECAD_NATIVE_ANALYZE_CONNECTION_GUI_OK actions=2
+  FCStd reopen. It emits `STEVECAD_NATIVE_ANALYZE_CONNECTION_GUI_OK actions=2
   edits=2 reads=1 exact_roles=true typed_contact=true history=true
   undo_redo=true reopen=true read_revision_stable=true`.
 - The eighth Analyze checkpoint covers all four Mechanics load actions with
@@ -7692,7 +7692,7 @@ concisely.
   centrifugal scopes, gravity uniqueness and normalization, solver-native
   values, canonical History, Undo/Redo, and exact values, references,
   identities, and hashes after FCStd reopen. It emits
-  `VIBECAD_NATIVE_ANALYZE_LOAD_GUI_OK actions=4 edits=4 reads=1
+  `STEVECAD_NATIVE_ANALYZE_LOAD_GUI_OK actions=4 edits=4 reads=1
   exact_directions=true typed_scopes=true global_gravity=true history=true
   undo_redo=true reopen=true read_revision_stable=true`.
 - The ninth Analyze checkpoint covers all four Thermal ribbon actions through
@@ -7717,7 +7717,7 @@ concisely.
   real GUI lifecycle covers all eight modes and edits, invalid mixed geometry,
   global-initial uniqueness, native solver values, canonical History,
   Undo/Redo, and exact values, references, identities, and hashes after FCStd
-  reopen. It emits `VIBECAD_NATIVE_ANALYZE_THERMAL_GUI_OK actions=4 modes=8
+  reopen. It emits `STEVECAD_NATIVE_ANALYZE_THERMAL_GUI_OK actions=4 modes=8
   edits=8 reads=1 exact_references=true typed_conditions=true
   global_initial=true history=true undo_redo=true reopen=true
   read_revision_stable=true`.
@@ -7728,7 +7728,7 @@ concisely.
   present in the corresponding human task panel, and clears generated mesh
   data only when source or meshing settings change. Both definitions retain
   canonical History identity, undo/redo, and save/reopen state. The real GUI
-  lifecycle emits `VIBECAD_NATIVE_ANALYZE_MESH_GUI_OK actions=2 meshers=2
+  lifecycle emits `STEVECAD_NATIVE_ANALYZE_MESH_GUI_OK actions=2 meshers=2
   edits=2 exact_sources=true one_mesh_per_analysis=true definitions_only=true
   history=true undo_redo=true reopen=true read_revision_stable=true`. Actual
   backend execution remains deliberately open in 13.36 and 13.37 so it can be
@@ -7742,10 +7742,10 @@ concisely.
   element controls. Each resource is a canonical child in its mesh History
   block rather than an extra root operation; semantic edits invalidate stale
   generated mesh data and label-only edits do not. The two real GUI lifecycle
-  gates emit `VIBECAD_NATIVE_ANALYZE_MESH_REFINEMENT_GUI_OK actions=5 modes=5
+  gates emit `STEVECAD_NATIVE_ANALYZE_MESH_REFINEMENT_GUI_OK actions=5 modes=5
   edits=5 exact_geometry=true owned_resources=true invalidation=true
   history=true undo_redo=true reopen=true read_revision_stable=true` and
-  `VIBECAD_NATIVE_ANALYZE_STRUCTURED_MESH_GUI_OK actions=3 modes=3 edits=3
+  `STEVECAD_NATIVE_ANALYZE_STRUCTURED_MESH_GUI_OK actions=3 modes=3 edits=3
   typed_distribution=true mixed_surface_geometry=true owned_resources=true
   history=true undo_redo=true reopen=true`.
 - The twelfth Analyze checkpoint covers Gmsh field composition with one
@@ -7760,7 +7760,7 @@ concisely.
   `F#` inputs, all resources live inside the owning mesh History block, and
   semantic edits invalidate generated data. The 20-variant schema is 9,876
   bytes with no `unknown` token. The real GUI lifecycle emits
-  `VIBECAD_NATIVE_ANALYZE_MESH_FIELD_GUI_OK actions=2 kinds=10 edits=10
+  `STEVECAD_NATIVE_ANALYZE_MESH_FIELD_GUI_OK actions=2 kinds=10 edits=10
   exact_dependencies=true cycle_rejection=true typed_geometry=true
   owned_resources=true history=true undo_redo=true reopen=true`. Result-backed
   advanced fields remain open until the FEM result family can supply an exact
@@ -7779,7 +7779,7 @@ concisely.
   `PropertyFemMesh` transaction snapshots to deep-copy mutable mesh data so a
   generated mesh is genuinely undoable. Existing interactive FEM helper
   behavior remains the default. The real GUI lifecycle emits
-  `VIBECAD_NATIVE_ANALYZE_MESH_GENERATION_GUI_OK backends=2 background=true
+  `STEVECAD_NATIVE_ANALYZE_MESH_GENERATION_GUI_OK backends=2 background=true
   responsive=true cancellation=true exact_commit=true refinements=true
   undo_redo=true reopen=true`.
 - The fourteenth Analyze checkpoint covers the two mesh-output actions without
@@ -7796,7 +7796,7 @@ concisely.
   preserve exact input content, replacement presentation, canonical History,
   and undo/redo. Generic baked and filtered FEM meshes now have bounded exact
   state in Analyze context, so later turns can target them directly. The real
-  GUI lifecycle emits `VIBECAD_NATIVE_ANALYZE_MESH_OUTPUT_GUI_OK actions=2
+  GUI lifecycle emits `STEVECAD_NATIVE_ANALYZE_MESH_OUTPUT_GUI_OK actions=2
   variants=3 inspect=true exact_ids=true ranges=true atomic_rejection=true
   filtered_resource=true conversion_facets=6 history=true undo_redo=true
   reopen=true read_revision_stable=true`. Result-deformed conversion remains
@@ -7813,7 +7813,7 @@ concisely.
   The real GUI lifecycle changes backend preferences before creating CalculiX,
   Elmer, Mystran, and Z88 solvers; proves exact analysis membership, stale-target
   rejection, canonical History, undo/redo, and FCStd reopen; and emits
-  `VIBECAD_NATIVE_ANALYZE_SOLVER_GUI_OK actions=4 variants=4
+  `STEVECAD_NATIVE_ANALYZE_SOLVER_GUI_OK actions=4 variants=4
   human_factories=true preferences=true exact_analysis=true
   stale_rejection=true inspect=true read_revision_stable=true history=true
   undo_redo=true reopen=true`. The gate also corrected the human Analyze toolbar
@@ -7832,7 +7832,7 @@ concisely.
   Analyze context and `analyze.inspect.equation` expose exact kind, solver,
   priority, settings, History ownership, and state hash without changing
   structural revision. The real GUI lifecycle emits
-  `VIBECAD_NATIVE_ANALYZE_EQUATION_GUI_OK actions=10 variants=10
+  `STEVECAD_NATIVE_ANALYZE_EQUATION_GUI_OK actions=10 variants=10
   exact_elmer=true defaults=true priorities=true owned_resources=true
   stale_rejection=true inspect=true read_revision_stable=true history=true
   undo_redo=true reopen=true`.
@@ -7850,7 +7850,7 @@ concisely.
   requested semantic settings. Mystran deliberately has no settings variant:
   its sole AnalysisType is locked to static and its useful controls belong to
   the execution/input-artifact slice. The real GUI lifecycle emits
-  `VIBECAD_NATIVE_ANALYZE_SOLVER_CONTROL_GUI_OK actions=1 variants=3
+  `STEVECAD_NATIVE_ANALYZE_SOLVER_CONTROL_GUI_OK actions=1 variants=3
   typed_settings=54 exact_backend=true cross_field_validation=true
   wrong_backend_rejection=true no_op_rejection=true stale_rejection=true
   history_stable=true inspect=true read_revision_stable=true undo_redo=true
@@ -7879,12 +7879,12 @@ concisely.
   runs both CalculiX implementations through actual input writers and fake
   external executables, proves event-loop progress, typed job polling, nested
   result ownership, exact graph replacement, one-step undo/redo, and FCStd
-  reopen. It emits `VIBECAD_NATIVE_ANALYZE_SOLVER_EXECUTION_GUI_OK action=1
+  reopen. It emits `STEVECAD_NATIVE_ANALYZE_SOLVER_EXECUTION_GUI_OK action=1
   implementations=2 background=true ui_responsive=true exact_input=true
   job_status=true exact_commit=true history=true undo_redo=true reopen=true`.
   The focused execution, background, adoption, manifest, context, registry,
   and capability suite is 99/99 green; touched production and gate Python
-  passes Ruff, the FEM/VibeCAD script targets rebuild, and `git diff --check`
+  passes Ruff, the FEM/SteveCAD script targets rebuild, and `git diff --check`
   is clean. Row 18.24 remains open for a deliberately large solver-input and
   cancellation acceptance case rather than treating the representative
   cantilever lifecycle as a stress test.
@@ -7907,10 +7907,10 @@ concisely.
   dependencies, concurrent-result stale refusal, exact receipts, one
   transaction, one-step Undo/Redo, canonical History, retained inputs, and
   FCStd reopen. The two gates emit
-  `VIBECAD_NATIVE_ANALYZE_RESULT_INSPECT_GUI_OK variants=1 exact_targets=true
+  `STEVECAD_NATIVE_ANALYZE_RESULT_INSPECT_GUI_OK variants=1 exact_targets=true
   legacy_ranges=true vtk_ranges=true ownership=true bounded_context=true
   read_revision_stable=true reopen=true` and
-  `VIBECAD_NATIVE_ANALYZE_RESULT_PURGE_GUI_OK action=1 exact_graph=true
+  `STEVECAD_NATIVE_ANALYZE_RESULT_PURGE_GUI_OK action=1 exact_graph=true
   nested_solver_results=true post_processing=true stale_rejection=true
   retained_inputs=true history=true one_transaction=true undo_redo=true
   reopen=true`. The focused manifest, registry, and capability inventory is
@@ -7937,11 +7937,11 @@ concisely.
   exact-target chaining, stale refusal without side effects, bounded output,
   stable History/revision/Undo, and an honest unmanaged state after FCStd
   reopen. It emits
-  `VIBECAD_NATIVE_ANALYZE_RESULT_PRESENTATION_GUI_OK action=1 fields=true
+  `STEVECAD_NATIVE_ANALYZE_RESULT_PRESENTATION_GUI_OK action=1 fields=true
   field_repair=true exact_target=true no_arrays=true stale_rejection=true
   no_transaction=true revision_stable=true reset=true reopen=true`. The
   focused state, manifest, registry, and capability suite is 97/97 green; the
-  App, FEM-script, and VibeCAD-script targets rebuild, and touched Python
+  App, FEM-script, and SteveCAD-script targets rebuild, and touched Python
   passes Ruff.
 - The twenty-first Analyze checkpoint folds both shipped FEM clipping commands
   into the same focused `analyze.presentation` capability. The provider adds a
@@ -7955,7 +7955,7 @@ concisely.
   clipping engine; its bounded-box calculation also removes the legacy debug
   console spam. Analyze context contains the concise clipping graph and an
   exact face-target token beside each bounded geometry source. The real GUI
-  gate emits `VIBECAD_NATIVE_ANALYZE_CLIPPING_GUI_OK actions=2 exact_face=true
+  gate emits `STEVECAD_NATIVE_ANALYZE_CLIPPING_GUI_OK actions=2 exact_face=true
   exact_graph=true reverse=true stale_rejection=true no_op=true
   no_transaction=true revision_stable=true camera_stable=true reopen=true`.
   The existing human flat/empty-document clipping GUI test also passes, the
@@ -7971,7 +7971,7 @@ concisely.
   real GUI gate proves canonical field loading, exact ownership, bounded
   output, one transaction, visibility restoration through undo, redo identity,
   and FCStd reopen persistence. It emits
-  `VIBECAD_NATIVE_ANALYZE_POST_PIPELINE_GUI_OK action=1 exact_result=true
+  `STEVECAD_NATIVE_ANALYZE_POST_PIPELINE_GUI_OK action=1 exact_result=true
   exact_analysis=true data=true no_arrays=true history=true
   one_transaction=true undo_redo=true reopen=true`.
 - The twenty-third Analyze checkpoint adds `FEM_PostBranchFilter` to the same
@@ -7984,7 +7984,7 @@ concisely.
   preserves the source object, records replacement only when the source was
   visible, and returns the next exact graph targets without VTK arrays. The
   extended real GUI gate emits
-  `VIBECAD_NATIVE_ANALYZE_POST_PIPELINE_GUI_OK actions=2 exact_result=true
+  `STEVECAD_NATIVE_ANALYZE_POST_PIPELINE_GUI_OK actions=2 exact_result=true
   exact_analysis=true exact_post_source=true data=true no_arrays=true
   history=true one_transaction_each=true undo_redo=true reopen=true`.
 - The twenty-fourth Analyze checkpoint adds `FEM_PostFilterWarp` as an exact
@@ -7997,7 +7997,7 @@ concisely.
   real GUI gate confirms the selected displacement field, native millimetre/
   metre factor conversion through actual warped coordinates, source retention,
   exact replacement, undo/redo identity, bounded output, and reopen persistence;
-  it emits `VIBECAD_NATIVE_ANALYZE_POST_PIPELINE_GUI_OK actions=3
+  it emits `STEVECAD_NATIVE_ANALYZE_POST_PIPELINE_GUI_OK actions=3
   exact_result=true exact_analysis=true exact_post_source=true data=true
   vector_field=true warp_geometry=true no_arrays=true history=true
   one_transaction_each=true undo_redo=true reopen=true`.
@@ -8012,7 +8012,7 @@ concisely.
   actual clipped VTK range, deterministic serial placement after the warp,
   source retention/replacement, one transaction, complete multi-step undo/
   redo, bounded no-array output, and reopen persistence. It emits
-  `VIBECAD_NATIVE_ANALYZE_POST_PIPELINE_GUI_OK actions=4 ...
+  `STEVECAD_NATIVE_ANALYZE_POST_PIPELINE_GUI_OK actions=4 ...
   scalar_field=true range=true no_arrays=true history=true
   one_transaction_each=true undo_redo=true reopen=true`.
 - The twenty-sixth Analyze checkpoint adds a separate sharp
@@ -8026,7 +8026,7 @@ concisely.
   include the bounded nested post graph, and result summaries identify exact
   owning pipelines, so adding a provider child always rolls exact targets
   forward. The eight-action real GUI lifecycle emits
-  `VIBECAD_NATIVE_ANALYZE_POST_PIPELINE_GUI_OK actions=8 ...
+  `STEVECAD_NATIVE_ANALYZE_POST_PIPELINE_GUI_OK actions=8 ...
   post_functions=4 normalized_directions=true provider_resource=true
   no_arrays=true history=true one_transaction_each=true undo_redo=true
   reopen=true` and proves one-transaction provider creation, stable identities,
@@ -8042,7 +8042,7 @@ concisely.
   proves nonempty native cut and clipped datasets, exact same-pipeline links,
   serial placement, source visibility replacement, full ten-step undo/redo,
   stable identity, and reopen persistence; it emits
-  `VIBECAD_NATIVE_ANALYZE_POST_PIPELINE_GUI_OK actions=10 ...
+  `STEVECAD_NATIVE_ANALYZE_POST_PIPELINE_GUI_OK actions=10 ...
   implicit_cut=true region_clip=true same_pipeline_functions=true ...`.
 - The twenty-eighth Analyze checkpoint adds `FEM_PostFilterContours` as a
   fully typed contour operation. It validates an exact varying point field,
@@ -8052,7 +8052,7 @@ concisely.
   publication, one discovery recompute obtains the native dynamic field and
   component enumerations; the final mutation configures both VTK output and
   view-provider coloring in the same transaction. The eleven-action GUI gate
-  emits `VIBECAD_NATIVE_ANALYZE_POST_PIPELINE_GUI_OK actions=11 ...
+  emits `STEVECAD_NATIVE_ANALYZE_POST_PIPELINE_GUI_OK actions=11 ...
   contours=true contour_presentation=true ...` and proves a nonempty contour
   dataset, deterministic serial placement, replacement visibility, complete
   undo/redo identity, bounded output, and reopen persistence.
@@ -8073,7 +8073,7 @@ concisely.
   leaves structural revision and Undo unchanged, and exactly integrates the
   piecewise-linear stress field to report membrane, bending, total, and peak
   residual summaries in the field's canonical SI unit. The fourteen-action
-  lifecycle emits `VIBECAD_NATIVE_ANALYZE_POST_PIPELINE_GUI_OK actions=14 ...
+  lifecycle emits `STEVECAD_NATIVE_ANALYZE_POST_PIPELINE_GUI_OK actions=14 ...
   source_preserving_samples=true stress_linearization=true
   compact_sample_results=true ...` and proves real sampled values, exact
   graph ownership, History, full undo/redo identity, bounded output, and FCStd
@@ -8090,7 +8090,7 @@ concisely.
   as well, so calculated fields retain truthful units through downstream
   probes, dimensional stress-linearization checks, undo/redo, and FCStd
   reopen. The fifteen-action real GUI lifecycle emits
-  `VIBECAD_NATIVE_ANALYZE_POST_PIPELINE_GUI_OK actions=15 ...
+  `STEVECAD_NATIVE_ANALYZE_POST_PIPELINE_GUI_OK actions=15 ...
   typed_calculator=true durable_units=true stress_linearization=true ...` and
   proves real 10–80 MPa VTK output, downstream 10–15 MPa sampling, exact graph
   ownership, bounded no-array responses, one transaction, stable redo
@@ -8107,7 +8107,7 @@ concisely.
   usable uniform-sampling repair. The shared human filter now also reapplies
   VTK scaling when `VectorScaleMode` changes, fixing a missing native property
   callback instead of compensating in the AI layer. The sixteen-action real
-  GUI lifecycle emits `VIBECAD_NATIVE_ANALYZE_POST_PIPELINE_GUI_OK actions=16
+  GUI lifecycle emits `STEVECAD_NATIVE_ANALYZE_POST_PIPELINE_GUI_OK actions=16
   ... glyphs=true bounded_glyphs=true ...` and proves real oriented/scaled
   arrow output, exact serial graph placement, source replacement, bounded
   no-array output, one transaction, undo/redo identity, Python-proxy restore,
@@ -8129,7 +8129,7 @@ concisely.
   table, histogram, and line-plot widgets, then proves one-transaction
   creation, exact History ordering, resource ownership, full undo/redo object
   identity, and FCStd reopen persistence. It emits
-  `VIBECAD_NATIVE_ANALYZE_POST_PIPELINE_GUI_OK actions=19 ... table=true
+  `STEVECAD_NATIVE_ANALYZE_POST_PIPELINE_GUI_OK actions=19 ... table=true
   histogram=true line_plot=true rendered_visualizations=true ...`. The
   broader registry, manifest, context, session, and dispatch suite is 97/97
   green.
@@ -8145,7 +8145,7 @@ concisely.
   native arrays. The compiled eleven-kind lifecycle rejects a zero-valued
   field before mutation, changes both source and field, and proves exact
   History ownership, transaction rollback, undo/redo identity, and FCStd
-  reopen persistence. It emits `VIBECAD_NATIVE_ANALYZE_MESH_FIELD_GUI_OK ...
+  reopen persistence. It emits `STEVECAD_NATIVE_ANALYZE_MESH_FIELD_GUI_OK ...
   result_source_identity=true positive_scalar_field=true
   nonpositive_field_rejection=true ...`; the focused registry, action, context,
   and capability suite remains 75/75 green.
@@ -8164,7 +8164,7 @@ concisely.
   The compiled four-variant lifecycle rejects a mismatched result atomically,
   confirms deformed bounds, and proves History replacement, undo/redo
   identity, and FCStd reopen provenance. It emits
-  `VIBECAD_NATIVE_ANALYZE_MESH_OUTPUT_GUI_OK ... result_deformed=true
+  `STEVECAD_NATIVE_ANALYZE_MESH_OUTPUT_GUI_OK ... result_deformed=true
   result_mesh_match=true displacement_range=true provenance=true ...`.
 - The thirty-fifth Analyze checkpoint makes the turn-start state explicitly
   usable as an analysis workflow map. Each bounded analysis summary now joins
@@ -8179,7 +8179,7 @@ concisely.
   state, a ready graph, generated mesh, two solver definitions, and published
   result identity while asserting that `NodeNumbers` and
   `DisplacementVectors` never enter provider context. It emits
-  `VIBECAD_NATIVE_ANALYZE_SOLVER_EXECUTION_GUI_OK ... job_status=true
+  `STEVECAD_NATIVE_ANALYZE_SOLVER_EXECUTION_GUI_OK ... job_status=true
   workflow_readiness=true concise_snapshot=true ...` and remains responsive.
 - The thirty-sixth Analyze checkpoint closes the complete shipped surface
   rather than inferring completion from its individual families. The live
@@ -8195,7 +8195,7 @@ concisely.
   and nearly 14 KiB below the unchanged 128-KiB session transport ceiling;
   all other ribbons retain the 28-tool and 64-KiB defaults while Analyze has
   an explicit 32-tool bound. The compiled production gate emits
-  `VIBECAD_NATIVE_ANALYZE_PROVIDER_SURFACE_GUI_OK actions=104 contexts=92
+  `STEVECAD_NATIVE_ANALYZE_PROVIDER_SURFACE_GUI_OK actions=104 contexts=92
   tools=30 schemas=117148B exact_targets=true runtimes=true
   full_surface_call=true`. Current compiled lifecycle gates are green for
   analysis/materials; structural loads/supports/connections and background
@@ -8218,7 +8218,7 @@ concisely.
 - [x] 13.9 Implement 2D element geometry.
 - [x] 13.10 Implement 1D fluid element setup.
 - [x] 13.11 Audit vacuum permittivity: keep the compiled upstream command out
-  of Native because it is deliberately absent from the shipped VibeCAD Analyze
+  of Native because it is deliberately absent from the shipped SteveCAD Analyze
   ribbon; do not invent an AI-only human action.
 - [x] 13.12 Implement electromagnetic constraint.
 - [x] 13.13 Implement current-density constraint.
@@ -8331,7 +8331,7 @@ concisely.
   returns typed exact face or edge names without changing GUI selection.
   Normalized fingerprints exclude transient recompute state and remain stable
   through FCStd reopen. The compiled lifecycle gate emits
-  `VIBECAD_NATIVE_MANUFACTURE_INSPECT_GUI_OK job_state=true sanity=true
+  `STEVECAD_NATIVE_MANUFACTURE_INSPECT_GUI_OK job_state=true sanity=true
   toolpath_paging=true loop=true stale_rejection=true read_only=true
   reopen=true`; it also proves exact manifest/context wiring, a clean model
   candidate set, bounded schemas, no document objects, undo entries, or
@@ -8343,14 +8343,14 @@ concisely.
   the human command. The request freezes the complete Job-creation environment,
   including every core factory preference and the selected template's opaque
   identity and content hash. Runtime creation calls the authoritative Path Job
-  factory inside one VibeCAD-owned transaction, attaches the shipped Job view
+  factory inside one SteveCAD-owned transaction, attaches the shipped Job view
   provider, and applies the same accepted replacement transition as the human
   dialog. Postconditions verify the exact model-clone mapping, stock, default
   tool, selection, public source states, replacement metadata, complete
   resource-owner graph, implicit Origin children, and one contiguous
   resource-first History block. The concise receipt returns the new Job state,
   template fingerprint, public replacements, and semantic resource count. The
-  compiled lifecycle gate emits `VIBECAD_NATIVE_MANUFACTURE_JOB_GUI_OK
+  compiled lifecycle gate emits `STEVECAD_NATIVE_MANUFACTURE_JOB_GUI_OK
   exact_targets=true replacement=true resource_graph=true rollback=true
   undo=true redo=true reopen=true`; it proves catalog-template application,
   stale environment and visibility refusal, duplicate-input refusal, no
@@ -8369,7 +8369,7 @@ concisely.
   cutter solid. Postconditions cover exact catalog hashes, target hashes,
   selection, document graph, visual-resource identity, shape validity, and
   semantic Job state. The compiled lifecycle gate emits
-  `VIBECAD_NATIVE_MANUFACTURE_TOOL_GUI_OK catalog=true exact_targets=true
+  `STEVECAD_NATIVE_MANUFACTURE_TOOL_GUI_OK catalog=true exact_targets=true
   controller_create=true controller_update=true tool_properties=true
   stable_resource_graph=true rollback=true undo=true redo=true reopen=true`.
   The inspect and Job gates remain green, the focused ribbon/registry suite is
@@ -8391,7 +8391,7 @@ concisely.
   FeaturePython touches; the public controller reader freezes the linked ToolBit
   before the controller so an already-touched controller cannot contaminate the
   reported ToolBit state. The compiled lifecycle gate emits
-  `VIBECAD_NATIVE_MANUFACTURE_TOOL_GUI_OK catalog=true exact_targets=true
+  `STEVECAD_NATIVE_MANUFACTURE_TOOL_GUI_OK catalog=true exact_targets=true
   controller_create=true controller_update=true tool_properties=true
   stable_resource_graph=true save=true save_as=true path_private=true
   output_read_only=true rollback=true undo=true redo=true reopen=true`. The CAM
@@ -8414,7 +8414,7 @@ concisely.
   retain the command-stream fingerprint while excluding redundant derived path
   measurements whose sub-tolerance values can change during FCStd serialization;
   those measurements remain available in the concise result. The compiled gate
-  emits `VIBECAD_NATIVE_MANUFACTURE_PROFILE_GUI_OK exact_targets=true
+  emits `STEVECAD_NATIVE_MANUFACTURE_PROFILE_GUI_OK exact_targets=true
   geometry=true parameters=true toolpath=true history=true rollback=true
   undo=true redo=true reopen=true`. The Job, ToolBit, and CAM inspection gates
   remain green, the protected CAM VibeScript API/worker lifecycle passes
@@ -8442,7 +8442,7 @@ concisely.
   ownership, Base geometry, all process/depth/height values, extension links,
   generation diagnostics, cutting commands, unchanged sources and selection,
   and a stable durable operation fingerprint. The compiled lifecycle gate emits
-  `VIBECAD_NATIVE_MANUFACTURE_POCKET_SHAPE_GUI_OK exact_targets=true
+  `STEVECAD_NATIVE_MANUFACTURE_POCKET_SHAPE_GUI_OK exact_targets=true
   geometry=true extensions=true parameters=true toolpath=true history=true
   rollback=true undo=true redo=true reopen=true`. Profile, Job, ToolBit, and CAM
   inspection compiled gates remain green; the protected CAM VibeScript
@@ -8468,7 +8468,7 @@ concisely.
   ownership, empty Base, successful native generation diagnostics, cutting
   commands, unchanged sources and selection, and a concise durable operation
   state. The compiled lifecycle gate emits
-  `VIBECAD_NATIVE_MANUFACTURE_MILL_FACING_GUI_OK exact_targets=true stock=true
+  `STEVECAD_NATIVE_MANUFACTURE_MILL_FACING_GUI_OK exact_targets=true stock=true
   parameters=true linking=true toolpath=true history=true rollback=true
   undo=true redo=true reopen=true`. Profile, Pocket Shape, Job, ToolBit, and CAM
   inspection compiled gates remain green; the protected CAM VibeScript
@@ -8497,7 +8497,7 @@ concisely.
   verify Base order, every visible value, deterministic hidden state, derived
   spindle direction, successful native diagnostics, cutting commands,
   unchanged sources and selection, and stable operation state. The compiled
-  lifecycle gate emits `VIBECAD_NATIVE_MANUFACTURE_HELIX_GUI_OK
+  lifecycle gate emits `STEVECAD_NATIVE_MANUFACTURE_HELIX_GUI_OK
   exact_targets=true features=true order=true parameters=true linking=true
   toolpath=true history=true rollback=true undo=true redo=true reopen=true`.
   All six earlier Manufacture compiled gates remain green; the protected CAM
@@ -8531,7 +8531,7 @@ concisely.
   links, libarea input/output caches, native generation diagnostics, cutting
   commands, source preservation, and stable operation state. Pocket Shape now
   uses the same reusable extension boundary and remains lifecycle-green. The
-  compiled gate emits `VIBECAD_NATIVE_MANUFACTURE_ADAPTIVE_GUI_OK
+  compiled gate emits `STEVECAD_NATIVE_MANUFACTURE_ADAPTIVE_GUI_OK
   exact_targets=true regions=true parameters=true helix_entry=true
   extensions=true toolpath=true history=true rollback=true undo=true redo=true
   reopen=true`. All seven earlier Manufacture compiled gates remain green; the
@@ -8562,7 +8562,7 @@ concisely.
   resolved endpoints, native generation diagnostics, cutting commands,
   unchanged sources and selection, and stable operation state. The compiled
   lifecycle gate uses separate solid stock and reusable guide geometry and
-  emits `VIBECAD_NATIVE_MANUFACTURE_SLOT_GUI_OK exact_targets=true
+  emits `STEVECAD_NATIVE_MANUFACTURE_SLOT_GUI_OK exact_targets=true
   feature_path=true custom_points=true parameters=true toolpath=true
   history=true rollback=true undo=true redo=true reopen=true`. All eight earlier
   Manufacture gates remain green; the protected CAM VibeScript API/worker
@@ -8597,7 +8597,7 @@ concisely.
   native generation diagnostics, one expected canned cycle per enabled hole,
   unchanged sources and selection, and stable operation state. The compiled
   lifecycle gate uses real shipped Drill and Tap tool bits and emits
-  `VIBECAD_NATIVE_MANUFACTURE_DRILLING_GUI_OK exact_targets=true
+  `STEVECAD_NATIVE_MANUFACTURE_DRILLING_GUI_OK exact_targets=true
   feature_enablement=true locations=true drilling=true tapping=true cycles=true
   parameters=true linking=true coolant=true toolpath=true history=true
   rollback=true undo=true redo=true reopen=true`. All nine earlier Manufacture
@@ -8634,7 +8634,7 @@ concisely.
   selection, and stable operation state. The compiled lifecycle gate uses the
   shipped 5 mm thread mill, a real bored plate and boss, a catalog-backed M10 x
   1.5 internal thread, and a custom 20-TPI external thread. It emits
-  `VIBECAD_NATIVE_MANUFACTURE_THREAD_MILLING_GUI_OK catalog=true
+  `STEVECAD_NATIVE_MANUFACTURE_THREAD_MILLING_GUI_OK catalog=true
   exact_targets=true feature_enablement=true standard=true custom=true
   parameters=true linking=true coolant=true toolpath=true history=true
   rollback=true undo=true redo=true reopen=true`. All ten earlier Manufacture
@@ -8666,7 +8666,7 @@ concisely.
   generation diagnostics, cutting commands, unchanged source fingerprints and
   selection, and stable operation state. Source-preservation failures identify
   the exact model plus expected and observed shape hashes. The compiled
-  lifecycle gate emits `VIBECAD_NATIVE_MANUFACTURE_ENGRAVE_GUI_OK
+  lifecycle gate emits `STEVECAD_NATIVE_MANUFACTURE_ENGRAVE_GUI_OK
   exact_targets=true edges=true whole_models=true entire_job=true
   parameters=true linking=true coolant=true toolpath=true history=true
   rollback=true sources_preserved=true undo=true redo=true reopen=true`. All
@@ -8701,7 +8701,7 @@ concisely.
   every visible value, deterministic hidden state, derived Side, generated base
   and offset wires, native generation diagnostics, depth-bearing cutting moves,
   source preservation, unchanged selection, and stable operation state. The
-  compiled lifecycle gate emits `VIBECAD_NATIVE_MANUFACTURE_DEBURR_GUI_OK
+  compiled lifecycle gate emits `STEVECAD_NATIVE_MANUFACTURE_DEBURR_GUI_OK
   exact_targets=true edges=true faces=true cutter_capacity=true parameters=true
   linking=true coolant=true toolpath=true history=true rollback=true
   sources_preserved=true undo=true redo=true reopen=true`. All twelve earlier
@@ -8736,7 +8736,7 @@ concisely.
   hidden value, expressions, one medial result per frozen Face, raw Voronoi
   results, depth-bearing cutting moves, exact Job/controller/source state,
   unchanged selection, and stable operation identity. The compiled lifecycle
-  gate emits `VIBECAD_NATIVE_MANUFACTURE_V_CARVE_GUI_OK exact_targets=true
+  gate emits `STEVECAD_NATIVE_MANUFACTURE_V_CARVE_GUI_OK exact_targets=true
   faces=true whole_models=true v_bit=true parameters=true toolpath=true
   history=true rollback=true sources_preserved=true undo=true redo=true
   reopen=true`. All thirteen earlier Manufacture gates pass sequentially; the
@@ -8777,7 +8777,7 @@ concisely.
   checks preserve exact persistent settings and machining invariants while
   correctly allowing the shipped greedy minimum-travel sorter to choose an
   equivalent route ordering after recomputation. The compiled gate emits
-  `VIBECAD_NATIVE_MANUFACTURE_POCKET_3D_GUI_OK exact_targets=true faces=true
+  `STEVECAD_NATIVE_MANUFACTURE_POCKET_3D_GUI_OK exact_targets=true faces=true
   edge_loops=true parameters=true derived_depth=true rest_machining=true
   toolpath=true history=true rollback=true sources_preserved=true undo=true
   redo=true reopen=true`. All fifteen Manufacture gates pass sequentially; the
@@ -8816,7 +8816,7 @@ concisely.
   exact ownership and Base order, native generation diagnostics, cutting
   commands and Z range, unchanged sources and selection, and durable operation
   state. The compiled lifecycle gate emits
-  `VIBECAD_NATIVE_MANUFACTURE_SURFACE_GUI_OK exact_targets=true faces=true
+  `STEVECAD_NATIVE_MANUFACTURE_SURFACE_GUI_OK exact_targets=true faces=true
   avoidance=true entire_job=true patterns=true layers=true quality=true
   bounded_work=true toolpath=true history=true rollback=true
   sources_preserved=true undo=true redo=true reopen=true`. All sixteen Native
@@ -8869,7 +8869,7 @@ concisely.
   closed-contour routing to change rapid-link distance; deterministic
   Dropcutter and Experimental paths retain the stricter length comparison. The
   compiled lifecycle gate emits
-  `VIBECAD_NATIVE_MANUFACTURE_WATERLINE_GUI_OK exact_targets=true faces=true
+  `STEVECAD_NATIVE_MANUFACTURE_WATERLINE_GUI_OK exact_targets=true faces=true
   avoidance=true entire_job=true algorithms=true clearing=true parameters=true
   bounded_work=true toolpath=true history=true rollback=true
   sources_preserved=true undo=true redo=true reopen=true` and passes repeatedly.
@@ -8906,7 +8906,7 @@ concisely.
   on owned OCC copies, preventing Rotary generation from attaching mesh data
   to a public model source.
 - The compiled lifecycle gate emits
-  `VIBECAD_NATIVE_MANUFACTURE_ROTARY_SURFACE_GUI_OK exact_targets=true
+  `STEVECAD_NATIVE_MANUFACTURE_ROTARY_SURFACE_GUI_OK exact_targets=true
   exact_machine=true cylinder_stock=true faces=true spiral=true parallel=true
   rings=true climb=true conventional=true feed_modes=true bounded_work=true
   toolpath=true history=true rollback=true sources_preserved=true undo=true
@@ -8942,7 +8942,7 @@ concisely.
   batched deactivation, selective reactivation, stale/no-change rejection,
   forced postcondition rollback, selection and visibility preservation,
   unchanged History, undo, redo, and FCStd reopen. It emits
-  `VIBECAD_NATIVE_MANUFACTURE_OPERATION_ACTIVE_GUI_OK exact_job=true
+  `STEVECAD_NATIVE_MANUFACTURE_OPERATION_ACTIVE_GUI_OK exact_job=true
   explicit_states=true batch=true dressup=true rollback=true selection=true
   visibility=true history=true undo=true redo=true reopen=true`. The shipped
   human toggle test and Manufacture inspection lifecycle pass, 153 focused
@@ -8976,12 +8976,12 @@ concisely.
   insertion. The compiled lifecycle gate covers single and batched copies, an
   Array dress-up with its base, stale rejection, forced rollback, assistant
   undo, redo, and FCStd reopen. It emits
-  `VIBECAD_NATIVE_MANUFACTURE_OPERATION_COPY_GUI_OK exact_jobs=true stale=true
+  `STEVECAD_NATIVE_MANUFACTURE_OPERATION_COPY_GUI_OK exact_jobs=true stale=true
   rollback=true single=true dressup=true batch=true source_preserved=true
   history=true receipt=true selection=true visibility=true undo=true redo=true
   reopen=true`. The shipped human copy, dress-up ownership, multi-copy,
   rollback, marker insertion, and owned-resource regressions pass; Manufacture
-  inspection emits `VIBECAD_NATIVE_MANUFACTURE_INSPECT_GUI_OK` with read-only
+  inspection emits `STEVECAD_NATIVE_MANUFACTURE_INSPECT_GUI_OK` with read-only
   revision preservation; 153 focused contract tests pass; and the unchanged
   protected GUI CAM VibeScript lifecycle emits
   `CAM VibeScript native API/worker integration passed`.
@@ -9011,7 +9011,7 @@ concisely.
   rollback, Linear-1D, reversed Linear-2D, Polar, Points, repeated seeded
   jitter, assistant undo, redo, insertion before future History, and FCStd
   reopen. It emits
-  `VIBECAD_NATIVE_MANUFACTURE_OPERATION_ARRAY_GUI_OK exact_job=true
+  `STEVECAD_NATIVE_MANUFACTURE_OPERATION_ARRAY_GUI_OK exact_job=true
   exact_bases=true stale=true bounded_work=true rollback=true linear_1d=true
   linear_2d=true polar=true points=true seeded_jitter=true
   source_preserved=true history=true receipt=true marker=true selection=true
@@ -9045,7 +9045,7 @@ concisely.
   absence of source links, exact source preservation, assistant receipt,
   selection and visibility preservation, undo, redo, insertion before future
   History, and FCStd reopen. It emits
-  `VIBECAD_NATIVE_MANUFACTURE_SIMPLE_COPY_GUI_OK exact_job=true
+  `STEVECAD_NATIVE_MANUFACTURE_SIMPLE_COPY_GUI_OK exact_job=true
   exact_sources=true stale=true compatibility=true rollback=true single=true
   multi=true placements=true flattened=true no_source_links=true
   source_preserved=true history=true marker=true receipt=true selection=true
@@ -9085,7 +9085,7 @@ concisely.
   Linear-2D, Polar, repeated seeded jitter, process-global random preservation,
   assistant undo, redo, insertion before future History, and FCStd reopen. It
   emits
-  `VIBECAD_NATIVE_MANUFACTURE_ARRAY_DRESSUP_GUI_OK exact_job=true
+  `STEVECAD_NATIVE_MANUFACTURE_ARRAY_DRESSUP_GUI_OK exact_job=true
   exact_base=true stale=true bounded_work=true rollback=true linear_1d=true
   linear_2d=true polar=true seeded_jitter=true global_random_preserved=true
   source_preserved=true replacement=true history=true marker=true receipt=true
@@ -9130,7 +9130,7 @@ concisely.
   conversion, Job-wide rotary-center propagation, outside-Job preservation,
   assistant undo, redo, insertion before future History, and FCStd reopen. It
   emits
-  `VIBECAD_NATIVE_MANUFACTURE_AXIS_MAP_DRESSUP_GUI_OK exact_job=true
+  `STEVECAD_NATIVE_MANUFACTURE_AXIS_MAP_DRESSUP_GUI_OK exact_job=true
   exact_base=true stale=true invalid_radius=true missing_axis=true
   radius_conflict=true rollback=true six_mappings=true reverse=true
   arc_linearization=true rotary_center=true outside_job_preserved=true
@@ -9176,7 +9176,7 @@ concisely.
   inside/outside clipping, offset, retract threshold, Rest Machining state,
   owned Stock ordering, exact source preservation, assistant undo, redo, and
   FCStd reopen. It emits
-  `VIBECAD_NATIVE_MANUFACTURE_PATH_BOUNDARY_DRESSUP_GUI_OK exact_job=true
+  `STEVECAD_NATIVE_MANUFACTURE_PATH_BOUNDARY_DRESSUP_GUI_OK exact_job=true
   exact_base=true stale=true invalid_definition=true empty_clip=true
   rollback=true model_bounds=true box=true cylinder=true existing_solid=true
   inside_outside=true offset=true retract=true rest=true owned_stock=true
@@ -9220,7 +9220,7 @@ concisely.
   three incision modes, one XY disable across two cutting depths, outer-closed
   filtering, assistant undo, redo, insertion before future History, and FCStd
   reopen. It emits
-  `VIBECAD_NATIVE_MANUFACTURE_DOGBONE_DRESSUP_GUI_OK exact_job=true
+  `STEVECAD_NATIVE_MANUFACTURE_DOGBONE_DRESSUP_GUI_OK exact_job=true
   exact_base=true stale=true invalid_custom=true wrong_side=true
   workload_guard=true actionable_locations=true rollback=true five_styles=true
   both_sides=true three_incisions=true grouped_disable=true closed_only=true
@@ -9268,7 +9268,7 @@ concisely.
   refusal, forced rollback, all four shipped methods, real diagonal ramp
   motion, exact absolute-Z plunge splitting, source immutability, assistant
   undo/redo, and FCStd reopen. It emits
-  `VIBECAD_NATIVE_MANUFACTURE_RAMP_ENTRY_DRESSUP_GUI_OK exact_job=true
+  `STEVECAD_NATIVE_MANUFACTURE_RAMP_ENTRY_DRESSUP_GUI_OK exact_job=true
   exact_base=true stale=true closed_schema=true invalid_angle=true
   no_effect=true machine_rates=true workload_guard=true rollback=true
   four_methods=true start_depth=true ramp_motion=true rotary_center=true
@@ -9312,7 +9312,7 @@ concisely.
   arc rejection, no-op refusal, forced rollback, line compensation, real arc
   extension and twist, corner filtering, assistant undo, redo, insertion
   before future History, and FCStd reopen. It emits
-  `VIBECAD_NATIVE_MANUFACTURE_DRAG_KNIFE_DRESSUP_GUI_OK exact_job=true
+  `STEVECAD_NATIVE_MANUFACTURE_DRAG_KNIFE_DRESSUP_GUI_OK exact_job=true
   exact_base=true stale=true invalid_offset=true workload_guard=true
   unsafe_pivot=true malformed_arc=true no_op=true rollback=true line=true
   arc=true filter=true rotary_center=true source_preserved=true
@@ -9363,7 +9363,7 @@ concisely.
   all 13 styles on both entry and exit; exact replacement; one-step assistant
   undo/redo; FCStd reopen; source preservation; selection/visibility stability;
   and rotary-center preservation. It emits
-  `VIBECAD_NATIVE_MANUFACTURE_LEAD_IN_OUT_DRESSUP_GUI_OK exact_job=true
+  `STEVECAD_NATIVE_MANUFACTURE_LEAD_IN_OUT_DRESSUP_GUI_OK exact_job=true
   exact_base=true stale=true closed_schema=true invalid_angle=true
   no_effect=true workload_guard=true rollback=true thirteen_styles=true
   both_sides=true rotary_center=true source_preserved=true replacement=true
@@ -9404,7 +9404,7 @@ concisely.
   forced rollback, all three axes, model-center and transformed-reference
   placement in global coordinates, XYZ offsets, retained base paths, arc
   handedness, source immutability, assistant undo/redo, and FCStd reopen. It
-  emits `VIBECAD_NATIVE_MANUFACTURE_MIRROR_DRESSUP_GUI_OK exact_job=true
+  emits `STEVECAD_NATIVE_MANUFACTURE_MIRROR_DRESSUP_GUI_OK exact_job=true
   exact_base=true stale=true closed_schema=true invalid_reference=true
   no_effect=true workload_guard=true rollback=true three_axes=true
   model_center=true reference=true global_geometry=true offset=true
@@ -9454,7 +9454,7 @@ concisely.
   off-path diagnostics, bounded-work refusal, forced rollback, all three
   placement modes, durable disabled positions, source immutability, assistant
   undo/redo, and FCStd reopen. It emits
-  `VIBECAD_NATIVE_MANUFACTURE_TAG_DRESSUP_GUI_OK exact_job=true
+  `STEVECAD_NATIVE_MANUFACTURE_TAG_DRESSUP_GUI_OK exact_job=true
   exact_base=true stale=true closed_schema=true invalid_shape=true
   off_path=true workload_guard=true rollback=true automatic=true explicit=true
   copy=true durable_disabled=true source_preserved=true rotary_center=true
@@ -9506,7 +9506,7 @@ concisely.
   recompute after the source file is corrupted, source preservation, circular
   linearization, rotary-center preservation, exact replacement and History,
   receipt, selection, visibility, assistant undo/redo, and FCStd reopen. It
-  emits `VIBECAD_NATIVE_MANUFACTURE_Z_CORRECT_DRESSUP_GUI_OK exact_job=true
+  emits `STEVECAD_NATIVE_MANUFACTURE_Z_CORRECT_DRESSUP_GUI_OK exact_job=true
   exact_base=true stale=true closed_schema=true human_authorization=true
   no_provider_path=true malformed_grid=true out_of_bounds=true no_effect=true
   workload_guard=true file_drift=true background=true rollback=true
@@ -9549,7 +9549,7 @@ concisely.
   History entries, unchanged selection/visibility, unrelated Job-resource
   invariants, and exact created/changed receipt identities.
 - The compiled Comment gate emits
-  `VIBECAD_NATIVE_MANUFACTURE_COMMENT_GUI_OK ribbon=true exact_job=true
+  `STEVECAD_NATIVE_MANUFACTURE_COMMENT_GUI_OK ribbon=true exact_job=true
   closed_schema=true stale=true injection_guard=true ascii_guard=true
   transaction_guard=true rollback=true text=true source_preserved=true job=true
   history=true receipt=true selection=true visibility=true undo=true redo=true
@@ -9573,7 +9573,7 @@ concisely.
   into a redundant `anyOf`, and runtime rejects every cross-variant or extra
   field through exact argument sets.
 - The proven Program Job/History boundary is now factored once in the 474-line
-  `VibeCADNativeManufactureProgram.py`; Stop-specific mode mapping, creation,
+  `SteveCADNativeManufactureProgram.py`; Stop-specific mode mapping, creation,
   and command proof remain in a separate 158-line module. The human Stop command
   uses a new caller-owned `CreateInTransaction` factory while preserving its
   default Optional behavior and existing public command. Native maps only the
@@ -9582,7 +9582,7 @@ concisely.
   returns the requested semantic mode, identities, bounded count, state/path
   fingerprints, Job fingerprint, and receipt without generic G-code payloads.
 - The compiled Stop gate emits
-  `VIBECAD_NATIVE_MANUFACTURE_STOP_GUI_OK ribbon=true exact_job=true
+  `STEVECAD_NATIVE_MANUFACTURE_STOP_GUI_OK ribbon=true exact_job=true
   closed_schema=true stale=true invalid_mode=true transaction_guard=true
   rollback=true optional=true mandatory=true source_preserved=true job=true
   history=true receipt=true selection=true visibility=true undo=true redo=true
@@ -9618,7 +9618,7 @@ concisely.
   extends the requested label; the actual emitted label is verified and
   returned.
 - The compiled Custom gate emits
-  `VIBECAD_NATIVE_MANUFACTURE_CUSTOM_GUI_OK ribbon=true exact_job=true
+  `STEVECAD_NATIVE_MANUFACTURE_CUSTOM_GUI_OK ribbon=true exact_job=true
   exact_controller=true closed_schema=true no_raw_gcode=true
   no_provider_path=true stale=true injection_guard=true duplicate_guard=true
   transaction_guard=true rollback=true structured=true coolant=true
@@ -9662,7 +9662,7 @@ concisely.
   already serializes them, and the compiled identity check proves that differing
   probe-open annotations produce differing path hashes.
 - The compiled Probe gate emits
-  `VIBECAD_NATIVE_MANUFACTURE_PROBE_GUI_OK ribbon=true exact_job=true
+  `STEVECAD_NATIVE_MANUFACTURE_PROBE_GUI_OK ribbon=true exact_job=true
   exact_controller=true probe_tool=true closed_schema=true
   documented_limits=true no_provider_path=true stale=true
   injection_guard=true workload_guard=true motion_guard=true
@@ -9693,7 +9693,7 @@ concisely.
   names, groups, and kinds but never property values, descriptions, file paths,
   or internal path hashes.
 - The compiled Property Bag gate emits
-  `VIBECAD_NATIVE_MANUFACTURE_PROPERTY_BAG_GUI_OK ribbon=true
+  `STEVECAD_NATIVE_MANUFACTURE_PROPERTY_BAG_GUI_OK ribbon=true
   exact_body=true root=true closed_schema=true typed_values=true
   schema_budget=true no_provider_path=true human_file=true snapshot=true
   stale=true duplicate_guard=true reserved_guard=true transaction_guard=true
@@ -9727,7 +9727,7 @@ concisely.
   the source Area. Workplane assignment similarly proves that only the target
   Area's authored workplane properties and accepted History visibility change.
   The compiled lifecycle gate emits
-  `VIBECAD_NATIVE_MANUFACTURE_AREA_GUI_OK ribbon=true closed_schema=true
+  `STEVECAD_NATIVE_MANUFACTURE_AREA_GUI_OK ribbon=true closed_schema=true
   create=true subshape_resource=true view=true workplane=true
   exact_targets=true stale=true duplicate_guard=true transaction_guard=true
   rollback=true history=true receipt=true low_noise=true snapshot=true
@@ -9762,7 +9762,7 @@ concisely.
   precise configuration properties that drifted. The compiled gate uses a real
   generated Profile rather than a synthetic path object, proves that its
   toolpath hash changes after applying the new start point, and emits
-  `VIBECAD_NATIVE_MANUFACTURE_START_POINT_GUI_OK context=true
+  `STEVECAD_NATIVE_MANUFACTURE_START_POINT_GUI_OK context=true
   closed_schema=true planar_input=true derived_z=true snapshot=true
   real_profile=true property_contract=true regenerated_path=true
   exact_job=true exact_operation=true stale=true transaction_guard=true
@@ -9801,7 +9801,7 @@ concisely.
   Closing the Native task releases its retained simulation and removes only its
   Native-owned MDI view, restoring the exact prior window set and active view.
 - A real generated Profile Job passes the compiled lifecycle gate and emits
-  `VIBECAD_NATIVE_MANUFACTURE_GL_SIMULATION_GUI_OK context=true
+  `STEVECAD_NATIVE_MANUFACTURE_GL_SIMULATION_GUI_OK context=true
   closed_schema=true exact_job=true ordered_operations=true active_path=true
   quality=true background=true gui_responsive=true compiled_mesh=true
   detached_tools=true placed_gcode=true cancel=true stale=true
@@ -9844,7 +9844,7 @@ concisely.
   resolution, and placed-program SHA-256 without adding dependency links or
   changing the Job operation group.
 - A real generated eight-pass Profile Job passes the compiled lifecycle gate and
-  emits `VIBECAD_NATIVE_MANUFACTURE_SIMULATION_RESULT_GUI_OK context=true
+  emits `STEVECAD_NATIVE_MANUFACTURE_SIMULATION_RESULT_GUI_OK context=true
   closed_schema=true exact_job=true ordered_operations=true quality=true
   background=true gui_responsive=true native_gil_release=true cancel=true
   stale=true document_close=true ribbon_switch=true duplicate_guard=true
@@ -9860,7 +9860,7 @@ concisely.
   contracts pass; default and maximum compiled surfaces remain Manufacture 59
   and 65 with 533 and 544 unique command IDs; and the protected CAM VibeScript
   API/worker integration passes unchanged. Touched Python compiles and passes
-  Ruff, `PathSimulator` and `VibeCADScripts` build, and whitespace validation is
+  Ruff, `PathSimulator` and `SteveCADScripts` build, and whitespace validation is
   clean.
 - The optional CAMotics checkpoint maps human action `CAM_Camotics` to the
   focused `manufacture.camotics/camotics` presentation capability only when the
@@ -9889,7 +9889,7 @@ concisely.
 - A real generated Profile Job and a faithful implementation of the published
   optional Python API pass the compiled lifecycle gate, which also launches an
   actual fixed audit executable. It emits
-  `VIBECAD_NATIVE_MANUFACTURE_CAMOTICS_GUI_OK optional_unavailable=true
+  `STEVECAD_NATIVE_MANUFACTURE_CAMOTICS_GUI_OK optional_unavailable=true
   optional_available=true closed_schema=true no_provider_path=true
   exact_job=true ordered_operations=true resolution=true background=true
   gui_responsive=true cancel=true selection_stale=true revision_stale=true
@@ -9901,7 +9901,7 @@ concisely.
   surface/dispatch/background contracts pass. Default and maximum compiled
   surfaces remain Manufacture 59 and 65 with 533 and 544 unique visible IDs,
   while the optional compiled gate proves the 66-action CAMotics surface. The
-  protected GUI CAM VibeScript lifecycle passes unchanged, `VibeCADScripts`
+  protected GUI CAM VibeScript lifecycle passes unchanged, `SteveCADScripts`
   builds, source and release staging match, touched Python compiles and passes
   Ruff, and whitespace validation is clean.
 - The complete-job postprocessing checkpoint maps human action `CAM_Post` to
@@ -9925,7 +9925,7 @@ concisely.
   publisher commits split files as one all-or-rollback set while preserving all
   prior destination contents on cancellation, collision, or failure.
 - A real Job using the installed LinuxCNC modern processor passes the compiled
-  lifecycle gate and emits `VIBECAD_NATIVE_MANUFACTURE_POST_GUI_OK
+  lifecycle gate and emits `STEVECAD_NATIVE_MANUFACTURE_POST_GUI_OK
   closed_schema=true no_provider_processor=true exact_job=true
   configured_machine=true isolated_freecadcmd=true background=true
   gui_responsive=true cancel=true human_authorized=true output_cancel=true
@@ -9964,7 +9964,7 @@ concisely.
 - The compiled lifecycle gate posts a real two-operation Profile Job both ways
   and proves that the exact one-operation program is materially smaller than
   and byte-distinct from the complete program. It rejects reversed target order
-  before launch and emits `VIBECAD_NATIVE_MANUFACTURE_POST_GUI_OK
+  before launch and emits `STEVECAD_NATIVE_MANUFACTURE_POST_GUI_OK
   closed_schema=true no_provider_processor=true exact_job=true
   selected_operations=true exact_operation_order=true configured_machine=true
   isolated_freecadcmd=true background=true gui_responsive=true cancel=true
@@ -10005,7 +10005,7 @@ concisely.
   those bytes into a second real CAM Job, and proves restoration of description,
   processor, tools, stock, and SetupSheet content.
 - The lifecycle gate emits
-  `VIBECAD_NATIVE_MANUFACTURE_TEMPLATE_GUI_OK context=true
+  `STEVECAD_NATIVE_MANUFACTURE_TEMPLATE_GUI_OK context=true
   complete_family=true closed_schema=true no_provider_path=true exact_job=true
   exact_controllers=true human_authorized=true canonical_human_format=true
   round_trip=true cancel=true stale=true duplicate_guard=true
@@ -10042,12 +10042,12 @@ concisely.
   must return byte-for-byte-equivalent bounded samples to the shared human-
   equivalent preview while leaving document revision, undo, and durable Robot
   state unchanged. The gates emit
-  `VIBECAD_NATIVE_ROBOT_TRAJECTORY_FEATURES_GUI_OK human_edge_parity=true
+  `STEVECAD_NATIVE_ROBOT_TRAJECTORY_FEATURES_GUI_OK human_edge_parity=true
   human_dress_up_parity=true human_compound_parity=true exact_history=true
   exact_targets=true manufacture_surface=true stale_noop=true cycle_noop=true
   bounded=true rollback=true verified_noop=true idempotent=true undo_redo=true
   reopen=true selection_preserved=true` and
-  `VIBECAD_NATIVE_ROBOT_MOTION_GUI_OK human_set_home_parity=true
+  `STEVECAD_NATIVE_ROBOT_MOTION_GUI_OK human_set_home_parity=true
   human_restore_home_parity=true human_simulation_parity=true
   exact_targets=true stale_noop=true rollback=true verified_noop=true
   idempotent=true undo_redo=true preview_only=true manufacture_surface=true
@@ -10089,7 +10089,7 @@ concisely.
 - A real two-waypoint Robot trajectory passes the compiled gate, whose Native
   output must be byte-for-byte equal to the actual shipped human command under
   the same frozen timestamp. It emits
-  `VIBECAD_NATIVE_ROBOT_KUKA_EXPORT_GUI_OK compact=true human_parity=true
+  `STEVECAD_NATIVE_ROBOT_KUKA_EXPORT_GUI_OK compact=true human_parity=true
   closed_schema=true no_provider_path=true exact_robot=true
   exact_trajectory=true nonempty=true bounded=true human_authorized=true
   atomic=true cancel=true stale_target=true selection_stale=true
@@ -10103,7 +10103,7 @@ concisely.
   Robot human compact/full export lifecycle remains green. The protected Robot
   VibeScript lifecycle completes with `"ok": true` and every detailed flag
   true; no VibeScript production source changed. RobotScripts and
-  VibeCADScripts build, source/release staging matches, touched Python compiles
+  SteveCADScripts build, source/release staging matches, touched Python compiles
   and passes Ruff, whitespace validation is clean, and the split production
   modules remain below 1,000 lines.
 - The KUKA full checkpoint adds the second and final closed `robot.export`
@@ -10131,7 +10131,7 @@ concisely.
 - The compiled lifecycle gate invokes both actual shipped human export commands
   and requires Native compact and full bytes to match them exactly under the
   same timestamp. It emits
-  `VIBECAD_NATIVE_ROBOT_KUKA_EXPORT_GUI_OK compact=true full=true
+  `STEVECAD_NATIVE_ROBOT_KUKA_EXPORT_GUI_OK compact=true full=true
   complete_family=true human_parity=true closed_schema=true
   no_provider_path=true exact_robot=true exact_trajectory=true nonempty=true
   bounded=true human_authorized=true atomic=true atomic_bundle=true
@@ -10180,7 +10180,7 @@ concisely.
   processor source, output pattern, command stream, or mutable host object is
   exposed.
 - The compiled read/context lifecycle gate emits
-  `VIBECAD_NATIVE_MANUFACTURE_INSPECT_GUI_OK job_state=true sanity=true
+  `STEVECAD_NATIVE_MANUFACTURE_INSPECT_GUI_OK job_state=true sanity=true
   toolpath_paging=true loop=true active_job=true human_selection=true stock=true
   machine=true tools=true ordered_operations=true toolpath_validity=true
   simulation_readiness=true post_readiness=true low_noise=true
@@ -10297,7 +10297,7 @@ concisely.
   common atomic mutation runner. Exact postconditions cover embedded-template
   content, fields, graph ownership, and created-object boundaries while
   preserving selection and visibility. The compiled lifecycle gate reports
-  `VIBECAD_NATIVE_DRAWING_PAGE_GUI_OK default=true human_parity=true
+  `STEVECAD_NATIVE_DRAWING_PAGE_GUI_OK default=true human_parity=true
   custom=true human_authorized=true path_private=true exact_fields=true
   active_page=true closed_schema=true cancel=true file_drift=true stale=true
   rollback=true selection=true visibility=true history=true undo=true
@@ -10324,7 +10324,7 @@ concisely.
   only a concise job receipt followed by bounded `native.job` progress or the
   verified page/view result, and no filesystem location or camera ambiguity.
 - The compiled lifecycle reports
-  `VIBECAD_NATIVE_DRAWING_STANDARD_VIEW_GUI_OK exact_page=true
+  `STEVECAD_NATIVE_DRAWING_STANDARD_VIEW_GUI_OK exact_page=true
   exact_sources=true selected_sources=true closed_schema=true
   deterministic_orientation=true placement=true scale=true line_style=true
   projected_geometry=true no_task=true stale_page=true stale_source=true
@@ -10354,7 +10354,7 @@ concisely.
   cache savepoint restores projections, dimensions, selection, visibility,
   History, and `KeepUpdated` after cancellation, stale state, or failed
   postconditions. The compiled lifecycle reports
-  `VIBECAD_NATIVE_DRAWING_REDRAW_GUI_OK exact_page=true exact_graph=true
+  `STEVECAD_NATIVE_DRAWING_REDRAW_GUI_OK exact_page=true exact_graph=true
   exact_sources=true closed_schema=true background=true detached=true
   authenticated=true projection=true dimension=true rollback=true cancel=true
   stale_preflight=true stale_commit=true selection=true visibility=true
@@ -10366,7 +10366,7 @@ concisely.
   and context contracts pass; the pre-existing page and standard-view compiled
   gates remain green; `TechDraw VibeScript native API/worker integration
   passed`; source/release staging is exact; all redraw modules remain below
-  1,000 lines; the touched TechDraw/VibeCAD boundary compiles and is clean under
+  1,000 lines; the touched TechDraw/SteveCAD boundary compiles and is clean under
   Python compilation, Ruff, and scoped whitespace validation. No VibeScript
   production module changed.
 - Broken-view creation is now the second closed `drawing.view` variant. It
@@ -10381,7 +10381,7 @@ concisely.
   bounded semantic break summaries. The document thread reauthorizes every
   frozen state before adopting that cache into one atomic History operation.
 - The compiled lifecycle reports
-  `VIBECAD_NATIVE_DRAWING_BROKEN_VIEW_GUI_OK exact_page=true
+  `STEVECAD_NATIVE_DRAWING_BROKEN_VIEW_GUI_OK exact_page=true
   exact_sources=true exact_breaks=true sketch_identity=true single_edge=true
   context_hash=true closed_schema=true background=true authenticated=true
   native_type=true orientation=true placement=true scale=true line_style=true
@@ -10418,7 +10418,7 @@ concisely.
 - The compiled lifecycle first exercises `TechDraw_ActiveView` itself as the
   parity oracle for provisional task rollback, image type, embedding, and its
   1280 by 1024 full frame. It then reports
-  `VIBECAD_NATIVE_DRAWING_ACTIVE_VIEW_GUI_OK human_parity=true
+  `STEVECAD_NATIVE_DRAWING_ACTIVE_VIEW_GUI_OK human_parity=true
   exact_page=true exact_viewport=true context_hash=true closed_schema=true
   main_thread=true native_type=true png=true embedded=true placement=true
   scale=true crop=true background=true size_bound=true stale_viewport=true
@@ -10448,7 +10448,7 @@ concisely.
   falsely invalidating its upstream base view while still detecting marker,
   suppression, or ordering changes at and before that base.
 - The compiled lifecycle reports
-  `VIBECAD_NATIVE_DRAWING_SECTION_VIEW_GUI_OK exact_page=true
+  `STEVECAD_NATIVE_DRAWING_SECTION_VIEW_GUI_OK exact_page=true
   exact_base=true exact_sources=true context_hash=true closed_schema=true
   derived_plane=true deterministic_placement=true custom_scale=true
   line_style=true native_type=true cut_geometry=true no_task=true
@@ -10482,7 +10482,7 @@ concisely.
   prism instead of transient recompute-only shape size, so cached aligned and
   offset views paint correctly after adoption, undo/redo, and document reopen.
 - The rebuilt compiled lifecycle reports
-  `VIBECAD_NATIVE_DRAWING_COMPLEX_SECTION_GUI_OK exact_page=true
+  `STEVECAD_NATIVE_DRAWING_COMPLEX_SECTION_GUI_OK exact_page=true
   exact_base=true exact_profile=true exact_sources=true context_hash=true
   closed_schema=true derived_plane=true strategies=3
   deterministic_placement=true custom_scale=true native_type=true
@@ -10494,7 +10494,7 @@ concisely.
   output contracts pass. The protected TechDraw VibeScript API/worker gate
   exits successfully against the rebuilt binaries, and the touched boundary is
   clean under Python compilation, Ruff, scoped whitespace validation, and the
-  native `TechDraw`, `TechDrawGui`, and `VibeCADScripts` build targets.
+  native `TechDraw`, `TechDrawGui`, and `SteveCADScripts` build targets.
 - Detail View is a separate single-operation `drawing.detail_view` capability
   for one exact page, one exact projected base view and its active sources,
   one base-local anchor and radius, one page placement, and one explicit scale
@@ -10513,7 +10513,7 @@ concisely.
   headless path.
 - The compiled lifecycle first exercises `TechDraw_DetailView` itself as the
   parity oracle, including its provisional object graph and task rollback. It
-  then reports `VIBECAD_NATIVE_DRAWING_DETAIL_VIEW_GUI_OK human_parity=true
+  then reports `STEVECAD_NATIVE_DRAWING_DETAIL_VIEW_GUI_OK human_parity=true
   exact_page=true exact_base=true exact_sources=true context_hash=true
   closed_schema=true anchor=true radius=true deterministic_placement=true
   custom_scale=true native_type=true clipped_geometry=true no_task=true
@@ -10552,7 +10552,7 @@ concisely.
   `TechDraw_DraftView` command and ordinary uncached Draft behavior remain
   unchanged.
 - The rebuilt compiled lifecycle reports
-  `VIBECAD_NATIVE_DRAWING_DRAFT_VIEW_GUI_OK human_parity=true exact_page=true
+  `STEVECAD_NATIVE_DRAWING_DRAFT_VIEW_GUI_OK human_parity=true exact_page=true
   exact_source=true source_presentation=true context_hash=true
   closed_schema=true orientation=true placement=true custom_scale=true
   style=true native_type=true svg_geometry=true no_task=true stale_page=true
@@ -10563,7 +10563,7 @@ concisely.
   manifest, background, dispatch, session, state, snapshot, output, and
   surface contracts pass. The protected TechDraw VibeScript API/worker
   lifecycle passes against the rebuilt binaries; every new module remains
-  below 1,000 lines; and the `TechDraw`, `TechDrawGui`, and `VibeCADScripts`
+  below 1,000 lines; and the `TechDraw`, `TechDrawGui`, and `SteveCADScripts`
   build targets, Python compilation, Ruff, and scoped whitespace validation
   are clean.
 - Clipping is now one closed `drawing.clip_group` family. The real ribbon
@@ -10575,7 +10575,7 @@ concisely.
   position, frame visibility, and child-clipping state. Supplemental variants
   are a first-class registry contract rather than fabricated ribbon/context
   inventory, so the provider receives the sharp supporting operations without
-  falsely claiming that VibeCAD ships extra human commands.
+  falsely claiming that SteveCAD ships extra human commands.
 - Clip state hashes the exact page, frame, ordered membership, each member's
   local coordinates, exclusive group ownership, validity, and current History
   usability. The runtime refuses stale pages/groups/members, duplicates,
@@ -10593,7 +10593,7 @@ concisely.
   reordering semantic History, or creating a DAG cycle. The existing human
   create/add/remove commands and `ViewProviderViewClip::claimChildren()` tree
   behavior remain unchanged. The compiled lifecycle reports
-  `VIBECAD_NATIVE_DRAWING_CLIP_GROUP_GUI_OK human_create=true human_add=true
+  `STEVECAD_NATIVE_DRAWING_CLIP_GROUP_GUI_OK human_create=true human_add=true
   human_remove=true exact_page=true closed_schema=true exact_group=true
   exact_members=true local_entry=true page_exit=true complete_frame=true
   clip_children=true nested_guard=true projection_group_guard=true
@@ -10629,7 +10629,7 @@ concisely.
   and visibility; postconditions prove that only the requested `StackOrder`
   values changed, and rollback restores the complete savepoint.
 - The compiled lifecycle reports
-  `VIBECAD_NATIVE_DRAWING_STACK_GUI_OK human_top=true human_bottom=true
+  `STEVECAD_NATIVE_DRAWING_STACK_GUI_OK human_top=true human_bottom=true
   human_up=true human_down=true shared_host_primitive=true exact_page=true
   ordered_targets=true page_scope=true owner_scope=true stale_target=true
   stale_page=true cross_page_guard=true rollback=true selection=true
@@ -10663,7 +10663,7 @@ concisely.
   revision, and transient `DocumentObject.State` remains visible diagnostically
   without destabilizing exact hashes across undo/redo or reopen.
 - The rebuilt compiled lifecycle reports
-  `VIBECAD_NATIVE_DRAWING_DIMENSION_GUI_OK
+  `STEVECAD_NATIVE_DRAWING_DIMENSION_GUI_OK
   operations=create_length,create_horizontal,create_vertical,create_radius,
   create_diameter,create_angle,create_three_point_angle,create_area
   human_oracle=true shared_host_builder=true projected_zero_based=true
@@ -10749,7 +10749,7 @@ concisely.
   The Drawing snapshot recognizes the durable chamfer format and returns the
   same exact state in selected and page context after save/reopen.
 - The compiled lifecycle reports
-  `VIBECAD_NATIVE_DRAWING_SPECIAL_DIMENSION_GUI_OK
+  `STEVECAD_NATIVE_DRAWING_SPECIAL_DIMENSION_GUI_OK
   operations=create_horizontal_chamfer,create_vertical_chamfer
   human_oracle=true shared_host_builder=true exact_page=true exact_view=true
   projection_hash=true element_hash=true ordered_vertices=true
@@ -10777,7 +10777,7 @@ concisely.
   and true length. The source projection is therefore unchanged by creation,
   human undo/redo, Native verifier rollback, and save/reopen.
 - The rebuilt lifecycle reports
-  `VIBECAD_NATIVE_DRAWING_SPECIAL_DIMENSION_GUI_OK
+  `STEVECAD_NATIVE_DRAWING_SPECIAL_DIMENSION_GUI_OK
   operations=create_horizontal_chamfer,create_vertical_chamfer,create_arc_length
   human_oracle=true shared_host_builder=true arc_source=true arc_value=true
   direct_arc_reference=true projection_unchanged=true selection=true
@@ -10815,7 +10815,7 @@ concisely.
   and leader-end value and closes RGB, scale, kink, font-size, line-width, and
   line-visibility structures, so the provider sees no optional-field bag or
   unknown type.
-- `VibeCADNativeDrawingBalloonEdit.py` keeps the edit path separate from the
+- `SteveCADNativeDrawingBalloonEdit.py` keeps the edit path separate from the
   compiled creation builder. It refuses stale, invalid, unavailable, malformed,
   and no-op requests before opening a transaction. Its verifier proves exact
   requested text/style/placement, unchanged identity, anchor, page membership,
@@ -10826,7 +10826,7 @@ concisely.
   TaskBalloon editor remains human-controlled and retains its command-owned
   transaction behavior.
 - The compiled lifecycle reports
-  `VIBECAD_NATIVE_DRAWING_BALLOON_GUI_OK operations=4 create=true set_text=true
+  `STEVECAD_NATIVE_DRAWING_BALLOON_GUI_OK operations=4 create=true set_text=true
   set_style=true move_bubble=true human_oracle=true human_edit_oracle=true
   shared_host_builder=true exact_page=true exact_view=true projection_hash=true
   element_hash=true edge_midpoint=true vertex=true anchor_persisted=true
@@ -10861,7 +10861,7 @@ concisely.
   projected view's element inventory, so many dimensions on one view do not
   repeatedly rebuild identical geometry state.
 - The compiled lifecycle reports
-  `VIBECAD_NATIVE_DRAWING_DIMENSION_REPAIR_GUI_OK
+  `STEVECAD_NATIVE_DRAWING_DIMENSION_REPAIR_GUI_OK
   kinds=length,horizontal,vertical,radius,diameter,angle,three_point_angle,area,
   horizontal_extent,vertical_extent,horizontal_chamfer,vertical_chamfer,
   arc_length,axonometric_length human_oracle=true shared_host_builder=true
@@ -10874,7 +10874,7 @@ concisely.
   neighboring general- and specialized-dimension GUI lifecycles remain green,
   59 focused schema, registry, and action-manifest contracts pass, and the
   protected TechDraw VibeScript API/worker lifecycle reports success.
-  TechDrawGui and staged VibeCAD scripts build cleanly; source/release staging
+  TechDrawGui and staged SteveCAD scripts build cleanly; source/release staging
   is byte-identical, every focused module remains below 1,000 lines, and Ruff,
   Python compilation, and scoped whitespace validation are clean.
 - Select Line Attributes is represented by the dedicated read-only
@@ -10896,7 +10896,7 @@ concisely.
   document objects, page ownership, History, selection, visibility, and
   revision across duplicate reads and same-process save/reopen.
 - The live gate reports
-  `VIBECAD_NATIVE_DRAWING_LINE_DEFAULTS_GUI_OK operation=read_current
+  `STEVECAD_NATIVE_DRAWING_LINE_DEFAULTS_GUI_OK operation=read_current
   human_oracle=true shared_host_state=true session_scope=true standard=true
   style_catalog=true line_number=true style_code=true exact_width=true
   width_choices=true color=true cascade_spacing=true delta_distance=true
@@ -10906,7 +10906,7 @@ concisely.
   specialized dimensions, Balloon, and Drawing page lifecycle gates remain
   green, 63 focused schema, registry, action-manifest, and neighboring Drawing
   contracts pass, and the protected TechDraw VibeScript API/worker lifecycle
-  reports success. TechDrawGui and staged VibeCAD scripts build cleanly;
+  reports success. TechDrawGui and staged SteveCAD scripts build cleanly;
   source/release staging is byte-identical, focused modules remain bounded, and
   Ruff, Python compilation, and scoped whitespace validation are clean.
 - Change Line Attributes is one closed `drawing.line_attributes` capability.
@@ -10928,7 +10928,7 @@ concisely.
   optional-element fallback for older FCStd documents, which acquire durable
   identities the next time they are saved.
 - The compiled lifecycle reports
-  `VIBECAD_NATIVE_DRAWING_LINE_ATTRIBUTES_GUI_OK operations=2 read_view=true
+  `STEVECAD_NATIVE_DRAWING_LINE_ATTRIBUTES_GUI_OK operations=2 read_view=true
   set=true human_oracle=true shared_host_builder=true cosmetic_edge=true
   centerline=true stable_tags=true exact_page=true exact_view=true
   projection_hash=true inventory_hash=true line_hash=true complete_format=true
@@ -10939,7 +10939,7 @@ concisely.
   specialized-dimension, Balloon, and Drawing-page GUI lifecycles remain green,
   71 focused Drawing, registry, and action-manifest contracts pass, and the
   protected TechDraw VibeScript API/worker lifecycle reports success. TechDraw,
-  TechDrawGui, and staged VibeCAD scripts build cleanly; source/release staging
+  TechDrawGui, and staged SteveCAD scripts build cleanly; source/release staging
   is byte-identical, every focused file remains below 1,000 lines, and Ruff,
   Python compilation, and scoped whitespace validation are clean.
 - Extend Line and Shorten Line are one closed `drawing.line_length`
@@ -10965,7 +10965,7 @@ concisely.
   preserving page ownership, History, selection, visibility, formatting, and
   every non-target line.
 - The compiled lifecycle reports
-  `VIBECAD_NATIVE_DRAWING_LINE_LENGTH_GUI_OK operations=3 read_view=true
+  `STEVECAD_NATIVE_DRAWING_LINE_LENGTH_GUI_OK operations=3 read_view=true
   extend=true shorten=true human_oracle=true shared_host_builder=true
   cosmetic_edge=true centerline=true explicit_delta=true symmetric=true
   stable_tags=true exact_page=true exact_view=true projection_hash=true
@@ -10977,7 +10977,7 @@ concisely.
   Drawing-page real-GUI lifecycles all remain green, and the protected
   TechDraw VibeScript API/worker lifecycle reports success. All 63 focused
   line-length, neighboring Drawing, registry, and action-manifest contracts
-  pass. TechDraw, TechDrawGui, and staged VibeCAD scripts build cleanly;
+  pass. TechDraw, TechDrawGui, and staged SteveCAD scripts build cleanly;
   source/release staging is byte-identical, every focused file remains below
   1,000 lines, and Ruff, Python compilation, and scoped whitespace validation
   are clean.
@@ -11000,7 +11000,7 @@ concisely.
   and exact per-view lock target while the supplemental read returns bounded
   pages only when needed.
 - The compiled lifecycle reports
-  `VIBECAD_NATIVE_DRAWING_VIEW_LOCK_GUI_OK operations=2 read_page=true set=true
+  `STEVECAD_NATIVE_DRAWING_VIEW_LOCK_GUI_OK operations=2 read_page=true set=true
   human_oracle=true shared_host_builder=true explicit_final_state=true
   mixed_batch=true exact_page=true inventory_hash=true target_hash=true
   paginated=true limits_published=true selection=true visibility=true
@@ -11010,7 +11010,7 @@ concisely.
   line-length, standard-view, and Drawing-page real-GUI lifecycles remain
   green, and the protected TechDraw VibeScript API/worker lifecycle reports
   success. All 66 focused view-lock, neighboring Drawing, registry, and action-
-  manifest contracts pass. TechDrawGui and staged VibeCAD scripts build
+  manifest contracts pass. TechDrawGui and staged SteveCAD scripts build
   cleanly; source/release staging is byte-identical, every focused file remains
   below 1,000 lines, and Ruff, Python compilation, and scoped whitespace
   validation are clean.
@@ -11032,7 +11032,7 @@ concisely.
   selection, visibility, and all unrelated objects while returning only the
   old/new placement and chosen alignment targets.
 - The real compiled lifecycle reports
-  `VIBECAD_NATIVE_DRAWING_SECTION_POSITION_GUI_OK operations=2 human_axis=true
+  `STEVECAD_NATIVE_DRAWING_SECTION_POSITION_GUI_OK operations=2 human_axis=true
   human_edge_vertex=true shared_host_primitive=true explicit_axis=true
   exact_page=true exact_section=true exact_projection=true exact_elements=true
   exact_base=true closed_schema=true stale_target=true stale_projection=true
@@ -11042,7 +11042,7 @@ concisely.
   complex-section, view-lock, line-length, and page compiled lifecycles remain
   green, and the protected TechDraw VibeScript API/worker integration passes.
   All 68 focused section-position, neighboring Drawing, registry, and action-
-  manifest contracts pass. TechDrawGui and staged VibeCAD scripts build
+  manifest contracts pass. TechDrawGui and staged SteveCAD scripts build
   cleanly; source/release staging is byte-identical, every focused file remains
   below 1,000 lines, and Ruff, Python compilation, and scoped whitespace
   validation are clean.
@@ -11065,7 +11065,7 @@ concisely.
   whether the stored value still matches its sources instead of inferring
   identity from text or silently dropping a manually edited annotation.
 - The compiled lifecycle reports
-  `VIBECAD_NATIVE_DRAWING_MEASUREMENT_ANNOTATION_GUI_OK operations=2
+  `STEVECAD_NATIVE_DRAWING_MEASUREMENT_ANNOTATION_GUI_OK operations=2
   area=true arc_length=true human_oracle=true shared_host_builder=true
   host_measured=true exact_page=true exact_view=true projection_hash=true
   element_hash=true ordered_elements=true multi_element=true
@@ -11076,7 +11076,7 @@ concisely.
   neighboring Balloon, specialized-dimension, and section-position compiled
   lifecycles remain green, 97 focused Drawing, registry, manifest, and surface
   contracts pass, and the protected TechDraw VibeScript API/worker lifecycle
-  reports success. TechDrawGui and staged VibeCAD scripts build cleanly;
+  reports success. TechDrawGui and staged SteveCAD scripts build cleanly;
   source/release staging is byte-identical, every focused file remains below
   1,000 lines, and Python compilation, Ruff, and scoped whitespace validation
   are clean.
@@ -11097,7 +11097,7 @@ concisely.
   History, selection, visibility, and unrelated objects, and supports both
   ordinary and typed measurement Balloons without opening a task dialog.
 - The compiled lifecycle reports
-  `VIBECAD_NATIVE_DRAWING_FORMAT_GUI_OK operations=2 dimension=true
+  `STEVECAD_NATIVE_DRAWING_FORMAT_GUI_OK operations=2 dimension=true
   balloon=true measured_balloon=true human_oracle=true
   shared_host_builder=true host_validation=true exact_target=true
   closed_schema=true empty_human_text=true stale_target=true selection=true
@@ -11106,7 +11106,7 @@ concisely.
   All 101 focused Drawing, registry, action-manifest, and surface contracts
   pass; the neighboring Dimension, Balloon, and measurement-annotation
   compiled lifecycles remain green; and the protected TechDraw VibeScript
-  API/worker integration passes. TechDrawGui and staged VibeCAD scripts build
+  API/worker integration passes. TechDrawGui and staged SteveCAD scripts build
   cleanly, production source/release staging is byte-identical, every focused
   file remains below 1,000 lines, and Python compilation, Ruff, and scoped
   whitespace validation are clean.
@@ -11128,7 +11128,7 @@ concisely.
   and returns concise source, tag, current `EdgeN`, endpoint, length, and hash
   state without copying the full projection inventory.
 - The compiled lifecycle reports
-  `VIBECAD_NATIVE_DRAWING_CIRCLE_CENTER_LINES_GUI_OK operations=1 circle=true
+  `STEVECAD_NATIVE_DRAWING_CIRCLE_CENTER_LINES_GUI_OK operations=1 circle=true
   arc=true multi_target=true human_oracle=true shared_host_builder=true
   exact_page=true exact_view=true projection_hash=true element_hash=true
   persistent_tags=true host_style=true selection=true visibility=true
@@ -11137,7 +11137,7 @@ concisely.
   The neighboring line-attribute and line-length compiled lifecycles remain
   green, 57 focused circle-centerline, registry, and action-manifest contracts
   pass, and the protected TechDraw VibeScript API/worker lifecycle reports
-  success. TechDrawGui and staged VibeCAD scripts build cleanly;
+  success. TechDrawGui and staged SteveCAD scripts build cleanly;
   source/release staging is byte-identical, every focused file remains below
   1,000 lines, and Python compilation, Ruff, and scoped whitespace validation
   are clean.
@@ -11162,7 +11162,7 @@ concisely.
   tolerance, and `all_centers_on_pattern` instead of concealing the condition
   or introducing a Native-only rejection.
 - The compiled lifecycle reports
-  `VIBECAD_NATIVE_DRAWING_BOLT_CIRCLE_CENTER_LINES_GUI_OK operations=1
+  `STEVECAD_NATIVE_DRAWING_BOLT_CIRCLE_CENTER_LINES_GUI_OK operations=1
   three_point_definition=true five_holes=true circle=true arc=true
   human_oracle=true shared_host_builder=true exact_page=true exact_view=true
   projection_hash=true element_hash=true pattern_tag=true radial_tags=true
@@ -11173,7 +11173,7 @@ concisely.
   line-attribute, and line-length compiled lifecycles remain green, all 78
   focused bolt/circle/line, registry, and action-manifest contracts pass, and
   the protected TechDraw VibeScript API/worker lifecycle reports success.
-  TechDrawGui and staged VibeCAD scripts build cleanly; source/release staging
+  TechDrawGui and staged SteveCAD scripts build cleanly; source/release staging
   is byte-identical, all focused files remain below 1,000 lines, and Python
   compilation, Ruff, scoped whitespace validation, undo/redo, forced rollback,
   and FCStd save/reopen gates are clean.
@@ -11203,7 +11203,7 @@ concisely.
   persistent lines, page membership, History, selection, and visibility did
   not change.
 - The compiled lifecycle reports
-  `VIBECAD_NATIVE_DRAWING_THREAD_REPRESENTATION_GUI_OK operations=4
+  `STEVECAD_NATIVE_DRAWING_THREAD_REPRESENTATION_GUI_OK operations=4
   hole_side=true hole_bottom=true bolt_side=true bolt_bottom=true
   human_oracle=true shared_host_builder=true exact_page=true exact_view=true
   projection_hash=true element_hash=true parallel_validation=true
@@ -11218,7 +11218,7 @@ concisely.
   all 47 Drawing contracts pass. The neighboring line-attribute, line-length,
   circle-centerline, and bolt-circle compiled lifecycles remain green, and the
   protected TechDraw VibeScript API/worker integration reports success.
-  TechDrawGui and staged VibeCAD scripts build cleanly; production source and
+  TechDrawGui and staged SteveCAD scripts build cleanly; production source and
   release staging are byte-identical; every newly added implementation and
   gate file remains below 700 lines; and Python compilation, Ruff lint and
   formatting, and scoped whitespace validation are clean.
@@ -11274,7 +11274,7 @@ concisely.
   sources, selection, and visibility remain unchanged, and returns only exact
   sources, the created curve, and the resulting inventory digest.
 - The compiled lifecycle reports
-  `VIBECAD_NATIVE_DRAWING_COSMETIC_CURVE_GUI_OK operations=4 one_point=true
+  `STEVECAD_NATIVE_DRAWING_COSMETIC_CURVE_GUI_OK operations=4 one_point=true
   two_point=true three_point=true arc=true human_oracle=true
   shared_host_builder=true task_accept=true task_reject=true task_arc=true
   exact_page=true exact_view=true projection_hash=true element_hash=true
@@ -11291,7 +11291,7 @@ concisely.
   The cosmetic-vertex, circle-centerline, bolt-circle-centerline, all four
   thread-representation, line-attribute, and line-length compiled lifecycle
   gates remain green, and the protected TechDraw VibeScript API/worker
-  integration reports success. TechDrawGui and staged VibeCAD scripts build
+  integration reports success. TechDrawGui and staged SteveCAD scripts build
   cleanly; production source and release staging are byte-identical; the shared
   builder is 519 lines, the five implementation modules are 394, 49, 70, 179,
   and 458 lines, and the compiled gate is 687 lines. Python compilation, Ruff
@@ -11321,7 +11321,7 @@ concisely.
   view definition remain unchanged and returns only the named sources, exact
   derived line, persistent format/tag, and resulting inventory digest.
 - The compiled lifecycle reports
-  `VIBECAD_NATIVE_DRAWING_COSMETIC_LINE_GUI_OK operations=2 parallel=true
+  `STEVECAD_NATIVE_DRAWING_COSMETIC_LINE_GUI_OK operations=2 parallel=true
   perpendicular=true human_oracle=true shared_host_builder=true
   selection_order=true exact_page=true exact_view=true projection_hash=true
   element_hash=true named_roles=true derived_geometry=true same_length=true
@@ -11338,7 +11338,7 @@ concisely.
   line-attribute, line-length, circle-centerline, bolt-circle-centerline, and
   all four thread-representation compiled lifecycle gates remain green, and
   the protected TechDraw VibeScript API/worker lifecycle reports success.
-  TechDrawGui and staged VibeCAD scripts build cleanly; production source and
+  TechDrawGui and staged SteveCAD scripts build cleanly; production source and
   release staging are byte-identical; the shared builder is 283 lines, the
   five implementation modules are 371, 49, 59, 137, and 401 lines, and the
   compiled gate is 586 lines. Ruff lint and formatting, Python compilation,
@@ -11361,7 +11361,7 @@ concisely.
   page membership, History, selection, visibility, page definition, projected
   geometry, and every non-format dimension property remain unchanged.
 - The compiled lifecycle reports
-  `VIBECAD_NATIVE_DRAWING_DIMENSION_TEXT_GUI_OK operations=6 diameter=true
+  `STEVECAD_NATIVE_DRAWING_DIMENSION_TEXT_GUI_OK operations=6 diameter=true
   square=true repetition=true remove=true increase=true decrease=true
   human_oracle=true shared_host_builder=true dialog_cancel=true exact_page=true
   exact_targets=true batch=true atomic_refusal=true precise_repair=true
@@ -11377,7 +11377,7 @@ concisely.
   action-manifest contracts pass. The general dimension, complete-format, and
   parallel/perpendicular cosmetic-line compiled lifecycles remain green, and
   the protected TechDraw VibeScript API/worker lifecycle reports success.
-  TechDrawGui and staged VibeCAD scripts build cleanly; production source and
+  TechDrawGui and staged SteveCAD scripts build cleanly; production source and
   release staging are byte-identical; the shared builder is 184 lines, its
   header is 64 lines, the five implementation modules are 418, 49, 69, 167,
   and 181 lines, and the compiled gate is 633 lines. Ruff lint, Python
@@ -11403,7 +11403,7 @@ concisely.
   structural revision without weakening the dispatcher's read-side-effect
   guard. Grid and hidden-edge ViewProvider properties survive FCStd reopen.
 - The compiled lifecycle reports
-  `VIBECAD_NATIVE_DRAWING_PRESENTATION_GUI_OK operations=3
+  `STEVECAD_NATIVE_DRAWING_PRESENTATION_GUI_OK operations=3
   frame_visibility=true grid_visibility=true hidden_edges=true
   explicit_state=true transient=true human_oracle=true
   context_oracle=true shared_host_builder=true visual_hash=true
@@ -11419,7 +11419,7 @@ concisely.
   FCStd save/reopen. All 78 focused presentation, registry, action-manifest,
   and complete-registry contracts pass; the neighboring six-operation
   dimension-text lifecycle and protected TechDraw VibeScript API/worker
-  lifecycle remain green. TechDrawGui and staged VibeCAD scripts build cleanly;
+  lifecycle remain green. TechDrawGui and staged SteveCAD scripts build cleanly;
   production source and release staging are byte-identical; the shared builder
   is 79 lines, its header is 44 lines, the five implementation modules are 273,
   49, 31, 97, and 101 lines, and the compiled gate is 420 lines. Ruff lint,
@@ -11448,7 +11448,7 @@ concisely.
   selection, visibility, durable pattern hash, style, validity, rollback, and
   one-step undo/redo.
 - The compiled lifecycle reports
-  `VIBECAD_NATIVE_DRAWING_HATCH_GUI_OK operations=5 image=true
+  `STEVECAD_NATIVE_DRAWING_HATCH_GUI_OK operations=5 image=true
   geometric=true human_oracle=true shared_host_builder=true exact_faces=true
   explicit_style=true defaults=true catalog=true human_authorized_files=true
   path_free=true artifact_hash=true embedded_reopen=true visual_hash=true
@@ -11465,7 +11465,7 @@ concisely.
   capability-registry, action-manifest, and complete-registry contracts pass;
   the neighboring frame-presentation and six-operation dimension-text compiled
   lifecycles remain green, and the protected TechDraw VibeScript API/worker
-  integration reports success. TechDrawGui and staged VibeCAD scripts build
+  integration reports success. TechDrawGui and staged SteveCAD scripts build
   cleanly; production source and release staging are byte-identical; the
   provider schema is 10,412 bytes; the shared builder is 361 lines, its header
   is 113 lines, the five hatch implementation modules are 753, 42, 93, 252,
@@ -11503,7 +11503,7 @@ concisely.
   view, without duplicate tree entries. The actual human command and Native
   plain/rich operations all change the rendered page immediately.
 - The compiled lifecycle reports
-  `VIBECAD_NATIVE_DRAWING_RICH_ANNOTATION_GUI_OK operations=3
+  `STEVECAD_NATIVE_DRAWING_RICH_ANNOTATION_GUI_OK operations=3
   plain_text=true rich_text=true human_oracle=true shared_host_builder=true
   safe_html=true active_content_rejected=true resources_rejected=true
   malformed_host_rejected=true exact_page=true exact_owner=true
@@ -11520,7 +11520,7 @@ concisely.
   Balloon, and general Dimension compiled lifecycles remain green, including
   their coordinate, tree, undo, and reopen gates, and the protected TechDraw
   VibeScript API/worker integration reports success. TechDrawGui and staged
-  VibeCAD scripts build cleanly; seven declared production/source files are
+  SteveCAD scripts build cleanly; seven declared production/source files are
   byte-identical to release staging; Ruff, Python compilation, and scoped
   whitespace validation are clean. The shared builder and header are 515 and
   107 lines; the five focused Native modules are 796, 49, 60, 235, and 258
@@ -11564,7 +11564,7 @@ concisely.
   undo/redo, and save/reopen consequently share one unit-aware representation
   without formatter warnings.
 - The compiled Leader lifecycle reports
-  `VIBECAD_NATIVE_DRAWING_LEADER_GUI_OK operations=2 human_oracle=true
+  `STEVECAD_NATIVE_DRAWING_LEADER_GUI_OK operations=2 human_oracle=true
   shared_host_builder=true projected_owner=true rotated_owner=true
   scaled_owner=true exact_page=true exact_owner=true absolute_points=true
   rendered_points=true auto_horizontal=true symbols=true behavior=true
@@ -11577,7 +11577,7 @@ concisely.
   one-step undo/redo, snapshot, tree and History placement, and save/reopen.
   The neighboring line-default and line-attribute GUI lifecycles remain green.
   Ruff and the 87 focused Leader, Dimension, line, manifest, registry, and
-  surface-variant contracts pass; TechDrawGui and staged VibeCAD scripts build
+  surface-variant contracts pass; TechDrawGui and staged SteveCAD scripts build
   cleanly; and the protected TechDraw VibeScript native API/worker integration
   reports success.
 - Standalone Cosmetic Vertex now resolves as the third closed branch of the
@@ -11597,7 +11597,7 @@ concisely.
   retains its existing tracker and explicit X/Y UI, accept/reject behavior,
   and owned transaction while no longer calling `addCosmeticVertex` directly.
 - The compiled lifecycle reports
-  `VIBECAD_NATIVE_DRAWING_COSMETIC_VERTEX_GUI_OK operations=4
+  `STEVECAD_NATIVE_DRAWING_COSMETIC_VERTEX_GUI_OK operations=4
   intersection=true offset=true point=true canonical_coordinates=true
   midpoints=true ordered_sources=true
   human_oracle=true shared_host_builder=true task_accept=true
@@ -11614,7 +11614,7 @@ concisely.
   save/reopen, low-noise results, and unchanged selection, visibility, object,
   page-membership, and History boundaries. All 226 focused Drawing, manifest,
   registry, surface-authority, surface-variant, and guardrail contracts pass;
-  TechDrawGui and staged VibeCAD scripts build successfully; Ruff, Python
+  TechDrawGui and staged SteveCAD scripts build successfully; Ruff, Python
   compilation, and scoped whitespace validation are clean; and the protected
   TechDraw VibeScript API/worker lifecycle remains green.
 - Midpoint Vertices is the fourth branch of that same
@@ -11665,7 +11665,7 @@ concisely.
   sources, human/host parity, durable tags, low-noise results, rollback,
   one-step undo/redo, and save/reopen.
 - The complete five-row Drawing block builds and links `TechDrawGui` and staged
-  VibeCAD scripts, passes 66 focused schema/manifest/registry contracts, and
+  SteveCAD scripts, passes 66 focused schema/manifest/registry contracts, and
   passes all three compiled GUI lifecycle gates. The protected TechDraw
   VibeScript API/worker lifecycle also passes unchanged.
 - ISO 286 fit, ISO/ASME surface-finish symbols, and weld symbols now use exact
@@ -11681,7 +11681,7 @@ concisely.
   canonicalizes signed zero and durable eight-bit leader colors, so semantic
   identity survives undo and FCStd persistence without false stale refusals.
   The focused compiled lifecycle emits
-  `VIBECAD_NATIVE_DRAWING_ENGINEERING_SYMBOLS_GUI_OK operations=6
+  `STEVECAD_NATIVE_DRAWING_ENGINEERING_SYMBOLS_GUI_OK operations=6
   iso286_fit=true surface_finish=true weld_create=true weld_edit=true
   weld_catalog=true human_oracles=3 shared_builders=true embedded_svg=true
   exact_targets=true stale_refusal=true history_resources=true visual=true
@@ -11703,7 +11703,7 @@ concisely.
   Native distinguish cancellation from submission. File and input authorization
   dialogs are now explicitly dispatched to Qt's document thread, closing the
   off-thread GUI failure path. The focused compiled lifecycle emits
-  `VIBECAD_NATIVE_DRAWING_OUTPUT_GUI_OK operations=4 svg=true dxf=true pdf=true
+  `STEVECAD_NATIVE_DRAWING_OUTPUT_GUI_OK operations=4 svg=true dxf=true pdf=true
   print_all_dialog=true cancellation=true background=true
   atomic_publication=true bounded_validation=true paths_hidden=true
   exact_target=true stale_refusal=true revision_stable=true undo_stable=true
@@ -11723,13 +11723,13 @@ concisely.
   human-only. `drawing.presentation.show` uses the same ViewProvider page path
   as Show Drawing to open and activate an exact current-History page without a
   document transaction, undo entry, or structural revision. The compiled gates
-  emit `VIBECAD_NATIVE_DRAWING_DIMENSION_GUI_OK ... exact_edit=true
+  emit `STEVECAD_NATIVE_DRAWING_DIMENSION_GUI_OK ... exact_edit=true
   complete_edit_state=true human_edit_remains_human=true ... undo=true
   redo=true snapshot=true reopen=true low_noise=true no_task=true` and
-  `VIBECAD_NATIVE_DRAWING_PRESENTATION_GUI_OK operations=4 show=true ...
+  `STEVECAD_NATIVE_DRAWING_PRESENTATION_GUI_OK operations=4 show=true ...
   stale=true no_undo=true no_transaction=true no_revision=true snapshot=true
   reopen=true low_noise=true native_no_task=true`. TechDrawGui and staged
-  VibeCAD scripts build cleanly.
+  SteveCAD scripts build cleanly.
 - Drawing dimension inference and grouped series now complete the authoring
   workflow. General Dimension creates only a uniquely implied semantic result
   and otherwise returns the exact explicit-operation candidates; it never
@@ -11743,12 +11743,12 @@ concisely.
   underlying face finder now excludes cosmetic presentation edges, preventing
   dimension carriers from splitting physical projected faces during recompute.
   The compiled lifecycle emits
-  `VIBECAD_NATIVE_DRAWING_DIMENSION_SERIES_GUI_OK operations=...6
+  `STEVECAD_NATIVE_DRAWING_DIMENSION_SERIES_GUI_OK operations=...6
   human_oracle=true shared_builder=true exact_targets=true history_group=true
   owned_dimensions=true carrier_geometry=true inference=true
   ambiguity_refusal=true candidate_guidance=true selection=true visibility=true
   rollback=true undo=true redo=true reopen=true low_noise=true no_task=true`;
-  `TechDrawGui` and staged VibeCAD scripts build and link cleanly.
+  `TechDrawGui` and staged SteveCAD scripts build and link cleanly.
 - [x] 15.1 Implement default page creation.
 - [x] 15.2 Implement template-based page creation.
 - [x] 15.3 Implement template-field editing.

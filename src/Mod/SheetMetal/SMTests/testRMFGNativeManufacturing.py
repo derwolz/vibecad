@@ -19,10 +19,10 @@ from SMTests import testRMFGManufacturingGui
 class TestRMFGNativeManufacturing(unittest.TestCase):
     def setUp(self):
         import SheetMetalRMFGManufacturingGui as Manufacturing
-        from VibeCADCore import get_service
-        from VibeCADNativeRuntimeContext import NativeRuntimeContext
-        from VibeCADNativeUndo import NativeAssistantUndoLedger
-        from VibeCADNativeRuntimeRegistry import build_native_runtime_bindings
+        from SteveCADCore import get_service
+        from SteveCADNativeRuntimeContext import NativeRuntimeContext
+        from SteveCADNativeUndo import NativeAssistantUndoLedger
+        from SteveCADNativeRuntimeRegistry import build_native_runtime_bindings
         self.fixture = testRMFGManufacturingGui.TestRMFGManufacturingGui()
         self.addCleanup(self.fixture.doCleanups)
         self.fixture.setUp()
@@ -45,7 +45,7 @@ class TestRMFGNativeManufacturing(unittest.TestCase):
         self.runtime = build_native_runtime_bindings(self.context, ("sheet_metal.manufacturing",))["sheet_metal.manufacturing"]
 
     def call(self, operation, **values):
-        from VibeCADNativeRegistry import build_native_capability_registry
+        from SteveCADNativeRegistry import build_native_capability_registry
         implementation = build_native_capability_registry().implementation("sheet_metal.manufacturing")
         return implementation.async_handler(SimpleNamespace(runtime=self.runtime, arguments={
             "operation": operation, "object_name": self.sheet.Name, **values}))
@@ -57,9 +57,9 @@ class TestRMFGNativeManufacturing(unittest.TestCase):
         return result
 
     def test_ribbon_and_native_share_one_panel_and_live_surface_discovery(self):
-        from VibeCADNativeCapabilityRegistry import resolve_native_provider_surface
-        from VibeCADNativeRegistry import build_native_capability_registry
-        from VibeCADRibbonSurface import read_active_ribbon_surface
+        from SteveCADNativeCapabilityRegistry import resolve_native_provider_surface
+        from SteveCADNativeRegistry import build_native_capability_registry
+        from SteveCADRibbonSurface import read_active_ribbon_surface
         self.fixture.fixture.wait_for(lambda: read_active_ribbon_surface().surface_id == "sheet_metal")
         surface = resolve_native_provider_surface(read_active_ribbon_surface(), build_native_capability_registry())
         self.assertTrue(surface.available, surface.summary())
@@ -73,7 +73,7 @@ class TestRMFGNativeManufacturing(unittest.TestCase):
         self.assertIs(self.gui.manufacturing_controller(self.sheet), self.controller)
         self.assertIs(self.gui.show_manufacturing(self.sheet), self.panel)
         Gui.updateGui()
-        Gui.getMainWindow().grab().save(str(Path(os.environ["VIBECAD_TEST_OUTPUT"])/"rmfg-ribbon.png"))
+        Gui.getMainWindow().grab().save(str(Path(os.environ["STEVECAD_TEST_OUTPUT"])/"rmfg-ribbon.png"))
         self.assertEqual(before, (self.doc.UndoCount, tuple(self.doc.Objects), self.doc.isTouched()))
 
     def test_native_analysis_configuration_and_quote_use_the_panel_state_without_mcp(self):
@@ -154,12 +154,12 @@ class TestRMFGNativeManufacturing(unittest.TestCase):
 
 
     def dispatcher(self):
-        from VibeCADNativeCapabilityRegistry import resolve_native_provider_surface
-        from VibeCADNativeDispatch import NativeTurnDispatcher
-        from VibeCADNativeRegistry import build_native_capability_registry
-        from VibeCADNativeRuntimeRegistry import build_native_runtime_bindings
-        from VibeCADNativeTurn import NativeTurnSnapshot
-        from VibeCADRibbonSurface import read_active_ribbon_surface
+        from SteveCADNativeCapabilityRegistry import resolve_native_provider_surface
+        from SteveCADNativeDispatch import NativeTurnDispatcher
+        from SteveCADNativeRegistry import build_native_capability_registry
+        from SteveCADNativeRuntimeRegistry import build_native_runtime_bindings
+        from SteveCADNativeTurn import NativeTurnSnapshot
+        from SteveCADRibbonSurface import read_active_ribbon_surface
         self.fixture.fixture.wait_for(lambda: read_active_ribbon_surface().surface_id == "sheet_metal")
         registry = build_native_capability_registry()
         surface = resolve_native_provider_surface(read_active_ribbon_surface(), registry)

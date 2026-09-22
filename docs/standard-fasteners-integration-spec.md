@@ -12,13 +12,13 @@ Related specification: [Assembly and Mechanism Integration](assembly-mechanism-i
 The source implementation was completed on 2026-07-24 with these fixed
 decisions:
 
-- bundled dependency: VibeCAD's FreeCAD Fasteners Workbench 0.5.64 fork;
+- bundled dependency: SteveCAD's FreeCAD Fasteners Workbench 0.5.64 fork;
 - pinned revision: `9a09ec46bf5bff87231fce007e1da53610b30854`;
 - source: `https://github.com/10-X-eng/FreeCAD_FastenersWB`;
 - upstream base: `79a06dc067b57ebc89532be835704eb2af5da96c` from
   `https://github.com/shaise/FreeCAD_FastenersWB`;
 - license boundary: the separately distributed Fasteners module remains
-  GPL-2.0-or-later; VibeCAD's headless adapter remains LGPL;
+  GPL-2.0-or-later; SteveCAD's headless adapter remains LGPL;
 - default real-thread setting: `model_thread=False`;
 - real-thread limits: 64 mm nominal diameter, 250 mm axial length, 512
   turns, and 32 real-thread objects per document;
@@ -27,14 +27,14 @@ decisions:
 - full upstream workbench: all 224 upstream standards remain bundled and
   visible.
 
-The fork adds VibeCAD's host-theme search behavior and catalog-backed
+The fork adds SteveCAD's host-theme search behavior and catalog-backed
 straight-wall heat inserts while retaining the upstream catalog and license
 boundary.
 
 The release matrix found 19 incomplete or generator-failing nominal rows among
 the 222 supported shared-catalog standards. It also found that every published
 row of `ISO8733` and `ISO8735` fails to create one valid solid in the pinned
-generator. Those exact rows are excluded from VibeCAD selectors and VibeScript
+generator. Those exact rows are excluded from SteveCAD selectors and VibeScript
 with direct diagnostics; they are not silently substituted. The complete
 forked workbench remains present; unsupported catalog rows are reported
 explicitly rather than silently substituted.
@@ -50,7 +50,7 @@ platform packaging matrix before shipment.
 
 ## 1. Purpose
 
-VibeCAD must ship a dependable catalog of standard fasteners. A person or an AI
+SteveCAD must ship a dependable catalog of standard fasteners. A person or an AI
 must be able to request a known bolt, screw, nut, washer, or related standard
 component by its engineering designation instead of reconstructing it from
 generic solids.
@@ -73,7 +73,7 @@ implementations.
 The following decisions are part of this specification:
 
 1. The Fasteners workbench is installed, enabled, and shown in the normal
-   workbench selector in every supported VibeCAD package. It is usable without
+   workbench selector in every supported SteveCAD package. It is usable without
    Addon Manager or network access.
 2. The full bundled workbench remains available. Part Design and Assembly also
    expose the relevant insertion commands so users do not have to change
@@ -94,7 +94,7 @@ The following decisions are part of this specification:
 
 ## 3. Goals
 
-- Make standard hardware available in a clean VibeCAD installation.
+- Make standard hardware available in a clean SteveCAD installation.
 - Give the AI a small, obvious, deterministic API for choosing hardware.
 - Reject invalid standard/size/length combinations with useful allowed values.
 - Preserve editable parameters through save, reopen, recompute, copy, and
@@ -113,8 +113,8 @@ The following decisions are part of this specification:
 - Claiming that every catalog choice is appropriate for a load case.
 - Performing bolt preload, fatigue, joint-slip, or torque analysis in the
   initial implementation.
-- Replacing VibeCAD material cards with fastener-specific material handling.
-- Copying the Fasteners workbench's standards tables into VibeCAD source.
+- Replacing SteveCAD material cards with fastener-specific material handling.
+- Copying the Fasteners workbench's standards tables into SteveCAD source.
 - Making real thread geometry the default.
 - Silently substituting a nearby standard when a requested item does not exist.
 
@@ -123,7 +123,7 @@ The following decisions are part of this specification:
 Before this implementation, the upstream FreeCAD Fasteners workbench was
 normally an add-on. It has its own
 catalog, generators, commands, icons, translations, and recompute behavior.
-VibeCAD did not bundle that module or expose a first-class standard component
+SteveCAD did not bundle that module or expose a first-class standard component
 in VibeScript. Consequently, an AI could spend tokens creating an
 inferior approximation of a commodity item, and the resulting object lacked a
 reliable standard identity for Assembly and BOM use.
@@ -135,7 +135,7 @@ toolbar actions into Part Design would address only the visible symptom.
 
 The initial upstream candidate is
 [FreeCAD_FastenersWB](https://github.com/shaise/FreeCAD_FastenersWB), currently
-published under GPL-2.0-or-later. VibeCAD's release owner must approve the
+published under GPL-2.0-or-later. SteveCAD's release owner must approve the
 distribution and license boundary before the module is added to a release.
 This specification is not legal advice.
 
@@ -144,16 +144,16 @@ The integration must:
 - pin an exact reviewed upstream commit rather than downloading the current
   branch during a build;
 - retain upstream copyright, license, source URL, and version information;
-- keep the GPL module visibly separable from VibeCAD's LGPL source;
-- record the pinned revision in VibeCAD's source and binary provenance;
+- keep the GPL module visibly separable from SteveCAD's LGPL source;
+- record the pinned revision in SteveCAD's source and binary provenance;
 - include the corresponding source in the distribution process where the
   license requires it;
 - run the repository's license and notice checks against every packaged
   artifact.
 
-VibeCAD-specific catalog adapters should be new VibeCAD code that calls the
+SteveCAD-specific catalog adapters should be new SteveCAD code that calls the
 published generator interface. GPL implementation code must not be copied into
-an LGPL VibeCAD module. If upstream changes are required, VibeCAD should pin a
+an LGPL SteveCAD module. If upstream changes are required, SteveCAD should pin a
 maintained fork with reviewable commits instead of carrying an opaque patch
 applied during packaging.
 
@@ -167,14 +167,14 @@ substantially larger effort and is not an interchangeable implementation detail.
 
 The selected Fasteners source should be tracked as a pinned repository
 dependency, following the repository's existing third-party dependency pattern.
-A VibeCAD-owned CMake/install adapter must install it as a normal FreeCAD module
+A SteveCAD-owned CMake/install adapter must install it as a normal FreeCAD module
 under `Mod/Fasteners`.
 
 The build must never:
 
 - fetch the module from the network as part of a normal build;
 - depend on a developer's Addon Manager state;
-- modify files in an already installed VibeCAD tree;
+- modify files in an already installed SteveCAD tree;
 - select a branch or tag whose target can move;
 - omit the module from one supported package format without failing packaging.
 
@@ -188,7 +188,7 @@ Every supported local and distributable build must contain:
 - icons and other UI resources;
 - translations included by the pinned upstream revision;
 - license, notice, version, and source-provenance files;
-- VibeCAD's catalog adapter and tests.
+- SteveCAD's catalog adapter and tests.
 
 The release manifest must report the bundled Fasteners revision. The application
 About/diagnostics data should report it as well so a saved object's generator
@@ -203,7 +203,7 @@ then be disabled explicitly; they must not fall back to approximating hardware.
 
 ## 8. Shared standard-component service
 
-VibeCAD must add one service between the domain adapters and the bundled
+SteveCAD must add one service between the domain adapters and the bundled
 generator. The service owns validation and canonical identity; it does not own
 a second copy of the geometry formulas.
 
@@ -273,7 +273,7 @@ A generated fastener must be a parametric FreeCAD feature with:
 - generator and catalog version properties;
 - the native Fasteners `Thread` boolean property;
 - standard interface metadata;
-- material and appearance assignments using the existing VibeCAD contracts;
+- material and appearance assignments using the existing SteveCAD contracts;
 - BOM part number, description, and quantity identity;
 - a clear error state if a later recompute cannot resolve its stored values.
 
@@ -282,7 +282,7 @@ silently replace a saved designation or migrate it to a different size. Any
 required data migration must be versioned, explicit, tested, and dual-readable
 for its support period.
 
-The cached shape must be saved in the FCStd file. On a VibeCAD installation the
+The cached shape must be saved in the FCStd file. On a SteveCAD installation the
 object must remain editable and recomputable. A generic FreeCAD installation
 without the bundled module should still be able to display the last saved shape,
 although parametric editing cannot be promised there.
@@ -295,7 +295,7 @@ directory, catalog file, or temporary BREP.
 ### 10.1 Fasteners workbench
 
 The bundled workbench must remain visible in the normal workbench selector and
-available for its complete supported catalog-oriented UI. VibeCAD must not
+available for its complete supported catalog-oriented UI. SteveCAD must not
 reduce it to a hidden dependency after shipping it.
 
 ### 10.2 Part Design
@@ -309,7 +309,7 @@ service. The initial group includes:
 - create a matching standard hole;
 - place or attach the component using a named interface.
 
-The resulting object must follow VibeCAD's consolidated tree rules. It must not
+The resulting object must follow SteveCAD's consolidated tree rules. It must not
 create an unexpected legacy Part workbench container or place one object in two
 `GeoFeatureGroup` owners.
 
@@ -326,9 +326,9 @@ The complete Assembly behavior is defined in
 ### 10.4 Icons and translations
 
 Every shipped command must have a valid icon at every size expected by the
-VibeCAD UI. VibeCAD-owned integrated commands must use VibeCAD's icon style;
+SteveCAD UI. SteveCAD-owned integrated commands must use SteveCAD's icon style;
 upstream workbench commands may retain their licensed upstream resources.
-Packaging tests must detect missing resource paths. User-visible VibeCAD strings
+Packaging tests must detect missing resource paths. User-visible SteveCAD strings
 must be translatable.
 
 ## 11. VibeScript contract
@@ -456,7 +456,7 @@ The initial implementation may leave mass unknown when the selected material
 does not define density. It must not invent density. When density is available,
 mass is computed from the generated shape and recorded with the material source.
 
-Appearance remains independent of material. Existing VibeCAD material and
+Appearance remains independent of material. Existing SteveCAD material and
 appearance APIs apply without a second fastener-specific color system.
 
 ## 14. Security, determinism, and performance
@@ -508,14 +508,14 @@ inside an earlier packaging change.
 - Include resources, translations, notices, and provenance.
 - Add headless import and GUI workbench package smoke tests.
 
-Exit condition: a clean offline VibeCAD build can open the Fasteners workbench
+Exit condition: a clean offline SteveCAD build can open the Fasteners workbench
 and create, save, reopen, and recompute representative upstream objects.
 
-### Phase 2: shared catalog and native VibeCAD object
+### Phase 2: shared catalog and native SteveCAD object
 
 - Add the headless catalog adapter and canonical identity.
 - Add deterministic query and validation.
-- Add the VibeCAD parametric object and named interfaces.
+- Add the SteveCAD parametric object and named interfaces.
 - Add material, appearance, and BOM metadata integration.
 
 Exit condition: every published catalog key can be resolved and its
@@ -604,10 +604,10 @@ The implementation record at the start of this document fixes the distribution
 boundary, pinned revision, supported catalog matrix, native thread boolean, and
 real-thread limits. The public contracts are:
 
-- `vibecad-fastener-catalog-v1`;
-- `vibecad-standard-fastener-v1`;
-- `vibecad-standard-component-interfaces-v1`;
-- `vibecad-fastener-hole-v1`;
+- `stevecad-fastener-catalog-v1`;
+- `stevecad-standard-fastener-v1`;
+- `stevecad-standard-component-interfaces-v1`;
+- `stevecad-fastener-hole-v1`;
 - Part Design `api.fastener(...)` and `api.fastener_hole(...)`;
 - Assembly `api.fastener(...)`;
 - read-only `fastener_catalog.search`.
@@ -619,13 +619,13 @@ approval process in `AGENTS.md`.
 
 This effort is complete only when:
 
-- every supported VibeCAD package contains the pinned Fasteners module and works
+- every supported SteveCAD package contains the pinned Fasteners module and works
   offline;
 - Part Design, Assembly, and VibeScript all resolve hardware through one shared
   catalog service;
 - no supported standard fastener must be reconstructed from primitive geometry;
 - supported catalog variants pass the declared exhaustive generation tests;
-- objects remain editable in VibeCAD and visible from their cached shape in
+- objects remain editable in SteveCAD and visible from their cached shape in
   generic FreeCAD;
 - named interfaces, fit semantics, material, appearance, and BOM identity
   survive save/reopen and recompute;

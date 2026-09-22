@@ -11,8 +11,8 @@
 namespace
 {
 
-constexpr auto assistantName = "VibeCADAssistantPanel";
-constexpr auto modelCodeName = "VibeCADScriptedModelPanel";
+constexpr auto assistantName = "SteveCADAssistantPanel";
+constexpr auto modelCodeName = "SteveCADScriptedModelPanel";
 constexpr auto taskName = "Std_TaskView";
 
 QDockWidget* addDock(QMainWindow& window, const char* name, Qt::DockWidgetArea area)

@@ -1005,7 +1005,7 @@ private:
         std::vector<std::string> errors(paths.size());
         std::atomic_size_t active {0};
         std::atomic_size_t peak {0};
-        const char* traceValue = std::getenv("VIBECAD_TRACE_NATIVE_EVENTS");
+        const char* traceValue = std::getenv("STEVECAD_TRACE_NATIVE_EVENTS");
         const bool trace = traceValue && *traceValue && *traceValue != '0';
         const auto started = std::chrono::steady_clock::now();
         try {
@@ -1044,7 +1044,7 @@ private:
         if (trace) {
             const auto milliseconds = std::chrono::duration<double, std::milli>(
                 std::chrono::steady_clock::now() - started).count();
-            Base::Console().message("VIBECAD_ARTIFACT brep count=%zu peak_workers=%zu elapsed_ms=%.3f\n",
+            Base::Console().message("STEVECAD_ARTIFACT brep count=%zu peak_workers=%zu elapsed_ms=%.3f\n",
                                 paths.size(), peak.load(), milliseconds);
         }
         Py::List result;

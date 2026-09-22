@@ -1537,7 +1537,7 @@ void CmdPartDesignMoveTip::activated(int iMsg)
 
     auto* timeline = Gui::getMainWindow()
         ? Gui::getMainWindow()->findChild<Gui::FeatureTimeline*>(
-              QStringLiteral("VibeCADFeatureTimeline")
+              QStringLiteral("SteveCADFeatureTimeline")
           )
         : nullptr;
     if (!timeline

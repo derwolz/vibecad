@@ -9,7 +9,7 @@
 //
 // Icon with lowest ID value placed first to ensure application icon
 // remains consistent on all systems.
-IDI_ICON1               ICON    DISCARDABLE     "vibecad.ico"
+IDI_ICON1               ICON    DISCARDABLE     "stevecad.ico"
 
 // File info for the FreeCADCmd.exe
 //
@@ -30,13 +30,13 @@ BEGIN
     BEGIN
         BLOCK "040904b0" // 409 stands for US English
         BEGIN
-            VALUE "CompanyName", "VibeCAD Project"
-            VALUE "FileDescription", "VibeCAD command line executable"
+            VALUE "CompanyName", "SteveCAD Project"
+            VALUE "FileDescription", "SteveCAD command line executable"
             VALUE "FileVersion", "${PACKAGE_VERSION}${PACKAGE_VERSION_SUFFIX}"
             VALUE "InternalName", "FreeCADCmd.exe"
-            VALUE "LegalCopyright", "Copyright (C) FreeCAD and VibeCAD contributors"
+            VALUE "LegalCopyright", "Copyright (C) FreeCAD and SteveCAD contributors"
             VALUE "OriginalFilename", "FreeCADCmd.exe"
-            VALUE "ProductName", "VibeCAD"
+            VALUE "ProductName", "SteveCAD"
             VALUE "ProductVersion", "${PACKAGE_VERSION}${PACKAGE_VERSION_SUFFIX}"
         END
     END

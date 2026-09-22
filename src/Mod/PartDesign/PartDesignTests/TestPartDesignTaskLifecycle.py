@@ -1,6 +1,6 @@
 # SPDX-License-Identifier: LGPL-2.1-or-later
 
-"""VibeCAD contracts for native Part Design task acceptance and cancellation."""
+"""SteveCAD contracts for native Part Design task acceptance and cancellation."""
 
 import unittest
 

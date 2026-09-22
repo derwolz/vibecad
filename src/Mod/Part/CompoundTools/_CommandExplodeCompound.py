@@ -184,7 +184,7 @@ def cmdExplode():
             is not output_component
             or getattr(
                 output_component,
-                "VibeCADTimelineRole",
+                "SteveCADTimelineRole",
                 None,
             )
             != "operation"

@@ -34,7 +34,7 @@ from Path.CommandBoundary import (
     can_start_document_command,
     is_timeline_input_usable,
 )
-from VibeCADNativeTransaction import _OwnedDocumentTransaction
+from SteveCADNativeTransaction import _OwnedDocumentTransaction
 
 from PySide.QtCore import QT_TRANSLATE_NOOP
 

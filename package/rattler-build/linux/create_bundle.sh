@@ -34,8 +34,8 @@ export QT_QPA_PLATFORM=xcb
 # Arch/Mesa systems that copy can make Qt's GLX probe see no framebuffer
 # configurations. Preload the host-matched library when AMD hardware is
 # present; the loader then reuses it instead of the bundled copy.
-drm_root=${VIBECAD_DRM_ROOT:-/sys/class/drm}
-libdrm_amdgpu=${VIBECAD_LIBDRM_AMDGPU:-/usr/lib/libdrm_amdgpu.so.1}
+drm_root=${STEVECAD_DRM_ROOT:-/sys/class/drm}
+libdrm_amdgpu=${STEVECAD_LIBDRM_AMDGPU:-/usr/lib/libdrm_amdgpu.so.1}
 for vendor_path in "$drm_root"/card*/device/vendor; do
     [ -r "$vendor_path" ] || continue
     if [ "$(cat "$vendor_path")" = "0x1002" ] && [ -r "$libdrm_amdgpu" ]; then
@@ -67,17 +67,17 @@ fi
 exec "${MAIN}" "$@"
 EOF
 
-    ../scripts/install_vibecad_provider_deps.sh ../.pixi/envs/default
-    ../scripts/install_vibecad_codex_runtime.sh \
+    ../scripts/install_stevecad_provider_deps.sh ../.pixi/envs/default
+    ../scripts/install_stevecad_codex_runtime.sh \
         "../.pixi/envs/default/bin/python" \
-        "../.pixi/envs/default/Mod/VibeCAD"
-    ../scripts/purge_vibecad_retired_authoring_artifacts.sh \
+        "../.pixi/envs/default/Mod/SteveCAD"
+    ../scripts/purge_stevecad_retired_authoring_artifacts.sh \
         "../.pixi/envs/default" \
-        "../.pixi/envs/default/Mod/VibeCAD"
+        "../.pixi/envs/default/Mod/SteveCAD"
     cp -a ../.pixi/envs/default/* ${conda_env}
-    ../scripts/purge_vibecad_retired_authoring_artifacts.sh \
+    ../scripts/purge_stevecad_retired_authoring_artifacts.sh \
         "${conda_env}" \
-        "${conda_env}/Mod/VibeCAD"
+        "${conda_env}/Mod/SteveCAD"
     ../scripts/exclude_appimage_host_graphics_libraries.sh "${conda_env}"
 
     echo -e "\nDelete unnecessary stuff"
@@ -95,15 +95,15 @@ EOF
     cp ${conda_env}/bin_tmp/gmsh ${conda_env}/bin/
     cp ${conda_env}/bin_tmp/dot ${conda_env}/bin/
     cp ${conda_env}/bin_tmp/unflatten ${conda_env}/bin/
-    cp ${conda_env}/bin_tmp/VibeCADGeometryWorker ${conda_env}/bin/
+    cp ${conda_env}/bin_tmp/SteveCADGeometryWorker ${conda_env}/bin/
     rm -rf ${conda_env}/bin_tmp
 
     sed -i '1s|.*|#!/usr/bin/env python|' ${conda_env}/bin/pip
 
     echo -e "\nCopying Icon and Desktop file"
-    cp "$repo_root/package/linux/vibecad.desktop" AppDir/vibecad.desktop
-    sed -i 's/^Exec=vibecad /Exec=AppRun - --single-instance /' AppDir/vibecad.desktop
-    cp "$repo_root/src/Gui/Icons/vibecad.svg" AppDir/vibecad.svg
+    cp "$repo_root/package/linux/stevecad.desktop" AppDir/stevecad.desktop
+    sed -i 's/^Exec=stevecad /Exec=AppRun - --single-instance /' AppDir/stevecad.desktop
+    cp "$repo_root/src/Gui/Icons/stevecad.svg" AppDir/stevecad.svg
 
     # Remove __pycache__ folders and .pyc files
     find . -path "*/__pycache__/*" -delete
@@ -126,9 +126,9 @@ EOF
     pixi list -e default > AppDir/packages.txt
     sed -i "1s/.*/\nLIST OF PACKAGES:/" AppDir/packages.txt
 
-    echo "Running VibeCAD command-line smoke test..."
+    echo "Running SteveCAD command-line smoke test..."
     if ! "${conda_env}/bin/freecadcmd" --safe-mode --version; then
-        echo "VibeCAD command-line smoke test failed; the Linux bundle cannot start."
+        echo "SteveCAD command-line smoke test failed; the Linux bundle cannot start."
         exit 1
     fi
     for dependency in \
@@ -142,7 +142,7 @@ EOF
         secretstorage \
         keyring.backends.SecretService; do
         if ! "${conda_env}/bin/freecadcmd" --safe-mode -c "import importlib; importlib.import_module('${dependency}'); print('${dependency} import ok')"; then
-            echo "VibeCAD Python dependency '${dependency}' failed to import; the Linux bundle is incomplete."
+            echo "SteveCAD Python dependency '${dependency}' failed to import; the Linux bundle is incomplete."
             exit 1
         fi
     done
@@ -150,22 +150,22 @@ EOF
         echo "The retired OpenAI Agents module remains in the Linux bundle."
         exit 1
     fi
-    if ! "${conda_env}/bin/freecadcmd" --safe-mode -c "from VibeCADProvider import _provider_subprocess_smoke; _provider_subprocess_smoke(); print('VibeCAD provider subprocess smoke ok')"; then
-        echo "VibeCAD provider subprocess smoke test failed; the Linux bundle cannot run AI providers."
+    if ! "${conda_env}/bin/freecadcmd" --safe-mode -c "from SteveCADProvider import _provider_subprocess_smoke; _provider_subprocess_smoke(); print('SteveCAD provider subprocess smoke ok')"; then
+        echo "SteveCAD provider subprocess smoke test failed; the Linux bundle cannot run AI providers."
         exit 1
     fi
-    if ! "${conda_env}/bin/freecadcmd" --safe-mode -c "from VibeCADCodex import runtime_execution_smoke; result = runtime_execution_smoke(); print('VibeCAD Codex app-server smoke ok', result['version'])"; then
-        echo "VibeCAD Codex app-server smoke test failed; the Linux bundle cannot use ChatGPT subscriptions."
+    if ! "${conda_env}/bin/freecadcmd" --safe-mode -c "from SteveCADCodex import runtime_execution_smoke; result = runtime_execution_smoke(); print('SteveCAD Codex app-server smoke ok', result['version'])"; then
+        echo "SteveCAD Codex app-server smoke test failed; the Linux bundle cannot use ChatGPT subscriptions."
         exit 1
     fi
-    if ! "${conda_env}/bin/freecadcmd" --safe-mode -c "from VibeCADGeometry import runtime_execution_smoke; result = runtime_execution_smoke(); print('VibeCAD geometry worker smoke ok', result['worker'])"; then
-        echo "VibeCAD geometry worker smoke test failed; the Linux bundle cannot inspect geometry."
+    if ! "${conda_env}/bin/freecadcmd" --safe-mode -c "from SteveCADGeometry import runtime_execution_smoke; result = runtime_execution_smoke(); print('SteveCAD geometry worker smoke ok', result['worker'])"; then
+        echo "SteveCAD geometry worker smoke test failed; the Linux bundle cannot inspect geometry."
         exit 1
     fi
     if ! env -u PYTHONHOME -u PYTHONPATH -u LD_LIBRARY_PATH \
         /usr/bin/python3 -m py_compile \
         "${conda_env}/Mod/McMasterInsert/McMasterCatalogWebKit.py"; then
-        echo "VibeCAD McMaster WebKit helper is not valid Python."
+        echo "SteveCAD McMaster WebKit helper is not valid Python."
         exit 1
     fi
     rm -rf -- "${conda_env}/Mod/McMasterInsert/__pycache__"
@@ -190,7 +190,7 @@ make_appimage() {
       --comp zstd \
       --mksquashfs-opt -Xcompression-level \
       --mksquashfs-opt 19 \
-      -u "gh-releases-zsync|10-X-eng|vibecad|${GH_UPDATE_TAG}|VibeCAD*$(uname -m)*.AppImage.zsync" \
+      -u "gh-releases-zsync|10-X-eng|stevecad|${GH_UPDATE_TAG}|SteveCAD*$(uname -m)*.AppImage.zsync" \
       AppDir ${version_name}.AppImage
       # -s --sign-key ${GPG_KEY_ID} \
 

@@ -80,7 +80,7 @@ class TestLinuxAppImageLauncher(unittest.TestCase):
             launcher = appdir / "AppRun"
             launcher.write_text(generated_launcher(), encoding="utf-8")
             binary.write_text(
-                '#!/bin/sh\nprintf "%s\\n" "${LD_PRELOAD-}" > "$VIBECAD_TEST_OUTPUT"\n',
+                '#!/bin/sh\nprintf "%s\\n" "${LD_PRELOAD-}" > "$STEVECAD_TEST_OUTPUT"\n',
                 encoding="utf-8",
             )
             (fake_bin / "readlink").write_text(
@@ -99,9 +99,9 @@ class TestLinuxAppImageLauncher(unittest.TestCase):
                 {
                     "PATH": f"{fake_bin}:{environment['PATH']}",
                     "LD_PRELOAD": "existing.so",
-                    "VIBECAD_DRM_ROOT": str(root / "drm"),
-                    "VIBECAD_LIBDRM_AMDGPU": str(host_library),
-                    "VIBECAD_TEST_OUTPUT": str(output),
+                    "STEVECAD_DRM_ROOT": str(root / "drm"),
+                    "STEVECAD_LIBDRM_AMDGPU": str(host_library),
+                    "STEVECAD_TEST_OUTPUT": str(output),
                 }
             )
             subprocess.run([str(launcher)], env=environment, check=True)

@@ -157,7 +157,7 @@ class TestModelingTaskAttemptSourceContract(unittest.TestCase):
                     source,
                 )
                 self.assertNotIn(
-                    "__vibecad_part_result__",
+                    "__stevecad_part_result__",
                     source,
                 )
                 self.assertNotIn(
@@ -221,7 +221,7 @@ class TestModelingTaskAttemptSourceContract(unittest.TestCase):
             defeaturing,
         )
         self.assertNotIn(
-            "__vibecad_part_result__",
+            "__stevecad_part_result__",
             defeaturing,
         )
         app_part_gui = (
@@ -299,7 +299,7 @@ class TestModelingTaskAttemptSourceContract(unittest.TestCase):
                 ),
             )
         ]
-        self.assertNotIn("__vibecad_document_object_result_", exact_bridge)
+        self.assertNotIn("__stevecad_document_object_result_", exact_bridge)
         self.assertNotIn("PyObject_HasAttrString", exact_bridge)
         self.assertNotIn("PyObject_DelAttrString", exact_bridge)
         self.assertNotIn("getActiveObject", exact_bridge)
@@ -1006,7 +1006,7 @@ class TestRetainedPartDialogs(unittest.TestCase):
         self.assertFalse(self.document.HasPendingTransaction)
 
     def _timeline_operations(self):
-        timeline = self.document.getObject("VibeCADTimeline")
+        timeline = self.document.getObject("SteveCADTimeline")
         return tuple(timeline.Operations) if timeline is not None else ()
 
     def _assert_body_result(self, body, source, result):
@@ -1071,27 +1071,27 @@ class TestRetainedPartDialogs(unittest.TestCase):
         )
         self._process_events(60)
 
-        self.assertEqual(result.VibeCADTimelineRole, "operation")
+        self.assertEqual(result.SteveCADTimelineRole, "operation")
         self.assertEqual(
-            result.getTypeIdOfProperty("VibeCADTimelineRole"),
+            result.getTypeIdOfProperty("SteveCADTimelineRole"),
             "App::PropertyString",
         )
         self.assertEqual(
-            list(result.VibeCADTimelineReplacedInputs),
+            list(result.SteveCADTimelineReplacedInputs),
             [source],
         )
         self.assertEqual(
-            result.getTypeIdOfProperty("VibeCADTimelineReplacedInputs"),
+            result.getTypeIdOfProperty("SteveCADTimelineReplacedInputs"),
             "App::PropertyLinkListHidden",
         )
 
-        timeline = self.document.getObject("VibeCADTimeline")
+        timeline = self.document.getObject("SteveCADTimeline")
         self.assertIsNotNone(timeline)
         result_index = list(timeline.Operations).index(result)
 
         previous = self._visible_widget(
             QtGui.QToolButton,
-            "VibeCADFeatureTimelinePrevious",
+            "SteveCADFeatureTimelinePrevious",
         )
         self.assertIsNotNone(previous)
         self.assertTrue(previous.isEnabled())
@@ -1117,7 +1117,7 @@ class TestRetainedPartDialogs(unittest.TestCase):
 
         next_button = self._visible_widget(
             QtGui.QToolButton,
-            "VibeCADFeatureTimelineNext",
+            "SteveCADFeatureTimelineNext",
         )
         self.assertIsNotNone(next_button)
         self.assertTrue(next_button.isEnabled())
@@ -1349,9 +1349,9 @@ class TestRetainedPartDialogs(unittest.TestCase):
 
         operations = self._timeline_operations()
         self.assertEqual(list(operations[-2:]), [resource, result])
-        self.assertEqual(result.VibeCADTimelineRole, "operation")
-        self.assertEqual(resource.VibeCADTimelineRole, "resource")
-        self.assertIs(resource.VibeCADTimelineOwner, result)
+        self.assertEqual(result.SteveCADTimelineRole, "operation")
+        self.assertEqual(resource.SteveCADTimelineRole, "resource")
+        self.assertIs(resource.SteveCADTimelineOwner, result)
         self.assertFalse(self.document.HasPendingTransaction)
         self._close_task()
 
@@ -1378,9 +1378,9 @@ class TestRetainedPartDialogs(unittest.TestCase):
                 list(self._timeline_operations()[-2:]),
                 [resource, result],
             )
-            self.assertEqual(resource.VibeCADTimelineRole, "resource")
-            self.assertIs(resource.VibeCADTimelineOwner, result)
-            self.assertEqual(result.VibeCADTimelineRole, "operation")
+            self.assertEqual(resource.SteveCADTimelineRole, "resource")
+            self.assertIs(resource.SteveCADTimelineOwner, result)
+            self.assertEqual(result.SteveCADTimelineRole, "operation")
 
     def test_boolean_cancel_without_apply_publishes_no_history(self):
         body, left = self._body_feature(
@@ -1575,26 +1575,26 @@ class TestRetainedPartDialogs(unittest.TestCase):
         resources = [
             obj
             for obj in results
-            if getattr(obj, "VibeCADTimelineRole", "")
+            if getattr(obj, "SteveCADTimelineRole", "")
             == "resource"
         ]
         operations = [
             obj
             for obj in results
-            if getattr(obj, "VibeCADTimelineRole", "")
+            if getattr(obj, "SteveCADTimelineRole", "")
             == "operation"
         ]
         self.assertEqual(len(resources), 1)
         self.assertEqual(len(operations), 1)
-        self.assertIs(resources[0].VibeCADTimelineOwner, operations[0])
+        self.assertIs(resources[0].SteveCADTimelineOwner, operations[0])
         self.assertNotEqual(
-            getattr(observer.distractor, "VibeCADTimelineRole", ""),
+            getattr(observer.distractor, "SteveCADTimelineRole", ""),
             "resource",
         )
         self.assertIsNot(
             getattr(
                 observer.distractor,
-                "VibeCADTimelineOwner",
+                "SteveCADTimelineOwner",
                 None,
             ),
             operations[0],
@@ -1649,17 +1649,17 @@ class TestRetainedPartDialogs(unittest.TestCase):
         operation = next(
             obj
             for obj in results
-            if obj.VibeCADTimelineRole == "operation"
+            if obj.SteveCADTimelineRole == "operation"
         )
         resource = next(
             obj
             for obj in results
-            if obj.VibeCADTimelineRole == "resource"
+            if obj.SteveCADTimelineRole == "resource"
         )
-        self.assertIs(resource.VibeCADTimelineOwner, operation)
+        self.assertIs(resource.SteveCADTimelineOwner, operation)
         self.assertIsNone(operation.getParentGeoFeatureGroup())
         self.assertIsNone(resource.getParentGeoFeatureGroup())
-        self.assertTrue(str(operation.VibeCADDefinitionId))
+        self.assertTrue(str(operation.SteveCADDefinitionId))
         self.assertTrue(str(operation.DesignId))
         self.assertEqual(tuple(body.Group), original_group)
         self.assertIs(body.Tip, original_tip)
@@ -1678,8 +1678,8 @@ class TestRetainedPartDialogs(unittest.TestCase):
             self.document.recompute()
             self.assertIsNotNone(result)
             self.assertIsNone(result.getParentGeoFeatureGroup())
-            self.assertEqual(result.VibeCADTimelineRole, "operation")
-            self.assertTrue(str(result.VibeCADDefinitionId))
+            self.assertEqual(result.SteveCADTimelineRole, "operation")
+            self.assertTrue(str(result.SteveCADDefinitionId))
             self.assertTrue(str(result.DesignId))
             for body, original_group, original_tip in bodies:
                 self.assertEqual(tuple(body.Group), original_group)

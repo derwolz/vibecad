@@ -936,18 +936,18 @@ DockWindowItems* StdWorkbench::setupDockWindows() const
     root->addDockWidget("Std_ReportView", Qt::BottomDockWidgetArea, Gui::DockWindowOption::HiddenTabbed);
     root->addDockWidget("Std_PythonView", Qt::BottomDockWidgetArea, Gui::DockWindowOption::HiddenTabbed);
     root->addDockWidget(
-        "VibeCADAssistantPanel",
+        "SteveCADAssistantPanel",
         Qt::RightDockWidgetArea,
         Gui::DockWindowOption::VisibleTabbed
     );
     root->addDockWidget(
-        "VibeCADScriptedModelPanel",
+        "SteveCADScriptedModelPanel",
         Qt::RightDockWidgetArea,
         Gui::DockWindowOption::HiddenTabbed
     );
-    if (DockWindowManager::instance()->findRegisteredDockWindow("VibeCADContextDebugPanel")) {
+    if (DockWindowManager::instance()->findRegisteredDockWindow("SteveCADContextDebugPanel")) {
         root->addDockWidget(
-            "VibeCADContextDebugPanel",
+            "SteveCADContextDebugPanel",
             Qt::BottomDockWidgetArea,
             Gui::DockWindowOption::HiddenTabbed
         );

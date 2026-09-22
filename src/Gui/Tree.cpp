@@ -128,28 +128,28 @@ static bool isSelectionCheckBoxesEnabled()
     return TreeParams::getCheckBoxesSelection();
 }
 
-static bool isVibeCADCreatedObject(const App::DocumentObject* object)
+static bool isSteveCADCreatedObject(const App::DocumentObject* object)
 {
     if (!object) {
         return false;
     }
     const auto* role = dynamic_cast<const App::PropertyString*>(
-        object->getPropertyByName("VibeCADScriptedRole")
+        object->getPropertyByName("SteveCADScriptedRole")
     );
     return role && !role->getStrValue().empty();
 }
 
-static QString vibeCADProvenanceToolTip(
+static QString steveCADProvenanceToolTip(
     const App::DocumentObject* object,
     const QString& toolTip = {}
 )
 {
-    if (!isVibeCADCreatedObject(object)) {
+    if (!isSteveCADCreatedObject(object)) {
         return toolTip;
     }
     const QString provenance = QApplication::translate(
         "TreeWidget",
-        "Created by VibeCAD"
+        "Created by SteveCAD"
     );
     if (toolTip.contains(provenance)) {
         return toolTip;
@@ -394,7 +394,7 @@ public:
 
     void slotChangeToolTip(const QString& tip)
     {
-        const QString decorated = vibeCADProvenanceToolTip(
+        const QString decorated = steveCADProvenanceToolTip(
             viewObject ? viewObject->getObject() : nullptr,
             tip
         );
@@ -4425,7 +4425,7 @@ struct UpdateDisabler
         if (visible) {
             bool permanentModelBrowser = false;
             for (QWidget* ancestor = &widget; ancestor; ancestor = ancestor->parentWidget()) {
-                if (ancestor->objectName() == QStringLiteral("VibeCADModelBrowserHost")) {
+                if (ancestor->objectName() == QStringLiteral("SteveCADModelBrowserHost")) {
                     permanentModelBrowser = true;
                     break;
                 }
@@ -4960,9 +4960,9 @@ void TreeWidget::processUpdateStatus()
         }
     }
 
-    if (qEnvironmentVariableIsSet("VIBECAD_RESTORE_DETAIL_TRACE")) {
+    if (qEnvironmentVariableIsSet("STEVECAD_RESTORE_DETAIL_TRACE")) {
         Base::Console().message(
-            "VIBECAD_PROJECTION tree total_ms=%lld objects=%zu full=%d\n",
+            "STEVECAD_PROJECTION tree total_ms=%lld objects=%zu full=%d\n",
             static_cast<long long>(projectionElapsed),
             projectedObjectCount,
             projectedAllObjects ? 1 : 0
@@ -6310,14 +6310,14 @@ void DocumentItem::rebuildModelBrowser()
     const char* phase = modelBrowserStatePending ? "state"
         : stagedModelBrowserRoot ? (modelBrowserAttaching ? "attach" : "remove")
         : "prepare";
-    if (qEnvironmentVariableIsSet("VIBECAD_RESTORE_DETAIL_TRACE")) {
+    if (qEnvironmentVariableIsSet("STEVECAD_RESTORE_DETAIL_TRACE")) {
         traceDocument = appDocument->getName();
         phaseElapsed.start();
     }
     const auto tracePhase = qScopeGuard([&] {
         if (phaseElapsed.isValid()) {
             Base::Console().message(
-                "VIBECAD_PROJECTION tree_slice document=%s phase=%s elapsed_us=%lld\n",
+                "STEVECAD_PROJECTION tree_slice document=%s phase=%s elapsed_us=%lld\n",
                 traceDocument.c_str(), phase,
                 static_cast<long long>(phaseElapsed.nsecsElapsed() / 1000));
         }
@@ -6424,7 +6424,7 @@ void DocumentItem::rebuildModelBrowser()
         modelBrowserBuild.emplace(buildModelBrowser());
         modelBrowserBuildSteps = 0;
         modelBrowserBuildMaxStepNs = 0;
-        if (qEnvironmentVariableIsSet("VIBECAD_RESTORE_DETAIL_TRACE")) {
+        if (qEnvironmentVariableIsSet("STEVECAD_RESTORE_DETAIL_TRACE")) {
             modelBrowserBuildElapsed.start();
         }
         else {
@@ -6456,7 +6456,7 @@ void DocumentItem::rebuildModelBrowser()
                 modelBrowserBuild.reset();
                 if (modelBrowserBuildElapsed.isValid()) {
                     Base::Console().message(
-                        "VIBECAD_PROJECTION tree_build document=%s total_ms=%lld steps=%zu max_step_us=%lld\n",
+                        "STEVECAD_PROJECTION tree_build document=%s total_ms=%lld steps=%zu max_step_us=%lld\n",
                         appDocument->getName(),
                         static_cast<long long>(modelBrowserBuildElapsed.elapsed()),
                         modelBrowserBuildSteps,
@@ -6563,7 +6563,7 @@ FrameSequence<std::unique_ptr<QTreeWidgetItem>> DocumentItem::buildModelBrowser(
             return {};
         }
         const auto* role = dynamic_cast<const App::PropertyString*>(
-            object->getPropertyByName("VibeCADTreeRole")
+            object->getPropertyByName("SteveCADTreeRole")
         );
         return role ? std::string_view(role->getValue()) : std::string_view {};
     };
@@ -7576,17 +7576,17 @@ FrameSequence<std::unique_ptr<QTreeWidgetItem>> DocumentItem::buildModelBrowser(
                 componentEntry.object,
                 "operations",
                 TreeWidget::tr("Design History"),
-                vibeScriptProgram ? "vibecad" : "PartDesignWorkbench",
+                vibeScriptProgram ? "stevecad" : "PartDesignWorkbench",
                 operations
             );
         };
 
         const auto renderComponentOutputs = [&]() -> FrameSequence<> {
             co_await std::suspend_always {};
-            const auto vibeCADOutputs = co_await filterBucket(
+            const auto steveCADOutputs = co_await filterBucket(
                 findBucket(
                     entriesByComponentRole,
-                    RoleContextKey {componentEntry.object, Role::VibeCADOutput}
+                    RoleContextKey {componentEntry.object, Role::SteveCADOutput}
                 ),
                 [&](const Entry& entry) {
                     // A complete Body-backed publication is a secondary,
@@ -7600,11 +7600,11 @@ FrameSequence<std::unique_ptr<QTreeWidgetItem>> DocumentItem::buildModelBrowser(
                 componentItem,
                 componentItem,
                 componentEntry.object,
-                vibeScriptProgram ? "published-outputs" : "vibecad-outputs",
+                vibeScriptProgram ? "published-outputs" : "stevecad-outputs",
                 vibeScriptProgram ? TreeWidget::tr("Published Outputs")
-                                  : TreeWidget::tr("VibeCAD Outputs"),
-                "vibecad",
-                vibeCADOutputs
+                                  : TreeWidget::tr("SteveCAD Outputs"),
+                "stevecad",
+                steveCADOutputs
             );
         };
 
@@ -7836,10 +7836,10 @@ FrameSequence<std::unique_ptr<QTreeWidgetItem>> DocumentItem::buildModelBrowser(
         rootOccurrences
     );
 
-    const auto rootVibeCADOutputs = co_await filterBucket(
+    const auto rootSteveCADOutputs = co_await filterBucket(
         findBucket(
             entriesByComponentRole,
-            RoleContextKey {nullptr, Role::VibeCADOutput}
+            RoleContextKey {nullptr, Role::SteveCADOutput}
         ),
         [](const Entry& entry) {
             return !entry.bodyRepresentation;
@@ -7849,10 +7849,10 @@ FrameSequence<std::unique_ptr<QTreeWidgetItem>> DocumentItem::buildModelBrowser(
         this,
         nullptr,
         nullptr,
-        "vibecad-outputs",
-        TreeWidget::tr("VibeCAD Outputs"),
-        "vibecad",
-        rootVibeCADOutputs
+        "stevecad-outputs",
+        TreeWidget::tr("SteveCAD Outputs"),
+        "stevecad",
+        rootSteveCADOutputs
     );
 
     const auto rootReferences = co_await componentRoleEntries(nullptr, Role::Reference);
@@ -8654,12 +8654,12 @@ void TreeWidget::slotChangeObject(const Gui::ViewProviderDocumentObject& view, c
     const bool changesBrowserProjection =
         changesDetails || changedProperty == "Group" || changedProperty == "Origin"
         || changedProperty.find("LinkedObject") != std::string_view::npos
-        || changedProperty == "VibeCADScriptedRole"
-        || changedProperty == "VibeCADScriptedEngine"
-        || changedProperty == "VibeCADScriptedModelId"
-        || changedProperty == "VibeCADScriptedOutputKey"
-        || changedProperty == "VibeCADNativeFeatureRole"
-        || changedProperty == "VibeCADTreeRole"
+        || changedProperty == "SteveCADScriptedRole"
+        || changedProperty == "SteveCADScriptedEngine"
+        || changedProperty == "SteveCADScriptedModelId"
+        || changedProperty == "SteveCADScriptedOutputKey"
+        || changedProperty == "SteveCADNativeFeatureRole"
+        || changedProperty == "SteveCADTreeRole"
         // Native Body presence is resolved through its publication/state
         // chain. These edits can restore a consumed part without changing
         // the Body's Group or the document's object membership.
@@ -10069,7 +10069,7 @@ DocumentObjectItem::DocumentObjectItem(
     setCheckState(false);
     setToolTip(
         0,
-        vibeCADProvenanceToolTip(object() ? object()->getObject() : nullptr)
+        steveCADProvenanceToolTip(object() ? object()->getObject() : nullptr)
     );
 
     myData->insertItem(this);
@@ -10230,17 +10230,17 @@ enum Status
 // Overlays are static icons that may need to be initialized
 void DocumentObjectItem::setIconOverlays(int currentStatus, QPixmap& overlays) const
 {
-    if (isVibeCADCreatedObject(object() ? object()->getObject() : nullptr)) {
-        static QPixmap pxVibeCAD;
-        if (pxVibeCAD.isNull()) {
-            pxVibeCAD = Gui::BitmapFactory().pixmapFromSvg(
-                "vibecad-tree-overlay",
+    if (isSteveCADCreatedObject(object() ? object()->getObject() : nullptr)) {
+        static QPixmap pxSteveCAD;
+        if (pxSteveCAD.isNull()) {
+            pxSteveCAD = Gui::BitmapFactory().pixmapFromSvg(
+                "stevecad-tree-overlay",
                 QSize(10, 10)
             );
         }
         overlays = BitmapFactory().merge(
             overlays,
-            pxVibeCAD,
+            pxSteveCAD,
             BitmapFactoryInst::BottomLeft
         );
     }

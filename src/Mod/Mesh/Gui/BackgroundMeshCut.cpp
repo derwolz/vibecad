@@ -15,7 +15,7 @@ void MeshGui::startBackgroundMeshCut(
     }
     try {
         Base::PyGILStateLocker lock;
-        PyObject* imported = PyImport_ImportModule("VibeCADMeshCutGui");
+        PyObject* imported = PyImport_ImportModule("SteveCADMeshCutGui");
         if (!imported) {
             throw Py::Exception();
         }

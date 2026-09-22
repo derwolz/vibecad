@@ -65,9 +65,9 @@ namespace
 bool inactiveAssemblyObject(const App::DocumentObject* object, const char* reason)
 {
     const auto* document = object ? object->getDocument() : nullptr;
-    if (std::getenv("VIBECAD_RESTORE_DETAIL_TRACE") && document
+    if (std::getenv("STEVECAD_RESTORE_DETAIL_TRACE") && document
         && document->testStatus(App::Document::Recomputing)) {
-        Base::Console().log("VIBECAD_ASSEMBLY_INACTIVE object=%s reason=%s\n",
+        Base::Console().log("STEVECAD_ASSEMBLY_INACTIVE object=%s reason=%s\n",
                             object->getFullName(), reason);
     }
     return false;

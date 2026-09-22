@@ -373,7 +373,7 @@ class ViewProvider:
     def _timelineReplacedInputs(obj):
         """Return one validated snapshot of the Job's accepted replacements."""
 
-        property_name = "VibeCADTimelineReplacedInputs"
+        property_name = "SteveCADTimelineReplacedInputs"
         if property_name not in obj.PropertiesList:
             return ()
         if obj.getTypeIdOfProperty(property_name) != "App::PropertyLinkListHidden":
@@ -506,7 +506,7 @@ class ViewProvider:
         replacements = tuple(
             getattr(
                 obj,
-                "VibeCADTimelineReplacedInputs",
+                "SteveCADTimelineReplacedInputs",
                 (),
             )
         )

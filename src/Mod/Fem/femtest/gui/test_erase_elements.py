@@ -1,6 +1,6 @@
 # SPDX-License-Identifier: LGPL-2.1-or-later
 
-"""VibeCAD behavior contracts for the FEM Erase Elements task."""
+"""SteveCAD behavior contracts for the FEM Erase Elements task."""
 
 from pathlib import Path
 import tempfile
@@ -16,7 +16,7 @@ from PySide import QtCore, QtGui
 class TestEraseElementsTask(unittest.TestCase):
     def setUp(self):
         Gui.activateWorkbench("FemWorkbench")
-        self.document = App.newDocument("VibeCADEraseElements")
+        self.document = App.newDocument("SteveCADEraseElements")
         self.document.UndoMode = True
         Gui.activateView("Gui::View3DInventor", True)
 
@@ -223,45 +223,45 @@ class TestEraseElementsTask(unittest.TestCase):
         Gui.Control.activeTaskDialog().accept()
         self._process_events()
         self.assertFalse(Gui.Control.activeDialog())
-        self.assertEqual(preview.VibeCADTimelineRole, "resource")
-        self.assertIs(preview.VibeCADTimelineOwner, operation)
+        self.assertEqual(preview.SteveCADTimelineRole, "resource")
+        self.assertIs(preview.SteveCADTimelineOwner, operation)
         self.assertEqual(
-            preview.getTypeIdOfProperty("VibeCADTimelineOwner"),
+            preview.getTypeIdOfProperty("SteveCADTimelineOwner"),
             "App::PropertyLinkHidden",
         )
         self.assertNotIn(operation, preview.OutList)
         self.assertIn(
             "Hidden",
-            preview.getEditorMode("VibeCADTimelineRole"),
+            preview.getEditorMode("SteveCADTimelineRole"),
         )
         self.assertIn(
             "Hidden",
-            preview.getEditorMode("VibeCADTimelineOwner"),
+            preview.getEditorMode("SteveCADTimelineOwner"),
         )
         self.assertEqual(
-            list(operation.VibeCADTimelineReplacedInputs),
+            list(operation.SteveCADTimelineReplacedInputs),
             [self.source],
         )
-        self.assertEqual(operation.VibeCADTimelineRole, "operation")
+        self.assertEqual(operation.SteveCADTimelineRole, "operation")
         self.assertEqual(
-            operation.getTypeIdOfProperty("VibeCADTimelineRole"),
+            operation.getTypeIdOfProperty("SteveCADTimelineRole"),
             "App::PropertyString",
         )
         self.assertIn(
             "Hidden",
-            operation.getEditorMode("VibeCADTimelineRole"),
+            operation.getEditorMode("SteveCADTimelineRole"),
         )
         self.assertEqual(
-            operation.getTypeIdOfProperty("VibeCADTimelineReplacedInputs"),
+            operation.getTypeIdOfProperty("SteveCADTimelineReplacedInputs"),
             "App::PropertyLinkListHidden",
         )
         self.assertIn(
             "Hidden",
-            operation.getEditorMode("VibeCADTimelineReplacedInputs"),
+            operation.getEditorMode("SteveCADTimelineReplacedInputs"),
         )
         self.assertEqual(self._mesh_signature(self.source.FemMesh), source_signature)
 
-        timeline = self.document.getObject("VibeCADTimeline")
+        timeline = self.document.getObject("SteveCADTimeline")
         operations = list(timeline.Operations)
         self.assertIn(preview, operations)
         block_start = operations.index(preview)
@@ -271,15 +271,15 @@ class TestEraseElementsTask(unittest.TestCase):
         main_window = Gui.getMainWindow()
         timeline_items = main_window.findChild(
             QtGui.QListWidget,
-            "VibeCADFeatureTimelineItems",
+            "SteveCADFeatureTimelineItems",
         )
         previous = main_window.findChild(
             QtGui.QToolButton,
-            "VibeCADFeatureTimelinePrevious",
+            "SteveCADFeatureTimelinePrevious",
         )
         end = main_window.findChild(
             QtGui.QToolButton,
-            "VibeCADFeatureTimelineEnd",
+            "SteveCADFeatureTimelineEnd",
         )
         self.assertIsNotNone(timeline_items)
         self.assertIsNotNone(previous)
@@ -333,17 +333,17 @@ class TestEraseElementsTask(unittest.TestCase):
             restored_operation = self.document.getObject(operation_name)
             restored_preview = self.document.getObject(preview_name)
             restored_source = self.document.getObject(source_name)
-            restored_timeline = self.document.getObject("VibeCADTimeline")
+            restored_timeline = self.document.getObject("SteveCADTimeline")
             self.assertEqual(
-                restored_preview.VibeCADTimelineRole,
+                restored_preview.SteveCADTimelineRole,
                 "resource",
             )
             self.assertIs(
-                restored_preview.VibeCADTimelineOwner,
+                restored_preview.SteveCADTimelineOwner,
                 restored_operation,
             )
             self.assertEqual(
-                restored_preview.getTypeIdOfProperty("VibeCADTimelineOwner"),
+                restored_preview.getTypeIdOfProperty("SteveCADTimelineOwner"),
                 "App::PropertyLinkHidden",
             )
             self.assertNotIn(
@@ -351,16 +351,16 @@ class TestEraseElementsTask(unittest.TestCase):
                 restored_preview.OutList,
             )
             self.assertEqual(
-                list(restored_operation.VibeCADTimelineReplacedInputs),
+                list(restored_operation.SteveCADTimelineReplacedInputs),
                 [restored_source],
             )
             self.assertEqual(
-                restored_operation.VibeCADTimelineRole,
+                restored_operation.SteveCADTimelineRole,
                 "operation",
             )
             self.assertEqual(
                 restored_operation.getTypeIdOfProperty(
-                    "VibeCADTimelineReplacedInputs"
+                    "SteveCADTimelineReplacedInputs"
                 ),
                 "App::PropertyLinkListHidden",
             )

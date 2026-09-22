@@ -173,7 +173,7 @@ class CAMSimulation:
         """Present one exact, already prepared simulation on the GUI thread."""
 
         if not FreeCAD.GuiUp:
-            raise RuntimeError("Prepared GL simulation requires the VibeCAD GUI")
+            raise RuntimeError("Prepared GL simulation requires the SteveCAD GUI")
         selected = tuple(operations)
         if not selected:
             raise ValueError("Prepared GL simulation requires at least one operation")

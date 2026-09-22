@@ -96,7 +96,7 @@ std::map<const ViewProviderBody*, BodyPresentationState>&
 bodyPresentationStates()
 {
     // ViewProviderBody is an exported class used by external modules. Keep
-    // VibeCAD-only connection and recursion state out of its instance layout.
+    // SteveCAD-only connection and recursion state out of its instance layout.
     static auto* states =
         new std::map<const ViewProviderBody*, BodyPresentationState>;
     return *states;
@@ -322,7 +322,7 @@ void ViewProviderBody::setDisplayMode(const char* ModeName)
 {
     // DisplayMode is propagated to result children by onChanged(). Record the
     // requested mode without selecting the Body's copied Shape branch: the
-    // current Tip child is VibeCAD's one and only viewport result.
+    // current Tip child is SteveCAD's one and only viewport result.
     Gui::ViewProvider::setDisplayMode(ModeName);
     useChildSceneMode();
 }
@@ -481,9 +481,9 @@ App::DocumentObject* ViewProviderBody::documentTimelineOperationDeleteTarget() c
         properties ? properties->OutputBodyIds.getValues()
                    : std::vector<std::string> {};
     if (!operation || operation->getDocument() != body->getDocument()
-        || !properties || state->BodyId.getValueStr() != body->VibeCADBodyId.getValueStr()
+        || !properties || state->BodyId.getValueStr() != body->SteveCADBodyId.getValueStr()
         || outputBodyIds.size() != 1
-        || outputBodyIds.front() != body->VibeCADBodyId.getValueStr()) {
+        || outputBodyIds.front() != body->SteveCADBodyId.getValueStr()) {
         throw Base::RuntimeError(
             "This Body is not the sole output of one valid creating History "
             "operation. Delete the complete operation from History instead."
@@ -583,7 +583,7 @@ void ViewProviderBody::onChanged(const App::Property* prop)
 
     if (prop == &DisplayModeBody) {
         // Keep the legacy property readable for document compatibility, but
-        // both values use the child scene in VibeCAD. Rendering the Body's
+        // both values use the child scene in SteveCAD. Rendering the Body's
         // copied Shape would duplicate the Tip and would gate sketches when
         // the Body result is hidden.
         useChildSceneMode();

@@ -12,8 +12,8 @@ from tempfile import TemporaryDirectory
 
 class TestPrintablesReconstructIR(unittest.TestCase):
     def _load(self):
-        from VibeCADNativeReconstructParametricRuntime import printables_ir_plan
-        from VibeCADNativeMeshReconstructParametricSchema import (
+        from SteveCADNativeReconstructParametricRuntime import printables_ir_plan
+        from SteveCADNativeMeshReconstructParametricSchema import (
             MESH_RECONSTRUCT_PARAMETRIC_CAPABILITY_NAME,
         )
 

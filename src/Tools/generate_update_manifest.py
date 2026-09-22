@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # SPDX-License-Identifier: LGPL-2.1-or-later
 
-"""Generate VibeCAD's version/build update manifest from release assets."""
+"""Generate SteveCAD's version/build update manifest from release assets."""
 
 from __future__ import annotations
 
@@ -160,7 +160,7 @@ def generate_manifest(
     channel = resolve_release_channel(repo_root)
     return {
         "schema": SCHEMA_VERSION,
-        "product": "VibeCAD",
+        "product": "SteveCAD",
         "channel": channel,
         "version": version,
         "build": build,
@@ -191,7 +191,7 @@ def main() -> int:
         )
         output = args.output or (
             assets_dir
-            / f"VibeCAD-update-{resolve_release_version(repo_root)}-"
+            / f"SteveCAD-update-{resolve_release_version(repo_root)}-"
             f"build{resolve_release_build(repo_root)}.json"
         )
         output.write_text(
