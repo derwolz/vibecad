@@ -457,6 +457,22 @@ def test_every_runtime_entry_point_uses_only_the_stevecad_config_namespace() -> 
         assert 'Config()["ExeVendor"] = "FreeCAD"' not in source
 
 
+def test_every_runtime_entry_point_declares_the_legacy_brand_for_settings_migration() -> None:
+    for relative_path in (
+        "src/Main/MainGui.cpp",
+        "src/Main/MainCmd.cpp",
+        "src/Main/MainPy.cpp",
+    ):
+        source = _source(relative_path)
+        assert 'Config()["LegacyExeName"] = "VibeCAD"' in source
+        assert 'Config()["LegacyExeVendor"] = "VibeCAD"' in source
+
+    directories = _source("src/App/ApplicationDirectories.cpp")
+    assert "migrateLegacyBrandedPaths" in directories
+    assert '"LegacyExeName"' in directories
+    assert '"LegacyExeVendor"' in directories
+
+
 def test_fresh_gui_profiles_initialize_the_native_tree_before_main_window_construction() -> (
     None
 ):

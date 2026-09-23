@@ -173,6 +173,35 @@ namespace App {
         static MigrationResult migrateConfig(const std::filesystem::path& oldPath,
                                               const std::filesystem::path& newPath);
 
+        /// The name of the marker file written into a directory once the legacy-brand migration
+        /// has been attempted for it, so that the migration is never run twice.
+        static constexpr const char* legacyBrandMigrationMarker = ".brand_migration_complete";
+
+        /// Copy a previous brand's user data and configuration into the current brand's
+        /// directories, if the current brand has no data of its own yet. The previous brand is
+        /// named by the `LegacyExeName` and `LegacyExeVendor` config entries; if neither is set,
+        /// this does nothing. The old directories are only read, never modified or removed, so a
+        /// failed or unwanted migration can always be undone by deleting the new directories.
+        /// Directories that already contain data, and portable/custom installs, are left alone.
+        void migrateLegacyBrandedPaths(const std::map<std::string,std::string>& mConfig,
+                                       const std::filesystem::path& configHome,
+                                       const std::filesystem::path& dataHome,
+                                       const std::filesystem::path& customHome,
+                                       const std::filesystem::path& customData,
+                                       bool keepDeprecatedPaths);
+
+        /// True if \a path does not exist, or exists but holds nothing except the migration
+        /// marker file. Such a directory is safe to migrate into.
+        static bool isEmptyOfUserData(const std::filesystem::path& path);
+
+        /// Rewrite absolute paths that point into \a oldPrefix so that they point into
+        /// \a newPrefix instead, for every `.cfg` file directly inside \a directory. Preference
+        /// values such as a custom macro directory are stored as absolute paths, so without this
+        /// a migrated configuration would keep reading from the previous brand's directories.
+        static void rewriteConfigPaths(const std::filesystem::path& directory,
+                                       const std::filesystem::path& oldPrefix,
+                                       const std::filesystem::path& newPrefix);
+
 #ifdef FC_OS_WIN32
         /// On Windows, gets the location of the user's "AppData" directory. Invalid on other OSes.
         QString getOldGenericDataLocation();

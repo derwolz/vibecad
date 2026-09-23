@@ -943,6 +943,96 @@ TEST_F(ApplicationDirectoriesTest, appendCreateAlreadyVersionedBails)
     EXPECT_EQ(sub, before);
 }
 
+
+// Legacy-brand migration helpers
+// ------------------------------
+
+TEST_F(ApplicationDirectoriesTest, isEmptyOfUserDataTrueForMissingDirectory)
+{
+    EXPECT_TRUE(App::ApplicationDirectories::isEmptyOfUserData(tempDir() / "not_there"));
+}
+
+TEST_F(ApplicationDirectoriesTest, isEmptyOfUserDataTrueForEmptyDirectory)
+{
+    fs::path dir = tempDir() / "empty";
+    fs::create_directories(dir);
+
+    EXPECT_TRUE(App::ApplicationDirectories::isEmptyOfUserData(dir));
+}
+
+TEST_F(ApplicationDirectoriesTest, isEmptyOfUserDataTrueWhenOnlyTheMarkerIsPresent)
+{
+    fs::path dir = tempDir() / "marker_only";
+    fs::create_directories(dir);
+    std::ofstream(dir / App::ApplicationDirectories::legacyBrandMigrationMarker) << "done";
+
+    EXPECT_TRUE(App::ApplicationDirectories::isEmptyOfUserData(dir));
+}
+
+TEST_F(ApplicationDirectoriesTest, isEmptyOfUserDataFalseWhenAnythingElseIsPresent)
+{
+    fs::path dir = tempDir() / "populated";
+    fs::create_directories(dir);
+    std::ofstream(dir / "user.cfg") << "<?xml version=\"1.0\"?>";
+
+    EXPECT_FALSE(App::ApplicationDirectories::isEmptyOfUserData(dir));
+}
+
+TEST_F(ApplicationDirectoriesTest, rewriteConfigPathsRepointsStoredAbsolutePaths)
+{
+    fs::path dir = tempDir() / "config";
+    fs::create_directories(dir);
+    fs::path oldPrefix = tempDir() / "OldBrand";
+    fs::path newPrefix = tempDir() / "NewBrand";
+
+    std::ofstream(dir / "user.cfg")
+        << "<FCParamGroup><FCText Name=\"MacroPath\">"
+        << (oldPrefix / "Macro").generic_string() << "</FCText></FCParamGroup>";
+
+    App::ApplicationDirectories::rewriteConfigPaths(dir, oldPrefix, newPrefix);
+
+    std::ifstream input(dir / "user.cfg");
+    std::string contents {std::istreambuf_iterator<char>(input),
+                          std::istreambuf_iterator<char>()};
+    EXPECT_NE(contents.find((newPrefix / "Macro").generic_string()), std::string::npos);
+    EXPECT_EQ(contents.find(oldPrefix.generic_string()), std::string::npos);
+}
+
+TEST_F(ApplicationDirectoriesTest, rewriteConfigPathsLeavesUnrelatedFilesAlone)
+{
+    fs::path dir = tempDir() / "config_other";
+    fs::create_directories(dir);
+    fs::path oldPrefix = tempDir() / "OldBrand";
+    fs::path newPrefix = tempDir() / "NewBrand";
+
+    const std::string original = oldPrefix.generic_string() + "/Macro";
+    std::ofstream(dir / "notes.txt") << original;
+
+    App::ApplicationDirectories::rewriteConfigPaths(dir, oldPrefix, newPrefix);
+
+    std::ifstream input(dir / "notes.txt");
+    std::string contents {std::istreambuf_iterator<char>(input),
+                          std::istreambuf_iterator<char>()};
+    EXPECT_EQ(contents, original);
+}
+
+TEST_F(ApplicationDirectoriesTest, rewriteConfigPathsIsANoOpWhenPrefixesMatch)
+{
+    fs::path dir = tempDir() / "config_same";
+    fs::create_directories(dir);
+    fs::path prefix = tempDir() / "SameBrand";
+
+    const std::string original = prefix.generic_string() + "/Macro";
+    std::ofstream(dir / "user.cfg") << original;
+
+    App::ApplicationDirectories::rewriteConfigPaths(dir, prefix, prefix);
+
+    std::ifstream input(dir / "user.cfg");
+    std::string contents {std::istreambuf_iterator<char>(input),
+                          std::istreambuf_iterator<char>()};
+    EXPECT_EQ(contents, original);
+}
+
 /* NOLINTEND(
     readability-magic-numbers,
     cppcoreguidelines-avoid-magic-numbers,

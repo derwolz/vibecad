@@ -64,6 +64,26 @@ xattr -dr com.apple.quarantine /Applications/SteveCAD.app
 
 SHA256 files are published beside release artifacts so downloads can be verified before installation.
 
+### Upgrading From VibeCAD
+
+SteveCAD was previously released as VibeCAD. The first time SteveCAD starts, it copies your existing
+VibeCAD preferences, macros and installed addons into its own directories:
+
+| Platform | Copied from | Copied to |
+| --- | --- | --- |
+| Linux | `~/.local/share/VibeCAD/`, `~/.config/VibeCAD/` | `~/.local/share/SteveCAD/`, `~/.config/SteveCAD/` |
+| macOS | `~/Library/Application Support/VibeCAD/` | `~/Library/Application Support/SteveCAD/` |
+| Windows | `%APPDATA%\VibeCAD\` | `%APPDATA%\SteveCAD\` |
+
+Nothing is moved or deleted — the VibeCAD directories are left exactly as they were, so you can keep
+running both, and you can undo the migration by deleting the SteveCAD directories. The copy only
+happens when the SteveCAD directories are still empty, so it will not overwrite settings you have
+already made. Absolute paths saved in your preferences (a custom macro directory, for example) are
+repointed at the new locations as part of the copy.
+
+A `.brand_migration_complete` marker is written once the copy is done. Delete it if you want the
+migration to run again.
+
 ## Configure an AI Provider
 
 Open **Preferences**, then select **SteveCAD > SteveCAD**.

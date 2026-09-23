@@ -21,6 +21,8 @@
  **************************************************************************************************/
 
 #include <fmt/format.h>
+#include <array>
+#include <fstream>
 #include <utility>
 #include <QDir>
 #include <QProcessEnvironment>
@@ -253,6 +255,12 @@ void ApplicationDirectories::configurePaths(std::map<std::string,std::string>& m
     fs::path config = findPath(configHome, customHome, configSubdirs, true);
     _userConfig = config;
     mConfig["UserConfigPath"] = Base::FileInfo::pathToString(config) + PATHSEP;
+
+
+    // Recover the user's settings if they are still stored under a previous brand's directories
+    //
+    migrateLegacyBrandedPaths(mConfig, configHome, dataHome, customHome, customData,
+                              keepDeprecatedPaths);
 
 
     // User cache path
@@ -615,6 +623,194 @@ ApplicationDirectories::MigrationResult ApplicationDirectories::migrateConfig(
                                 errorCode.message().c_str());
     }
     return result;
+}
+
+namespace
+{
+
+/// Replace every occurrence of \a needle in \a haystack with \a replacement. Returns true if at
+/// least one replacement was made.
+bool replaceAllOccurrences(std::string& haystack,
+                           const std::string& needle,
+                           const std::string& replacement)
+{
+    if (needle.empty()) {
+        return false;
+    }
+    bool changed = false;
+    std::string::size_type pos = 0;
+    while ((pos = haystack.find(needle, pos)) != std::string::npos) {
+        haystack.replace(pos, needle.size(), replacement);
+        pos += replacement.size();
+        changed = true;
+    }
+    return changed;
+}
+
+}  // namespace
+
+bool ApplicationDirectories::isEmptyOfUserData(const fs::path& path)
+{
+    std::error_code errorCode;
+    if (!fs::exists(path, errorCode)) {
+        return true;
+    }
+    if (!fs::is_directory(path, errorCode)) {
+        return false;
+    }
+    for (const auto& entry : fs::directory_iterator(path, errorCode)) {
+        if (entry.path().filename().string() != legacyBrandMigrationMarker) {
+            return false;
+        }
+    }
+    return !errorCode;
+}
+
+void ApplicationDirectories::rewriteConfigPaths(const fs::path& directory,
+                                                const fs::path& oldPrefix,
+                                                const fs::path& newPrefix)
+{
+    if (oldPrefix.empty() || newPrefix.empty() || oldPrefix == newPrefix) {
+        return;
+    }
+
+    // Preferences are written with either separator depending on the platform and on which code
+    // path stored them, so rewrite both renderings of the path.
+    const std::array<std::pair<std::string, std::string>, 2> renderings {{
+        {oldPrefix.string(), newPrefix.string()},
+        {oldPrefix.generic_string(), newPrefix.generic_string()},
+    }};
+
+    std::error_code errorCode;
+    for (const auto& entry : fs::directory_iterator(directory, errorCode)) {
+        if (!entry.is_regular_file(errorCode) || entry.path().extension() != ".cfg") {
+            continue;
+        }
+        std::ifstream input(entry.path(), std::ios::binary);
+        if (!input) {
+            continue;
+        }
+        std::string contents {std::istreambuf_iterator<char>(input),
+                              std::istreambuf_iterator<char>()};
+        input.close();
+
+        bool changed = false;
+        for (const auto& [from, to] : renderings) {
+            changed = replaceAllOccurrences(contents, from, to) || changed;
+        }
+        if (!changed) {
+            continue;
+        }
+
+        std::ofstream output(entry.path(), std::ios::binary | std::ios::trunc);
+        if (!output) {
+            Base::Console().warning("Migration: could not rewrite stored paths in '%s'\n",
+                                    Base::FileInfo::pathToString(entry.path()).c_str());
+            continue;
+        }
+        output << contents;
+    }
+}
+
+void ApplicationDirectories::migrateLegacyBrandedPaths(
+    const std::map<std::string, std::string>& mConfig,
+    const fs::path& configHome,
+    const fs::path& dataHome,
+    const fs::path& customHome,
+    const fs::path& customData,
+    bool keepDeprecatedPaths)
+{
+    if (_usingCustomDirectories) {
+        // A portable install, or one pointed at explicit directories, uses the same location
+        // whatever the branding is: there is nothing to move.
+        return;
+    }
+
+    auto legacyNameEntry = mConfig.find("LegacyExeName");
+    auto legacyVendorEntry = mConfig.find("LegacyExeVendor");
+    if (legacyNameEntry == mConfig.end() && legacyVendorEntry == mConfig.end()) {
+        return;
+    }
+
+    std::map<std::string, std::string> legacyConfig = mConfig;
+    if (legacyNameEntry != mConfig.end()) {
+        legacyConfig["ExeName"] = legacyNameEntry->second;
+    }
+    if (legacyVendorEntry != mConfig.end()) {
+        legacyConfig["ExeVendor"] = legacyVendorEntry->second;
+    }
+    auto valueOrEmpty = [](const std::map<std::string, std::string>& config,
+                           const std::string& key) -> std::string {
+        auto entry = config.find(key);
+        return entry == config.end() ? std::string {} : entry->second;
+    };
+    if (valueOrEmpty(legacyConfig, "ExeName") == valueOrEmpty(mConfig, "ExeName")
+        && valueOrEmpty(legacyConfig, "ExeVendor") == valueOrEmpty(mConfig, "ExeVendor")) {
+        // Nothing was actually renamed.
+        return;
+    }
+
+    std::vector<std::string> legacySubdirs;
+    if (keepDeprecatedPaths) {
+        getOldDataLocation(legacyConfig, legacySubdirs);
+    }
+    else {
+        getSubDirectories(legacyConfig, legacySubdirs);
+    }
+
+    const std::array<std::tuple<fs::path, fs::path, fs::path>, 2> targets {{
+        {dataHome, customData, _userAppData},
+        {configHome, customHome, _userConfig},
+    }};
+
+    std::vector<std::pair<fs::path, fs::path>> migrated;
+    for (const auto& [home, custom, currentPath] : targets) {
+        auto subdirs = legacySubdirs;
+        appendVersionIfPossible(home, subdirs, MissingDirectoryBehavior::doNotAppend);
+        fs::path legacyPath = findPath(home, custom, subdirs, false);
+
+        std::error_code errorCode;
+        if (legacyPath == currentPath || !fs::is_directory(legacyPath, errorCode)
+            || fs::is_empty(legacyPath, errorCode)) {
+            continue;
+        }
+        if (fs::exists(currentPath / legacyBrandMigrationMarker, errorCode)
+            || !isEmptyOfUserData(currentPath)) {
+            continue;
+        }
+
+        Base::Console().message("Migrating %s settings from '%s' to '%s'\n",
+                                valueOrEmpty(legacyConfig, "ExeName").c_str(),
+                                Base::FileInfo::pathToString(legacyPath).c_str(),
+                                Base::FileInfo::pathToString(currentPath).c_str());
+        auto result = migrateConfig(legacyPath, currentPath);
+        if (!result.failedPaths.empty()) {
+            Base::Console().warning(
+                "Migration: %d item(s) could not be copied from '%s'. The originals are "
+                "untouched and can still be copied over by hand.\n",
+                static_cast<int>(result.failedPaths.size()),
+                Base::FileInfo::pathToString(legacyPath).c_str());
+        }
+        migrated.emplace_back(legacyPath, currentPath);
+    }
+
+    // Absolute paths stored inside the copied preferences (a custom macro directory, for example)
+    // still point at the previous brand's directories, so repoint them at the new ones. Both
+    // migrated directories are rewritten against both mappings, because the configuration
+    // directory holds paths into the data directory.
+    for (const auto& target : migrated) {
+        for (const auto& [legacyPath, newPath] : migrated) {
+            rewriteConfigPaths(target.second, legacyPath, newPath);
+        }
+    }
+
+    // Leave a marker behind so this only ever happens once, even if the user later empties the
+    // directory on purpose.
+    for (const auto& [legacyPath, currentPath] : migrated) {
+        std::ofstream marker(currentPath / legacyBrandMigrationMarker);
+        marker << "Settings were migrated from " << Base::FileInfo::pathToString(legacyPath)
+               << "\nDelete this file to allow the migration to run again.\n";
+    }
 }
 
 ApplicationDirectories::MigrationResult ApplicationDirectories::migrateAllPaths(

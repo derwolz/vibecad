@@ -70,6 +70,10 @@ int main(int argc, char** argv)
     App::Application::Config()["ExeName"] = "SteveCAD";
     App::Application::Config()["ExeVendor"] = "SteveCAD";
     App::Application::Config()["AppDataSkipVendor"] = "true";
+    // The name this application used to ship under. On first run, settings still stored under it
+    // are copied into the current directories; see ApplicationDirectories::migrateLegacyBrandedPaths.
+    App::Application::Config()["LegacyExeName"] = "VibeCAD";
+    App::Application::Config()["LegacyExeVendor"] = "VibeCAD";
 
     // set the banner (for logging and console)
     App::Application::Config()["CopyrightInfo"] = sBanner;
